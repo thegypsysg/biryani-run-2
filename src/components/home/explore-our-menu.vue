@@ -7,7 +7,7 @@
       elevate your dinging experience, one delicious meal at a time.
     </p>
 
-    <ExploreOurMenuList height="150" />
+    <ExploreOurMenuList :desktop="true" />
   </v-container>
 </template>
 

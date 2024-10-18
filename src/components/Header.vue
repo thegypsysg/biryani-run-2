@@ -4,13 +4,33 @@
   }" color="white" elevation="1" fixed>
     <router-link to="/">
       <div class="logo-img-container ml-4">
-        <v-img class="logo-img" :src="$fileURL + logo" height="50" transition="fade-transition">
+        <v-img class="logo-img" src="@/assets/images/logo/logo.png" height="50" transition="fade-transition">
           <template #placeholder>
             <div class="skeleton" />
           </template>
         </v-img>
       </div>
     </router-link>
+    <div v-if="!isHeader" class="desktop__app">
+      <v-menu>
+        <template #activator="{ props }">
+          <v-btn style="
+              margin-left: 30px;
+              margin-right: 30px;
+              font-size: 16px;
+              color: #494949;
+            " v-bind="props" variant="text">
+            Singapore
+            <v-icon right dark> mdi-menu-down </v-icon>
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item v-for="(item, index) in items" :key="index" :value="index">
+            <v-list-item-title>{{ item.title }}</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+    </div>
 
     <div v-if="
       !isHeader &&
@@ -114,7 +134,7 @@
     <form v-if="!isHeader && !isProfile && !isBatamProperties" class="navbar__search navbar__search__desktop">
       <v-autocomplete id="product_name" v-model="search" class="form-control mr-sm-2 ml-md-n3 search-input"
         item-title="name" item-value="name" :items="activeMalls" style="font-style: italic"
-        placeholder="Explore Properties" density="compact" color="blue-grey-lighten-2">
+        placeholder="What's your Favourite Biryani" density="compact" color="blue-grey-lighten-2">
         <template #item="{ props, item }">
           <div class="mb-2" v-bind="props">
             <router-link class="text-decoration-none text-black font-weight-bold" to="#">
@@ -178,7 +198,14 @@
       Logout
     </v-btn>
 
-    <!-- <div class="vspacer" style="width: 50px"></div> -->
+
+    <div>
+      <div v-if="!isSmall" class="cart d-flex align-center">
+        <div class="cart-line mr-2" />
+        <v-icon size="35" color="black"> mdi mdi-cart-variant </v-icon>
+        <span>S$ 0</span>
+      </div>
+    </div>
 
     <div v-if="!isSignin" style="height: 48px; width: 48px; border-radius: 50%; cursor: pointer" icon class="mr-4"
       @click="drawer = !drawer">
@@ -272,8 +299,8 @@
           </button>
         </form>
 
-        <div v-if="$route.name == 'HomePage'" class="my-4">
-          <ExploreOurMenuList height="100" />
+        <div v-if="$route.name == 'HomePage'" class="ma-4">
+          <ExploreOurMenuList :desktop="false" />
         </div>
 
 

@@ -39,7 +39,7 @@
         data-aos-easing="ease-in-sine">
         <v-col cols="12" class="d-flex flex-column align-start" style="padding-left: 20px">
           <h1 style="color: #fff; font-size: 46px; font-weight: bold">
-            Order Your<br />Favourite Food Here
+            What's Your<br />Favourite Biryani
           </h1>
 
           <p class="text-white font-weight-light text-h6 mt-2">
