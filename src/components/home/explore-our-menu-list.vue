@@ -13,8 +13,8 @@
 
 <script lang="ts" setup>
 defineProps<{
-  height: string
-  desktop: bool
+  // height: string
+  desktop: boolean
 }>();
 
 const menuLists = [
