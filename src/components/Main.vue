@@ -65,10 +65,9 @@
     ">
     <v-container class="mx-auto px-4 medium:px-16" style="max-width: 1200px">
       <ExploreOurMenu class="d-none d-md-block" />
-      <MuttonBiryani />
-      <VegBiryani />
-      <LambBiryani />
-      <PrawnBiryani />
+      <template v-for="item in menuLists" :key="item.id">
+        <RestaurantDish :id="item.id" :menuLists="item" :fileURL="$fileURL" />
+      </template>
     </v-container>
     <Footer />
   </div>
@@ -92,6 +91,7 @@ const listData = ref([]);
 const listDataCommercial = ref([]);
 const listMainCategories = ref([]);
 const isLoading = ref(true);
+const menuLists = ref([]);
 function scrollToSection() {
   eventBus.scrollToSection = "happeningTarget"; // Ganti dengan ID section yang diinginkan
 }
@@ -101,6 +101,7 @@ onMounted(() => {
   setTimeout(() => {
     isZoomed.value = true;
   }, 100); // Small delay to ensure the transition starts after mount
+  getMenuList();
 });
 
 const handleIntersection = (entries, observer) => {
@@ -111,6 +112,12 @@ const handleIntersection = (entries, observer) => {
     }
   });
 };
+
+async function getMenuList() {
+  const res = await axios.get('/list-biryani-main-categories');
+  console.log(res.data);
+  menuLists.value = res.data.data;
+}
 
 function get4WallsPropertyData() {
   isLoading.value = true;

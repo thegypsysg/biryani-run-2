@@ -13,19 +13,19 @@
     </router-link>
     <div v-if="!isHeader" class="desktop__app">
       <v-menu>
-        <template #activator="{ props }">
+        <template v-for="item in country" :key="item.id" #activator="{ props }">
           <v-btn style="
               margin-left: 30px;
               margin-right: 30px;
               font-size: 16px;
               color: #494949;
             " v-bind="props" variant="text">
-            Singapore
+            {{ item.title }}
             <v-icon right dark> mdi-menu-down </v-icon>
           </v-btn>
         </template>
         <v-list>
-          <v-list-item v-for="(item, index) in items" :key="index" :value="index">
+          <v-list-item v-for="(item, index) in country" :key="index" :value="index">
             <v-list-item-title>{{ item.title }}</v-list-item-title>
           </v-list-item>
         </v-list>
