@@ -88,7 +88,7 @@
     <form v-if="!isHeader && !isProfile && !isBatamProperties" class="navbar__search navbar__search__desktop">
       <v-autocomplete id="product_name" v-model="search" class="form-control mr-sm-2 ml-md-n3 search-input"
         item-title="name" item-value="name" :items="activeMalls" style="font-style: italic"
-        placeholder="What's your Favourite Biryani" density="compact" color="blue-grey-lighten-2">
+        placeholder="Chicken, Mutton ,  Prawn" density="compact" color="blue-grey-lighten-2">
         <template #item="{ props, item }">
           <div class="mb-2" v-bind="props">
             <router-link class="text-decoration-none text-black font-weight-bold" to="#">
