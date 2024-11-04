@@ -32,53 +32,7 @@
       </v-menu>
     </div>
 
-    <div v-if="
-      !isHeader &&
-      !isProfile &&
-      !isBatamProperties &&
-      !(
-        $route.name == 'Trending-buy' ||
-        $route.name == 'Trending-rent' ||
-        $route.name == 'Trending-roommates' ||
-        $route.name == 'Trending-staycation' ||
-        $route.name == 'Trending-vacation' ||
-        $route.name == 'Trending-co-living' ||
-        $route.name == 'Trending-co-working'
-      )
-    " class="text-center desktop__app">
-      <v-btn style="background: #f4f5f7; color: black" variant="text" color="black" icon="mdi-share-outline" width="40"
-        height="40" class="mr-2">
-        <v-icon color="rgb(38, 38, 38)" size="22"> mdi-share-outline </v-icon>
-        <v-menu activator="parent">
-          <v-list>
-            <v-list-item @click="console.log('share')">
-              <v-list-item-title>
-                <v-icon class="mr-4" color="black" size="18">
-                  mdi-email-outline </v-icon>Email
-              </v-list-item-title>
-            </v-list-item>
-            <v-list-item @click="console.log('share')">
-              <v-list-item-title>
-                <v-icon class="mr-4" size="18">
-                  <i class="fa-brands fa-facebook-f" /> </v-icon>Facebook
-              </v-list-item-title>
-            </v-list-item>
-            <v-list-item @click="console.log('share')">
-              <v-list-item-title>
-                <v-icon class="mr-4" color="black" size="18">
-                  mdi-twitter </v-icon>Twitter
-              </v-list-item-title>
-            </v-list-item>
-            <v-list-item @click="console.log('share')">
-              <v-list-item-title>
-                <v-icon class="mr-4" size="18">
-                  <i class="fa-brands fa-linkedin-in" /> </v-icon>Linkedin
-              </v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
-      </v-btn>
-    </div>
+
 
     <data v-if="
       $route.name == 'Trending-buy' ||
@@ -134,7 +88,7 @@
     <form v-if="!isHeader && !isProfile && !isBatamProperties" class="navbar__search navbar__search__desktop">
       <v-autocomplete id="product_name" v-model="search" class="form-control mr-sm-2 ml-md-n3 search-input"
         item-title="name" item-value="name" :items="activeMalls" style="font-style: italic"
-        placeholder="What's your Favourite Biryani" density="compact" color="blue-grey-lighten-2">
+        placeholder="Chicken, Mutton ,  Prawn" density="compact" color="blue-grey-lighten-2">
         <template #item="{ props, item }">
           <div class="mb-2" v-bind="props">
             <router-link class="text-decoration-none text-black font-weight-bold" to="#">
@@ -187,7 +141,28 @@
 
     <!-- <v-spacer></v-spacer> -->
 
-    <div v-if="!isHeader && !isProfile && !userName" class="btn_sign__up-cont">
+    <!-- if mobile view -->
+    <v-menu v-if="isSmall">
+      <template v-for="item in country" :key="item.id" #activator="{ props }">
+        <v-btn style="
+            margin-left: 30px;
+            margin-right: 30px;
+            font-size: 16px;
+            color: #494949;
+          " v-bind="props" variant="text">
+          {{ item.title }}
+          <v-icon right dark> mdi-menu-down </v-icon>
+        </v-btn>
+      </template>
+      <v-list>
+        <v-list-item v-for="(item, index) in country" :key="index" :value="index">
+          <v-list-item-title>{{ item.title }}</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
+
+     <!-- if NOT mobile view -->
+    <div v-if="!isHeader && !isProfile && !userName && !isSmall" class="btn_sign__up-cont">
       <v-btn elevation="0" class="btn_sign__up" to="/sign-in">
         <span> Sign Up / Sign In</span>
       </v-btn>
@@ -198,7 +173,7 @@
       Logout
     </v-btn>
 
-
+     <!-- if NOT mobile view -->
     <div>
       <div v-if="!isSmall" class="cart d-flex align-center">
         <div class="cart-line mr-2" />
@@ -260,11 +235,23 @@
             </v-btn>
           </div>
         </template>
+        
+          <!-- if NOT mobile view -->
+        <div v-if="!isHeader && !isProfile && !userName && isSmall" class="btn_sign__up-cont mx-auto my-4">
+          <v-btn elevation="0" class="btn_sign__up d-flex align-center" to="/sign-in">
+            <span> Sign Up / Sign In</span>
+          </v-btn>
+          <div class="btn_sign__up-hover" />
+        </div>
+        <v-btn v-if="!isHeader && !isProfile && !isSmall && userName" elevation="0" class="btn_log__out"
+          :class="{ 'mr-6': tokenStart }" @click="logout">
+          Logout
+        </v-btn>
 
         <form class="navbar__search navbar__search__mobile mx-auto">
           <v-autocomplete id="product_name" v-model="search" class="form-control mr-sm-2 ml-md-n3 search-input"
             item-title="name" item-value="name" :items="activeMalls" style="font-style: italic"
-            placeholder="Explore Properties" density="compact" color="blue-grey-lighten-2">
+            placeholder="Chicken, Mutton , Prawn" density="compact" color="blue-grey-lighten-2">
             <template #item="{ props, item }">
               <div class="mb-2" v-bind="props">
                 <router-link class="text-decoration-none text-black font-weight-bold" style="font-size: 12px" to="#">
