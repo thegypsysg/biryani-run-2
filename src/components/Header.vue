@@ -26,7 +26,7 @@
         </template>
         <v-list>
           <v-list-item v-for="(item, index) in country" :key="index" :value="index">
-            <v-list-item-title>{{ item.title }}11</v-list-item-title>
+            <v-list-item-title>{{ item.title }}</v-list-item-title>
           </v-list-item>
         </v-list>
       </v-menu>
@@ -141,9 +141,30 @@
 
     <!-- <v-spacer></v-spacer> -->
 
-    <div v-if="!isHeader && !isProfile && !userName" class="btn_sign__up-cont">
+    <!-- if mobile view -->
+    <v-menu v-if="isSmall">
+      <template v-for="item in country" :key="item.id" #activator="{ props }">
+        <v-btn style="
+            margin-left: 30px;
+            margin-right: 30px;
+            font-size: 16px;
+            color: #494949;
+          " v-bind="props" variant="text">
+          {{ item.title }}
+          <v-icon right dark> mdi-menu-down </v-icon>
+        </v-btn>
+      </template>
+      <v-list>
+        <v-list-item v-for="(item, index) in country" :key="index" :value="index">
+          <v-list-item-title>{{ item.title }}</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
+
+     <!-- if NOT mobile view -->
+    <div v-if="!isHeader && !isProfile && !userName && !isSmall" class="btn_sign__up-cont">
       <v-btn elevation="0" class="btn_sign__up" to="/sign-in">
-        <span> Sign Up / Sign In</span>
+        <span> Sign Up1 / Sign In</span>
       </v-btn>
       <div class="btn_sign__up-hover" />
     </div>
@@ -152,7 +173,7 @@
       Logout
     </v-btn>
 
-
+     <!-- if NOT mobile view -->
     <div>
       <div v-if="!isSmall" class="cart d-flex align-center">
         <div class="cart-line mr-2" />
