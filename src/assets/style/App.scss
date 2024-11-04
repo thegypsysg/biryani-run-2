@@ -550,6 +550,9 @@ header {
   border-radius: 12px;
 }
 
+.border-black{
+  border: 1px solid black !important;
+}
 @media (max-width: 959px) {
   .v-toolbar__content {
     height: 70px !important;
