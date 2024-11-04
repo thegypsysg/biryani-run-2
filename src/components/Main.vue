@@ -42,12 +42,6 @@
             What's Your<br />Favourite Biryani
           </h1>
 
-          <p class="text-white font-weight-light text-h6 mt-2">
-            Choose from a diverse menu featuring a delectable array of dishes crafted with<br />
-            the finest ingredients and culinary expertise. Our mission is to saitisfy your<br />
-            cravings and elevate your dinging experience, one delicious meal at a time.
-          </p>
-
           <v-btn size="x-large" color="white" rounded elevation="0" class="font-weight-light mt-8 capitalize">
             View Menu
           </v-btn>
