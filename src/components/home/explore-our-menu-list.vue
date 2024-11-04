@@ -11,7 +11,8 @@
         <v-avatar :size="50" v-if="!desktop">
           <v-img aspect-ratio="1" cover :src="$fileURL + menu.img"></v-img>
         </v-avatar>
-        <p class="font-weight-bold text-body text-no-wrap">{{ menu.title }}</p>
+        <p :class="{ 'font-weight-bold text-body': true, 'text-no-wrap d-flex align-center pl-2 text-caption': !desktop }">{{ menu.title }}</p>
+
       </a>
     </div>
   </div>
