@@ -164,7 +164,7 @@
      <!-- if NOT mobile view -->
     <div v-if="!isHeader && !isProfile && !userName && !isSmall" class="btn_sign__up-cont">
       <v-btn elevation="0" class="btn_sign__up" to="/sign-in">
-        <span> Sign Up1 / Sign In</span>
+        <span> Sign Up / Sign In</span>
       </v-btn>
       <div class="btn_sign__up-hover" />
     </div>
@@ -235,6 +235,18 @@
             </v-btn>
           </div>
         </template>
+        
+          <!-- if NOT mobile view -->
+        <div v-if="!isHeader && !isProfile && !userName && isSmall" class="btn_sign__up-cont mx-auto my-4">
+          <v-btn elevation="0" class="btn_sign__up d-flex align-center" to="/sign-in">
+            <span> Sign Up / Sign In</span>
+          </v-btn>
+          <div class="btn_sign__up-hover" />
+        </div>
+        <v-btn v-if="!isHeader && !isProfile && !isSmall && userName" elevation="0" class="btn_log__out"
+          :class="{ 'mr-6': tokenStart }" @click="logout">
+          Logout
+        </v-btn>
 
         <form class="navbar__search navbar__search__mobile mx-auto">
           <v-autocomplete id="product_name" v-model="search" class="form-control mr-sm-2 ml-md-n3 search-input"
