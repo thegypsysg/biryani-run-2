@@ -553,6 +553,17 @@ header {
 .border-black{
   border: 1px solid black !important;
 }
+
+.scroll-menu{
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+
+}
+
+.scroll-menu::-webkit-scrollbar { /* WebKit */
+  width: 0;
+  height: 0;
+}
 @media (max-width: 959px) {
   .v-toolbar__content {
     height: 70px !important;
