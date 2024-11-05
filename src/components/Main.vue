@@ -59,9 +59,14 @@
     ">
     <v-container class="mx-auto px-4 medium:px-16" style="max-width: 1200px">
       <ExploreOurMenu class="d-none d-md-block" />
+
+      <DeliveryBiryani />
+
       <template v-for="item in menuLists" :key="item.id">
         <RestaurantDish :id="item.id" :menuLists="item" :fileURL="$fileURL" />
       </template>
+
+     
     </v-container>
     <Footer />
   </div>
@@ -71,6 +76,7 @@
 import 'vue3-carousel/dist/carousel.css'
 import { ref, onMounted } from "vue"; // Ensure these are imported
 import ExploreOurMenu from '@/components/home/explore-our-menu.vue';
+import DeliveryBiryani from '@/components/home/delivery-biryani.vue';
 import ChickenBiryani from '@/components/home/chicken-biryani.vue';
 import MuttonBiryani from '@/components/home/mutton-biryani.vue';
 import VegBiryani from '@/components/home/veg-biryani.vue';
