@@ -11,10 +11,8 @@
             
             :items="['Marine Parade']"
             ></v-autocomplete>
-
-
-
         </div>
       
+        
     </div>
 </template>
