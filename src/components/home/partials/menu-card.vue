@@ -57,6 +57,7 @@ const props = defineProps<{
 
 const menu = ref([]);
 
+
 onMounted(() => {
   console.log(props.menu);
   menu.value = Array.isArray(props.menu) ? props.menu.map((item: any) => ({
@@ -71,6 +72,8 @@ onMounted(() => {
       name: item.restaurant_name
     }
   })) : [];
+
+ 
 });
 </script>
 

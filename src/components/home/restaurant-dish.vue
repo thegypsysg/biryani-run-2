@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <div class="d-flex justify-space-between" :id="menuLists.category_name">
-      <div class="text-h4 font-weight-bold">{{ menuLists.category_name }}</div>
+      <div :class="{'text-h4 font-weight-bold' : isDesktop, 'text-red font-weight-bold' : !isDesktop}">{{ menuLists.category_name }}</div>
       <v-btn elevation="0" class="text-blue">View All</v-btn>
     </div>
     <Carousel v-bind="settings" :breakpoints>
@@ -18,16 +18,23 @@
 </template>
 
 <script lang="ts" setup>
+
+import { Carousel, Slide, Pagination, Navigation } from 'vue3-carousel';
+import { onMounted,ref } from 'vue';
+import MenuCard from './partials/menu-card.vue'
+
 const props = defineProps<{
   menuLists: any,
   fileURL: string
 }>();
-import { Carousel, Slide, Pagination, Navigation } from 'vue3-carousel';
-import { onMounted } from 'vue';
-import MenuCard from './partials/menu-card.vue'
+
+const isDesktop = ref(true)
+
 
 onMounted(() => {
   console.log(props.menuLists);
+  isDesktop.value = window.innerWidth >= 768;
+
 });
 
 const menu = {
