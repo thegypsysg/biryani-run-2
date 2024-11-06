@@ -14,16 +14,16 @@
     <div class="pa-0">
     
       <div class="d-flex justify-space-between align-center font-weight-bold text-body pa-2">
-      <p class="font-weight-black text-subtitle-2  text-start">{{ props.menu.actual_dish_name || props.menu.dish?.dish_name }}</p>
-      <v-rating
-        :length="5"
-        :size="20"
-        :model-value="4"
-          density="comfortable"
-        class="text-red"
-        active-color="text-red"
-      />
-    </div>
+        <p class="font-weight-black text-subtitle-2  text-start">{{ props.menu.actual_dish_name || props.menu.dish?.dish_name }}</p>
+        <v-rating
+          :length="5"
+          :size="20"
+          :model-value="4"
+            density="comfortable"
+          class="text-red"
+          active-color="text-red"
+        />
+      </div>
       <!-- <div class="font-weight-light text-body-1 text-justify">{{ props.menu.dish_description }}</div> -->
 
       <!-- <hr class="my-2">
@@ -32,7 +32,9 @@
         Purchases | {{ 300}} Views
       </div> -->
 
-
+      <div class="text-red text-start">
+        $ {{ parseFloat(props.menu.price).toFixed(2) }}
+      </div>
     </div>
   </div>
 </template>
