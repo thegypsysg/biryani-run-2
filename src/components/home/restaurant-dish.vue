@@ -6,7 +6,7 @@
     </div>
     <Carousel v-bind="settings" :breakpoints>
       <Slide v-for="(n, i) in menuLists.biryani_restaurant_dishes" :key="i">
-        <MenuCard :menu="n" :fileURL="$fileURL" />
+        <MenuCard :menu="n" :fileURL="$fileURL" :isDesktop="isDesktop" />
       </Slide>
 
       <template #addons>
@@ -59,7 +59,7 @@ const settings: breakpoints = {
 const breakpoints = {
   // 200px and up
   200: {
-    itemsToShow: 1,
+    itemsToShow: 1.2,
     snapAlign: 'center',
   },
   // 640px and up

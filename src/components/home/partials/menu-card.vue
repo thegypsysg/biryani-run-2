@@ -1,11 +1,11 @@
 <template>
-  <div class="bg-white pa-2 ma-2" elevation="4" style="width: 100%; height: 100%;">
+  <div :class="{'bg-white pa-2': true, 'ma-2':isDesktop}" elevation="4" style="width: 100%; height: 400px;">
     <div class=" align-center text-start ga-3">
         <v-img :src="props.fileURL + props.menu.restaurant?.partner?.logo" aspect-ratio="1" class="float-left mr-2"
           style="width: 35px; height: 35px; max-width: 35px; max-height: 35px;"></v-img>
         <div class="d-flex justify-space-between">
           <div>
-            <div class="font-weight-black text-subtitle-1">{{ props.menu.restaurant?.partner ? props.menu.restaurant?.partner.partner_name : '' }}</div>
+            <div class="font-weight-black text-subtitle-1 text-no-wrap">{{ props.menu.restaurant?.partner ? props.menu.restaurant?.partner.partner_name : '' }}</div>
             <div class="text-blue-grey-lighten-2 text-caption">
               {{ props.menu.restaurant?.partner?.address ? props.menu.restaurant?.partner.address : 'Marine Parade' }}
             </div>
@@ -52,10 +52,12 @@ import { onMounted, ref } from 'vue';
 
 const props = defineProps<{
   menu: [],
-  fileURL: string
+  fileURL: string,
+  isDesktop: boolean
 }>();
 
 const menu = ref([]);
+
 
 
 onMounted(() => {
