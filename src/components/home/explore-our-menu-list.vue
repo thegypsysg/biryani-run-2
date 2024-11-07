@@ -17,14 +17,13 @@
      
     </div> -->
 
-      <div v-for="(menu, i) in menuLists" :key="i" class="d-flex align-center ga-4 "
-          :class="{ 'pr-4 flex-column-reverse': desktop, 'flex-column': !desktop }">
+      <div v-for="(menu, i) in menuLists" :key="i" class="d-flex align-center ga-4 flex-column">
         
-          <a @click="" :class="{ 'd-flex border-black pa-2 rounded-lg ': !desktop}">
+          <a @click="" class="d-flex border-black pa-2 rounded-lg">
             <v-avatar :size="40">
             <v-img aspect-ratio="1" cover :src="$fileURL + menu.img"></v-img>
           </v-avatar>
-            <p :class="{ 'font-weight-bold text-body text-body-2 text-center pt-2': true, 'text-no-wrap d-flex align-center pl-2 text-caption': !desktop }">{{ menu.title }}</p>
+            <p class="text-no-wrap d-flex align-center pl-2 text-caption">{{ menu.title }}</p>
 
           </a>
       
@@ -39,7 +38,7 @@
               <v-img aspect-ratio="1" cover :src="$fileURL + menu.img"></v-img>
             </v-avatar>
           
-            <p class="font-weight-bold text-body text-body-2 text-center pt-2">{{ menu.title }}</p>
+            <p class="font-weight-bold text-body text-body-2 text-center pt-2 no-text-wrap">{{ menu.title }}</p>
 
           </a>
         </Slide>
