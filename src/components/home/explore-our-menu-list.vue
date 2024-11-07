@@ -1,8 +1,8 @@
 <template>
-  <div class="d-flex ga-6 overflow-x-auto flex-row scroll-menu">
+  <div  v-if="!desktop" class="d-flex ga-6 overflow-x-auto flex-row scroll-menu">
 
-      <div v-for="(menu, i) in menuLists" :key="i" class="d-flex align-center ga-4 "
-        :class="{ 'b pa-4 flex-column-reverse': desktop, 'flex-column': !desktop }">
+      <!-- <div v-for="(menu, i) in menuLists" :key="i" class="d-flex align-center ga-4 "
+        :class="{ 'pr-4 flex-column-reverse': desktop, 'flex-column': !desktop }">
       
         <a @click="scrollToSection(menu.id)" :class="{ 'd-flex border-black pa-2 rounded-lg ': !desktop}">
           <v-avatar :size="100" v-if="desktop">
@@ -15,13 +15,49 @@
 
         </a>
      
-    </div>
+    </div> -->
+
+      <div v-for="(menu, i) in menuLists" :key="i" class="d-flex align-center ga-4 "
+          :class="{ 'pr-4 flex-column-reverse': desktop, 'flex-column': !desktop }">
+        
+          <a @click="" :class="{ 'd-flex border-black pa-2 rounded-lg ': !desktop}">
+            <v-avatar :size="40">
+            <v-img aspect-ratio="1" cover :src="$fileURL + menu.img"></v-img>
+          </v-avatar>
+            <p :class="{ 'font-weight-bold text-body text-body-2 text-center pt-2': true, 'text-no-wrap d-flex align-center pl-2 text-caption': !desktop }">{{ menu.title }}</p>
+
+          </a>
+      
+      </div> 
+  </div>
+  <div  v-if="desktop">
+    <v-container>
+      <Carousel v-bind="settings" :breakpoints>
+        <Slide v-for="(menu, i) in menuLists" :key="i">
+          <a @click="">
+            <v-avatar :size="100" v-if="desktop">
+              <v-img aspect-ratio="1" cover :src="$fileURL + menu.img"></v-img>
+            </v-avatar>
+          
+            <p class="font-weight-bold text-body text-body-2 text-center pt-2">{{ menu.title }}</p>
+
+          </a>
+        </Slide>
+
+      <template #addons>
+        <Navigation />
+        <Pagination />
+      </template>
+    </Carousel>
+    </v-container>
+
   </div>
 </template>
 
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue';
 import axios from '@/util/axios';
+import { Carousel, Slide, Pagination, Navigation } from 'vue3-carousel';
 
 defineProps<{
   // height: string
@@ -50,6 +86,20 @@ function scrollToSection(id: string) {
     section.scrollIntoView({ behavior: 'smooth' });
   }
 }
+
+const settings: breakpoints = {
+  itemsToShow: 6,
+  snapAlign: 'center',
+};
+
+const breakpoints = {
+
+  960: {
+    itemsToShow: 6,
+    snapAlign: 'center',
+  },
+};
+
 
 </script>
 
