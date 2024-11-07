@@ -17,8 +17,8 @@
         </div>
      
       </div>
-    <v-img v-if="isDesktop" :src="props.fileURL + props.menu.main_image" cover aspect-ratio="1"></v-img>
-    <v-img v-if="!isDesktop" :src="props.fileURL + props.menu.main_image" cover aspect-ratio="1" height="200px"></v-img>
+    <v-img v-if="isDesktop" :src="props.fileURL + props.menu.main_image" cover aspect-ratio="1" height="180px"></v-img>
+    <v-img v-if="!isDesktop" :src="props.fileURL + props.menu.main_image" cover aspect-ratio="1" height="160px"></v-img>
     <div class="pa-0">
     
       <div class="d-flex justify-space-between align-center font-weight-bold text-body pa-2">
