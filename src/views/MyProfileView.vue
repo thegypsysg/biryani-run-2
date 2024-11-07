@@ -623,7 +623,7 @@
                         variant="outlined"
                         label="Select Town (Optional)"
                         clearable
-                        class="mt-n1"
+                        class="mt-n1 bg-"
                         density="compact"
                       />
                     </div>
