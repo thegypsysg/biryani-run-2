@@ -1,5 +1,5 @@
 <template>
-  <div :class="{'bg-white pa-2': true, 'ma-2':isDesktop}" elevation="4" style="width: 100%; height: 400px;">
+  <div class="bg-white pa-2" elevation="4" style="width: 100%; height: 400px;">
     <div class=" align-center text-start ga-3">
         <v-img :src="props.fileURL + props.menu.restaurant?.partner?.logo" aspect-ratio="1" class="float-left mr-2"
           style="width: 35px; height: 35px; max-width: 35px; max-height: 35px;"></v-img>
@@ -17,8 +17,8 @@
         </div>
      
       </div>
-  
-    <v-img :src="props.fileURL + props.menu.main_image" cover aspect-ratio="1"></v-img>
+    <v-img v-if="isDesktop" :src="props.fileURL + props.menu.main_image" cover aspect-ratio="1"></v-img>
+    <v-img v-if="!isDesktop" :src="props.fileURL + props.menu.main_image" cover aspect-ratio="1" height="200px"></v-img>
     <div class="pa-0">
     
       <div class="d-flex justify-space-between align-center font-weight-bold text-body pa-2">
