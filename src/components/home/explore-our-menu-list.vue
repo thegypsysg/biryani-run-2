@@ -38,7 +38,7 @@
               <v-img aspect-ratio="1" cover :src="$fileURL + menu.img"></v-img>
             </v-avatar>
           
-            <p class="font-weight-bold text-body text-body-2 text-center pt-2 no-text-wrap">{{ menu.title }}</p>
+            <p class="font-weight-bold text-caption text-center pt-2 no-text-wrap">{{ menu.title }}</p>
 
           </a>
         </Slide>
