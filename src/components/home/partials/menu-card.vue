@@ -5,7 +5,7 @@
           style="width: 35px; height: 35px; max-width: 35px; max-height: 35px;"></v-img>
         <div class="d-flex justify-space-between">
           <div>
-            <div class="font-weight-black text-subtitle-1 text-no-wrap">{{ props.menu.restaurant?.partner ? props.menu.restaurant?.partner.partner_name : '' }}</div>
+            <div :class="{'font-weight-black text-no-wrap': true, 'text-subtitle-1': isDesktop, 'text-caption': !isDesktop}">{{ props.menu.restaurant?.partner ? props.menu.restaurant?.partner.partner_name : '' }}</div>
             <div class="text-blue-grey-lighten-2 text-caption">
               {{ props.menu.restaurant?.partner?.address ? props.menu.restaurant?.partner.address : 'Marine Parade' }}
             </div>

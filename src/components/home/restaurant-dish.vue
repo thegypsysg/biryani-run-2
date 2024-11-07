@@ -59,7 +59,7 @@ const settings: breakpoints = {
 const breakpoints = {
   // 200px and up
   200: {
-    itemsToShow: 1.2,
+    itemsToShow: 1.3,
     snapAlign: 'center',
   },
   // 640px and up
