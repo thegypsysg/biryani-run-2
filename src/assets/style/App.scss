@@ -19,6 +19,13 @@ body {
 
 }
 
+.v-field--variant-filled .v-field__overlay{
+  background-color: white!important;
+}
+
+.v-field--focused{
+  outline-color: none!important;
+}
 :deep(.pencarian) {
   border-block-color: red;
 }
