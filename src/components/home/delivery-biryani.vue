@@ -7,11 +7,12 @@
 
             <v-autocomplete
             placeholder="--Select Town--"
-            class="border rounded mt-6 custom-input-height mx-auto"
-            style="width:250px"
+            class="border rounded mt-6  mx-auto"
+            style="width:250px;"
+          
             :items="['Marine Parade']"
             ></v-autocomplete>
-
+            
             <Carousel v-bind="settings" :breakpoints class="pt-8">
                 <Slide v-for="(item, i) in 5" :key="i">
                     <div class=" d-flex border pa-2 rounded-lg ">
