@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white pa-2" elevation="4" style="width: 100%; height: 400px;">
+  <div :class="{'bg-white':true, 'pa-3':isDesktop, 'pa-1': !isDesktop}" elevation="4" style="width: 100%; height: 400px;">
     <div class=" align-center text-start ga-3">
         <v-img :src="props.fileURL + props.menu.restaurant?.partner?.logo" aspect-ratio="1" class="float-left mr-2"
           style="width: 35px; height: 35px; max-width: 35px; max-height: 35px;"></v-img>
