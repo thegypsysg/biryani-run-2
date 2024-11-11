@@ -1,7 +1,7 @@
 <template>
-  <v-container>
+  <div class="restaurant-dish-container">
     <div class="d-flex justify-space-between" :id="menuLists.category_name">
-      <div :class="{'text-h4 font-weight-bold' : isDesktop, 'font-weight-bold' : !isDesktop}">{{ menuLists.category_name }}</div>
+      <div :class="{'text-h5 font-weight-bold' : isDesktop, 'font-weight-bold' : !isDesktop}">{{ menuLists.category_name }}</div>
       <v-btn elevation="0" class="text-blue">View All</v-btn>
     </div>
     <Carousel v-bind="settings" :breakpoints v-if="isDesktop">
@@ -21,7 +21,7 @@
       </Slide>
       
     </Carousel>
-  </v-container>
+  </div>
 </template>
 
 <script lang="ts" setup>

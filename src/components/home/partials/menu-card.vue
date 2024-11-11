@@ -8,10 +8,14 @@
             <div :class="{'font-weight-black text-no-wrap': true, 'text-subtitle-1': isDesktop, 'text-caption': !isDesktop}">{{ props.menu.restaurant?.partner ? props.menu.restaurant?.partner.partner_name : '' }}</div>
             <div class="text-blue-grey-lighten-2 text-caption">
               {{ props.menu.restaurant?.partner?.address ? props.menu.restaurant?.partner.address : 'Marine Parade' }}
+              <div v-if="!isDesktop" class="text-red text-start text-caption font-weight-bold">
+              0.34 kms
             </div>
+            </div>
+          
           </div>
        
-          <div class="text-red text-start d-flex justify-end text-caption font-weight-bold">
+          <div v-if="isDesktop" class="text-red d-flex justify-end text-caption font-weight-bold">
             0.34 kms
           </div>
         </div>
@@ -32,13 +36,6 @@
           active-color="text-red"
         />
       </div>
-      <!-- <div class="font-weight-light text-body-1 text-justify">{{ props.menu.dish_description }}</div> -->
-
-      <!-- <hr class="my-2">
-      <div class="text-caption text-left">
-        <span class="font-weight-bold text-blue-darken-3">{{ props.menu.views }}</span>
-        Purchases | {{ 300}} Views
-      </div> -->
 
       <div class="text-red text-start">
         $ {{ parseFloat(props.menu.price).toFixed(2) }}
