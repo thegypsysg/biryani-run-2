@@ -45,7 +45,7 @@
 
       <template #addons>
         <Navigation />
-        <Pagination />
+
       </template>
     </Carousel>
     </v-container>

@@ -575,6 +575,13 @@ header {
   height: 0;
 }
 
+.restaurant-dish-container {
+  width: 100%;
+  padding: 16px;
+  padding-top:25px;
+  margin-right: auto;
+  margin-left: auto;
+}
 @media (max-width: 959px) {
   .v-toolbar__content {
     height: 70px !important;
@@ -603,5 +610,14 @@ header {
   }
   .discount-sheet .v-card .text-h6 {
     font-size: 14px !important;
+  }
+}
+
+@media (max-width: 768px){
+  .restaurant-dish-container {
+
+    padding: 0;
+    padding-top:25px;
+ 
   }
 }
