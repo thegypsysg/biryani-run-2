@@ -25,21 +25,33 @@
     <v-img v-if="!isDesktop" :src="props.fileURL + props.menu.main_image" cover aspect-ratio="1" height="160px"></v-img>
     <div class="pa-0">
     
-      <div class="d-flex justify-space-between align-center font-weight-bold text-body pa-2">
+      <div class="d-flex justify-space-between align-center pa-2">
         <p class="font-weight-black text-subtitle-2  text-start">{{ props.menu.actual_dish_name || props.menu.dish?.dish_name }}</p>
         <v-rating
           :length="5"
+          v-if="isDesktop"
           :size="20"
           :model-value="4"
             density="comfortable"
           class="text-red"
           active-color="text-red"
         />
+        <div class="text-red text-start"  v-if="
+        !isDesktop">
+          $ {{ parseFloat(props.menu.price).toFixed(2) }}
+        </div>
       </div>
-
-      <div class="text-red text-start">
+      <div class="text-red text-start" v-if="isDesktop">
         $ {{ parseFloat(props.menu.price).toFixed(2) }}
       </div>
+      <v-rating
+          :length="5"
+          v-if="!isDesktop"
+          :size="20"
+          :model-value="4"
+          class="text-red d-flex justify-start"
+          active-color="text-red"
+        />
     </div>
   </div>
 </template>
