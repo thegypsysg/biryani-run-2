@@ -1,18 +1,25 @@
 <template>
   <v-container>
     <div class="d-flex justify-space-between" :id="menuLists.category_name">
-      <div :class="{'text-h4 font-weight-bold' : isDesktop, 'text-red font-weight-bold' : !isDesktop}">{{ menuLists.category_name }}</div>
+      <div :class="{'text-h4 font-weight-bold' : isDesktop, 'font-weight-bold' : !isDesktop}">{{ menuLists.category_name }}</div>
       <v-btn elevation="0" class="text-blue">View All</v-btn>
     </div>
-    <Carousel v-bind="settings" :breakpoints>
+    <Carousel v-bind="settings" :breakpoints v-if="isDesktop">
       <Slide v-for="(n, i) in menuLists.biryani_restaurant_dishes" :key="i">
         <MenuCard :menu="n" :fileURL="$fileURL" :isDesktop="isDesktop" />
       </Slide>
-
+      
       <template #addons>
         <Navigation />
       
       </template>
+    </Carousel>
+
+    <Carousel v-bind="settings" :breakpoints v-if="!isDesktop">
+      <Slide v-for="(n, i) in menuLists.biryani_restaurant_dishes" :key="i">
+        <MenuCard :menu="n" :fileURL="$fileURL" />
+      </Slide>
+      
     </Carousel>
   </v-container>
 </template>
