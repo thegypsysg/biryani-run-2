@@ -1,97 +1,161 @@
 <template>
-  <v-app-bar v-if="(isDesktop && !isHeader) || (isSmall && !isHeader)" :class="{
-    'px-8': isHeader || isProfile,
-  }" color="white" elevation="1" fixed>
+  <v-app-bar
+    v-if="(isDesktop && !isHeader) || (isSmall && !isHeader)"
+    :class="{
+      'px-8': isHeader || isProfile,
+    }"
+    color="white"
+    elevation="1"
+    fixed
+  >
     <router-link to="/">
       <div class="logo-img-container ml-4">
-        <v-img class="logo-img" src="@/assets/images/logo/logo.png" height="50" transition="fade-transition">
+        <v-img
+          class="logo-img"
+          :src="$fileURL + logo"
+          height="50"
+          transition="fade-transition"
+        >
           <template #placeholder>
-            <div class="skeleton" />
+            <v-skeleton-loader type="image"></v-skeleton-loader>
           </template>
         </v-img>
       </div>
     </router-link>
+
     <div v-if="!isHeader" class="desktop__app">
-      <v-menu>
-        <template v-for="item in country" :key="item.id" #activator="{ props }">
-          <v-btn style="
-              margin-left: 30px;
-              margin-right: 30px;
-              font-size: 16px;
-              color: #494949;
-            " v-bind="props" variant="text">
-            {{ item.title }}
-            <v-icon right dark> mdi-menu-down </v-icon>
+      <!-- v-if="!isProfile && !isMobileProduct" -->
+      <v-menu v-if="!isProfile">
+        <template #activator="{ props }">
+          <v-btn
+            class="ml-4 location-selector"
+            v-bind="props"
+            variant="text"
+            color="#494949"
+            append-icon="mdi-chevron-down"
+          >
+            <div class="d-flex align-center gap-2">
+              <v-avatar size="24" v-if="selectedLocation.country">
+                <v-img
+                  :src="
+                    $fileURL +
+                    locationDropdown.find(
+                      (l) => l.country === selectedLocation.country,
+                    )?.flagUrl
+                  "
+                  cover
+                ></v-img>
+              </v-avatar>
+              <span class="text-caption">{{ selectedLocation.city }}</span>
+            </div>
           </v-btn>
         </template>
-        <v-list>
-          <v-list-item v-for="(item, index) in country" :key="index" :value="index">
-            <v-list-item-title>{{ item.title }}</v-list-item-title>
-          </v-list-item>
-        </v-list>
+
+        <v-card min-width="300">
+          <v-card-title>
+            <span class="text-subtitle-2">Choose Your Location</span>
+          </v-card-title>
+
+          <v-list>
+            <template
+              v-for="(location, index) in locationDropdown"
+              :key="index"
+            >
+              <!-- Country Header -->
+              <v-list-subheader>
+                <div class="d-flex align-center gap-2">
+                  <v-avatar size="24">
+                    <v-img :src="$fileURL + location.flagUrl" cover></v-img>
+                  </v-avatar>
+                  <span class="text-subtitle-1 font-weight-medium">
+                    {{ location.country }}
+                  </span>
+                </div>
+              </v-list-subheader>
+
+              <!-- Cities -->
+              <v-list-item
+                v-for="(city, cityIndex) in location.cities"
+                :key="`${index}-${cityIndex}`"
+                :value="city.name"
+                :active="selectedLocation.city === city.name"
+                variant="text"
+                active-color="primary"
+                @click="selectLocation(location, city)"
+                class="pl-7"
+              >
+                <template #prepend>
+                  <v-avatar size="24" class="">
+                    <v-img :src="$fileURL + city.imageUrl" cover></v-img>
+                  </v-avatar>
+                </template>
+                <v-list-item-title
+                  >{{ city.name }}
+                  <span class="font-weight-bold"
+                    >(<span class="text-blue-darken-4">{{ city.count }}</span>
+                    Products)</span
+                  ></v-list-item-title
+                >
+              </v-list-item>
+            </template>
+          </v-list>
+        </v-card>
       </v-menu>
     </div>
 
-
-
-    <data v-if="
-      $route.name == 'Trending-buy' ||
-      $route.name == 'Trending-rent' ||
-      $route.name == 'Trending-roommates' ||
-      $route.name == 'Trending-staycation' ||
-      $route.name == 'Trending-vacation' ||
-      $route.name == 'Trending-co-living' ||
-      $route.name == 'Trending-co-working'
-    " class="d-flex align-center ga-4">
-      <div class="d-none d-md-block text-h5 font-weight-black text-no-wrap text-red-darken-4"
-        style="text-transform: capitalize !important">
-        {{ $route.path.replaceAll("-", " ").replaceAll("/", "") }}
-      </div>
-    </data>
-
-    <v-btn v-if="
-      !isSmall &&
-      ($route.name == 'Trending-buy' ||
+    <data
+      v-if="
+        $route.name == 'Trending-buy' ||
         $route.name == 'Trending-rent' ||
         $route.name == 'Trending-roommates' ||
         $route.name == 'Trending-staycation' ||
         $route.name == 'Trending-vacation' ||
         $route.name == 'Trending-co-living' ||
-        $route.name == 'Trending-co-working')
-    " style="font-size: 15px; color: #494949" variant="text" :disabled="isLoading" @click="dialog = true">
-      <template v-if="!itemSelectedComplete || itemSelectedComplete == null">
-        <span>{{ selectedPlace || itemSelected }}</span>
-      </template>
-      <template v-if="itemSelectedComplete || itemSelectedComplete != null">
-        <div style="border-radius: 50%; height: 20px; width: 20px">
-          <v-img style="
-              width: 100% !important;
-              height: 20px !important;
-              object-fit: cover !important;
-              object-position: center !important;
-            " :src="$fileURL + itemSelectedComplete?.flag" />
-        </div>
-        <span class="ml-2">{{
-          selectedPlace || itemSelectedComplete?.title
-        }}</span>
-      </template>
-      <v-icon right dark> mdi-menu-down </v-icon>
-    </v-btn>
+        $route.name == 'Trending-co-working'
+      "
+      class="d-flex align-center ga-4"
+    >
+      <div
+        class="d-none d-md-block text-h5 font-weight-black text-no-wrap text-red-darken-4"
+        style="text-transform: capitalize !important"
+      >
+        {{ $route.path.replaceAll("-", " ").replaceAll("/", "") }}
+      </div>
+    </data>
 
-    <div v-if="isHeader || isProfile" class="ml-6 d-flex flex-row navbar-header"
-      :class="{ 'navbar-header-mobile': !isDesktop && isProfile }">
+    <div
+      v-if="isHeader || isProfile"
+      class="ml-6 d-flex flex-row navbar-header"
+      :class="{ 'navbar-header-mobile': !isDesktop && isProfile }"
+    >
       <div class="divider" :class="{ 'd-none': !isDesktop && isProfile }" />
       <h1>{{ titleHeader }}</h1>
     </div>
-    <!-- </div> -->
+
     <v-spacer v-if="isHeader || isProfile" />
-    <form v-if="!isHeader && !isProfile && !isBatamProperties" class="navbar__search navbar__search__desktop">
-      <v-autocomplete id="product_name" v-model="search" class="form-control mr-sm-2 ml-md-n3 search-input"
-        item-title="name" item-value="name" :items="activeMalls" style="font-style: italic"
-        placeholder="Chicken, Mutton ,  Prawn" density="compact" color="blue-grey-lighten-2">
+
+    <form
+      v-if="!isHeader && !isProfile && !isBatamProperties"
+      class="navbar__search navbar__search__desktop"
+    >
+      <v-autocomplete
+        id="product_name"
+        v-model="search"
+        class="form-control mr-sm-2 ml-md-n3 search-input"
+        item-title="name"
+        item-value="name"
+        :items="activeMalls"
+        style="font-style: italic"
+        placeholder="Chicken, Mutton ,  Prawn"
+        density="compact"
+        color="blue-grey-lighten-2"
+      >
         <template #item="{ props, item }">
           <div class="mb-2" v-bind="props">
-            <router-link class="text-decoration-none text-black font-weight-bold" to="#">
+            <router-link
+              class="text-decoration-none text-black font-weight-bold"
+              to="#"
+            >
               <div class="d-flex align-center w-100">
                 <div class="w-25 py-1">
                   <div style="width: 60px">
@@ -107,8 +171,10 @@
                     {{ `${item?.raw?.name} (${item?.raw?.subIndustryName})` }}
                   </p>
                   <p class="text-grey">
-                    <span>{{ `${item?.raw?.town}` }}</span> (<span class="text-red">{{ `${item?.raw?.distanceText}`
-                      }}</span><span class="text-black"> away</span>)
+                    <span>{{ `${item?.raw?.town}` }}</span> (<span
+                      class="text-red"
+                      >{{ `${item?.raw?.distanceText}` }}</span
+                    ><span class="text-black"> away</span>)
                   </p>
                 </div>
               </div>
@@ -121,59 +187,57 @@
       </button>
     </form>
 
-    <div v-if="isBatamProperties" class="d-none d-md-flex ga-2 w-100">
+    <!-- <div v-if="isBatamProperties" class="d-none d-md-flex ga-2 w-100">
       <div class="text-h4 font-weight-black text-no-wrap">
         <span class="text-red-darken-4">Batam</span> Properties
       </div>
       <div class="d-flex justify-center w-100">
         <div class="d-flex gap-2 align-center text-caption">
-          <label class="text-subtitle-1 text-no-wrap">Indonesia (5 Properties)</label>
-          <v-select v-model="selected" :items="['Property 1', 'Property 2', 'Property 3']"
-            label="Select an option"></v-select>
+          <label class="text-subtitle-1 text-no-wrap"
+            >Indonesia (5 Properties)</label
+          >
+          <v-select
+            v-model="selected"
+            :items="['Property 1', 'Property 2', 'Property 3']"
+            label="Select an option"
+          ></v-select>
         </div>
         <div class="d-flex gap-2 align-center text-caption">
-          <label class="text-subtitle-1 text-no-wrap">Batam (5 Properties)</label>
-          <v-select v-model="selected" :items="['Property 1', 'Property 2', 'Property 3']"
-            label="Select an option"></v-select>
+          <label class="text-subtitle-1 text-no-wrap"
+            >Batam (5 Properties)</label
+          >
+          <v-select
+            v-model="selected"
+            :items="['Property 1', 'Property 2', 'Property 3']"
+            label="Select an option"
+          ></v-select>
         </div>
       </div>
-    </div>
+    </div> -->
 
     <!-- <v-spacer></v-spacer> -->
 
-    <!-- if mobile view -->
-    <v-menu v-if="isSmall">
-      <template v-for="item in country" :key="item.id" #activator="{ props }">
-        <v-btn style="
-            margin-left: 30px;
-            margin-right: 30px;
-            font-size: 16px;
-            color: #494949;
-          " v-bind="props" variant="text">
-          {{ item.title }}
-          <v-icon right dark> mdi-menu-down </v-icon>
-        </v-btn>
-      </template>
-      <v-list>
-        <v-list-item v-for="(item, index) in country" :key="index" :value="index">
-          <v-list-item-title>{{ item.title }}</v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </v-menu>
-
-     <!-- if NOT mobile view -->
-    <div v-if="!isHeader && !isProfile && !userName && !isSmall" class="btn_sign__up-cont">
+    <!-- if NOT mobile view -->
+    <div
+      v-if="!isHeader && !isProfile && !userName && !isSmall"
+      class="btn_sign__up-cont"
+    >
       <v-btn elevation="0" class="btn_sign__up" to="/sign-in">
         <span> Sign Up / Sign In</span>
       </v-btn>
       <div class="btn_sign__up-hover" />
     </div>
-    <v-btn v-if="!isHeader && !isProfile && !isSmall && userName" elevation="0" class="btn_log__out"
-      :class="{ 'mr-6': tokenStart }" @click="logout">
+    <v-btn
+      v-if="!isHeader && !isProfile && !isSmall && userName"
+      elevation="0"
+      class="btn_log__out"
+      :class="{ 'mr-6': tokenStart }"
+      @click="logout"
+    >
       Logout
     </v-btn>
 
-     <!-- if NOT mobile view -->
+    <!-- if NOT mobile view -->
     <div>
       <div v-if="!isSmall" class="cart d-flex align-center">
         <div class="cart-line mr-2" />
@@ -182,50 +246,102 @@
       </div>
     </div>
 
-    <div v-if="!isSignin" style="height: 48px; width: 48px; border-radius: 50%; cursor: pointer" icon class="mr-4"
-      @click="drawer = !drawer">
-      <v-img v-if="userImage != null" :src="userImage" cover style="height: 100%; width: 100%; border-radius: 50%">
+    <!-- <div>
+      <div
+        v-if="!isSmall && !isProfile"
+        @click="viewCartClick"
+        class="cart d-flex align-center"
+      >
+        <div class="cart-line mr-2" />
+        <v-badge
+          :content="cartTotalQuantity"
+          color="red"
+          offset-x="10"
+          offset-y="10"
+        >
+          <v-icon size="45">mdi mdi-cart-variant</v-icon>
+        </v-badge>
+        <span class="ml-2" v-if="subTotal > 0">
+          {{ selectedCountry.currency_symbol }} {{ finalCartTotal }}
+        </span>
+        <Cart :viewCart="viewCart" @update:viewCart="viewCart = $event" />
+      </div>
+    </div> -->
+
+    <div
+      v-if="!isSignin"
+      style="height: 48px; width: 48px; border-radius: 50%; cursor: pointer"
+      icon
+      class="mr-4"
+      @click="drawer = !drawer"
+    >
+      <v-img
+        v-if="userImage != null"
+        :src="userImage"
+        cover
+        style="height: 100%; width: 100%; border-radius: 50%"
+      >
         <template #placeholder>
-          <div class="skeleton" />
+          <v-skeleton-loader type="image"></v-skeleton-loader>
         </template>
       </v-img>
-      <img v-else-if="userImage == null && !isLoading" src="@/assets/images/icons/user_icon.png" cover height="48"
-        style="height: 100%; width: 100%" />
+      <img
+        v-else-if="userImage == null && !isLoading"
+        src="@/assets/images/icons/user_icon.png"
+        cover
+        height="48"
+        style="height: 100%; width: 100%"
+      />
     </div>
 
     <template v-if="!isProfile" #extension>
       <div class="mobile__app text-center w-100">
-        <template v-if="
-          $route.name == 'Trending-buy' ||
-          $route.name == 'Trending-rent' ||
-          $route.name == 'Trending-roommates' ||
-          $route.name == 'Trending-staycation' ||
-          $route.name == 'Trending-vacation' ||
-          $route.name == 'Trending-co-living' ||
-          $route.name == 'Trending-co-working'
-        ">
+        <template
+          v-if="
+            $route.name == 'Trending-buy' ||
+            $route.name == 'Trending-rent' ||
+            $route.name == 'Trending-roommates' ||
+            $route.name == 'Trending-staycation' ||
+            $route.name == 'Trending-vacation' ||
+            $route.name == 'Trending-co-living' ||
+            $route.name == 'Trending-co-working'
+          "
+        >
           <div class="d-flex justify-center mx-auto" style="width: max-content">
-            <v-btn v-if="
-              isSmall &&
-              ($route.name == 'Trending-buy' ||
-                $route.name == 'Trending-rent' ||
-                $route.name == 'Trending-roommates' ||
-                $route.name == 'Trending-staycation' ||
-                $route.name == 'Trending-vacation' ||
-                $route.name == 'Trending-co-living' ||
-                $route.name == 'Trending-co-working')
-            " style="font-size: 15px; color: #494949" variant="text" :disabled="isLoading" @click="dialog = true">
-              <template v-if="!itemSelectedComplete || itemSelectedComplete == null">
+            <v-btn
+              v-if="
+                isSmall &&
+                ($route.name == 'Trending-buy' ||
+                  $route.name == 'Trending-rent' ||
+                  $route.name == 'Trending-roommates' ||
+                  $route.name == 'Trending-staycation' ||
+                  $route.name == 'Trending-vacation' ||
+                  $route.name == 'Trending-co-living' ||
+                  $route.name == 'Trending-co-working')
+              "
+              style="font-size: 15px; color: #494949"
+              variant="text"
+              :disabled="isLoading"
+              @click="dialog = true"
+            >
+              <template
+                v-if="!itemSelectedComplete || itemSelectedComplete == null"
+              >
                 <span>{{ selectedPlace || itemSelected }}</span>
               </template>
-              <template v-if="itemSelectedComplete || itemSelectedComplete != null">
+              <template
+                v-if="itemSelectedComplete || itemSelectedComplete != null"
+              >
                 <div style="border-radius: 50%; height: 20px; width: 20px">
-                  <v-img style="
+                  <v-img
+                    style="
                       width: 100% !important;
                       height: 20px !important;
                       object-fit: cover !important;
                       object-position: center !important;
-                    " :src="$fileURL + itemSelectedComplete?.flag" />
+                    "
+                    :src="$fileURL + itemSelectedComplete?.flag"
+                  />
                 </div>
                 <span class="ml-2">{{
                   selectedPlace || itemSelectedComplete?.title
@@ -235,26 +351,51 @@
             </v-btn>
           </div>
         </template>
-        
-          <!-- if NOT mobile view -->
-        <div v-if="!isHeader && !isProfile && !userName && isSmall" class="btn_sign__up-cont mx-auto my-4">
-          <v-btn elevation="0" class="btn_sign__up d-flex align-center" to="/sign-in">
+
+        <!-- if NOT mobile view -->
+        <div
+          v-if="!isHeader && !isProfile && !userName && isSmall"
+          class="btn_sign__up-cont mx-auto my-4"
+        >
+          <v-btn
+            elevation="0"
+            class="btn_sign__up d-flex align-center"
+            to="/sign-in"
+          >
             <span> Sign Up / Sign In</span>
           </v-btn>
           <div class="btn_sign__up-hover" />
         </div>
-        <v-btn v-if="!isHeader && !isProfile && !isSmall && userName" elevation="0" class="btn_log__out"
-          :class="{ 'mr-6': tokenStart }" @click="logout">
+        <v-btn
+          v-if="!isHeader && !isProfile && !isSmall && userName"
+          elevation="0"
+          class="btn_log__out"
+          :class="{ 'mr-6': tokenStart }"
+          @click="logout"
+        >
           Logout
         </v-btn>
 
         <form class="navbar__search navbar__search__mobile mx-auto">
-          <v-autocomplete id="product_name" v-model="search" class="form-control mr-sm-2 ml-md-n3 search-input"
-            item-title="name" item-value="name" :items="activeMalls" style="font-style: italic"
-            placeholder="Chicken, Mutton , Prawn" density="compact" color="blue-grey-lighten-2">
+          <v-autocomplete
+            id="product_name"
+            v-model="search"
+            class="form-control mr-sm-2 ml-md-n3 search-input"
+            item-title="name"
+            item-value="name"
+            :items="activeMalls"
+            style="font-style: italic"
+            placeholder="Chicken, Mutton , Prawn"
+            density="compact"
+            color="blue-grey-lighten-2"
+          >
             <template #item="{ props, item }">
               <div class="mb-2" v-bind="props">
-                <router-link class="text-decoration-none text-black font-weight-bold" style="font-size: 12px" to="#">
+                <router-link
+                  class="text-decoration-none text-black font-weight-bold"
+                  style="font-size: 12px"
+                  to="#"
+                >
                   <div class="d-flex align-center" style="width: 100%">
                     <div style="width: 30% !important" class="py-1">
                       <div style="width: 100px">
@@ -272,8 +413,10 @@
                         }}
                       </p>
                       <p class="text-grey">
-                        <span>{{ `${item?.raw?.town}` }}</span> (<span class="text-red">{{ `${item?.raw?.distanceText}`
-                          }}</span><span class="text-black"> away</span>)
+                        <span>{{ `${item?.raw?.town}` }}</span> (<span
+                          class="text-red"
+                          >{{ `${item?.raw?.distanceText}` }}</span
+                        ><span class="text-black"> away</span>)
                       </p>
                     </div>
                   </div>
@@ -290,24 +433,40 @@
           <ExploreOurMenuList :desktop="false" />
         </div>
 
-
         <div id="trending-container" class="d-sm-none"></div>
 
-        <div v-if="
-          $route.name == 'Trending-buy' ||
-          $route.name == 'Trending-rent' ||
-          $route.name == 'Trending-roommates' ||
-          $route.name == 'Trending-staycation' ||
-          $route.name == 'Trending-vacation' ||
-          $route.name == 'Trending-co-living' ||
-          $route.name == 'Trending-co-working'
-        " class="d-md-none mx-auto pt-md-0 px-4 medium:px-20" style="max-width: 1200px; overflow-x: auto">
-          <div class="d-flex justify-center ga-6 my-5" style="min-width: fit-content">
+        <div
+          v-if="
+            $route.name == 'Trending-buy' ||
+            $route.name == 'Trending-rent' ||
+            $route.name == 'Trending-roommates' ||
+            $route.name == 'Trending-staycation' ||
+            $route.name == 'Trending-vacation' ||
+            $route.name == 'Trending-co-living' ||
+            $route.name == 'Trending-co-working'
+          "
+          class="d-md-none mx-auto pt-md-0 px-4 medium:px-20"
+          style="max-width: 1200px; overflow-x: auto"
+        >
+          <div
+            class="d-flex justify-center ga-6 my-5"
+            style="min-width: fit-content"
+          >
             <template v-for="n in trendings" :key="n">
-              <v-btn @click="goToPath(n)" elevation="0" class="pa-2" style="min-width: 100px; min-height: 70px">
+              <v-btn
+                @click="goToPath(n)"
+                elevation="0"
+                class="pa-2"
+                style="min-width: 100px; min-height: 70px"
+              >
                 <div class="d-flex flex-column align-center ga-3 text-caption">
                   <v-responsive>
-                    <v-img :src="$fileURL + n.icon" cover style="height: 25px; width: 25px" aspect-ratio="1"></v-img>
+                    <v-img
+                      :src="$fileURL + n.icon"
+                      cover
+                      style="height: 25px; width: 25px"
+                      aspect-ratio="1"
+                    ></v-img>
                   </v-responsive>
                   {{ n.title }}
                 </div>
@@ -321,17 +480,34 @@
     </template>
   </v-app-bar>
 
-  <v-navigation-drawer v-if="isSmall" v-model="drawer" temporary location="right">
-    <div class="drawer__top" :class="{ 'py-6': userName == null, 'py-2': userName != null }">
-      <router-link v-if="userName == null" class="text-decoration-none" to="/sign-in">
+  <v-navigation-drawer
+    v-if="isSmall"
+    v-model="drawer"
+    temporary
+    location="right"
+  >
+    <div
+      class="drawer__top"
+      :class="{ 'py-6': userName == null, 'py-2': userName != null }"
+    >
+      <router-link
+        v-if="userName == null"
+        class="text-decoration-none"
+        to="/sign-in"
+      >
         <span style="font-size: 1.125rem; color: white">Sign up / Sign In</span>
       </router-link>
       <div v-else class="d-flex align-center">
         <div style="width: 55px; height: 55px; border-radius: 50%">
-          <v-img cover style="border-radius: 50%; width: 100%; height: 100%" :src="userImage != null
-            ? userImage
-            : 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'
-            ">
+          <v-img
+            cover
+            style="border-radius: 50%; width: 100%; height: 100%"
+            :src="
+              userImage != null
+                ? userImage
+                : 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'
+            "
+          >
             <template #placeholder>
               <div class="skeleton" />
             </template>
@@ -345,7 +521,11 @@
           <v-list-item-subtitle style="font-size: 10px" class="mt-1">
             Last Login: {{ userDated }}
           </v-list-item-subtitle>
-          <div class="text-red mt-1" style="font-size: 12px; cursor: pointer" @click="logout">
+          <div
+            class="text-red mt-1"
+            style="font-size: 12px; cursor: pointer"
+            @click="logout"
+          >
             Logout
           </div>
         </v-list-item>
@@ -357,8 +537,16 @@
       </div>
       <v-menu contained style="z-index: 1000">
         <template #activator="{ props }">
-          <v-btn style="background: #f4f5f7; color: black" variant="text" color="black" icon="mdi-share-outline"
-            width="30" height="30" class="mx-4" v-bind="props">
+          <v-btn
+            style="background: #f4f5f7; color: black"
+            variant="text"
+            color="black"
+            icon="mdi-share-outline"
+            width="30"
+            height="30"
+            class="mx-4"
+            v-bind="props"
+          >
             <v-icon color="rgb(38, 38, 38)" size="15">
               mdi-share-outline
             </v-icon>
@@ -368,24 +556,28 @@
           <v-list-item @click="console.log('share')">
             <v-list-item-title>
               <v-icon class="mr-4" color="black" size="18">
-                mdi-email-outline </v-icon>Email
+                mdi-email-outline </v-icon
+              >Email
             </v-list-item-title>
           </v-list-item>
           <v-list-item @click="console.log('share')">
             <v-list-item-title>
               <v-icon class="mr-4" size="18">
-                <i class="fa-brands fa-facebook-f" /> </v-icon>Facebook
+                <i class="fa-brands fa-facebook-f" /> </v-icon
+              >Facebook
             </v-list-item-title>
           </v-list-item>
           <v-list-item @click="console.log('share')">
             <v-list-item-title>
-              <v-icon class="mr-4" color="black" size="18"> mdi-twitter </v-icon>Twitter
+              <v-icon class="mr-4" color="black" size="18"> mdi-twitter </v-icon
+              >Twitter
             </v-list-item-title>
           </v-list-item>
           <v-list-item @click="console.log('share')">
             <v-list-item-title>
               <v-icon class="mr-4" size="18">
-                <i class="fa-brands fa-linkedin-in" /> </v-icon>Linkedin
+                <i class="fa-brands fa-linkedin-in" /> </v-icon
+              >Linkedin
             </v-list-item-title>
           </v-list-item>
         </v-list>
@@ -403,7 +595,11 @@
 
       <li v-if="userName != null" class="v-list-item mt-n2">
         <div class="v-list-item__icon">
-          <v-img height="18" width="25" src="@/assets/images/icons/menu-shopper.png" />
+          <v-img
+            height="18"
+            width="25"
+            src="@/assets/images/icons/menu-shopper.png"
+          />
         </div>
         <router-link class="text-decoration-none text-black" to="/my-profile">
           <v-list-item-title style="font-size: 12px">
@@ -447,7 +643,10 @@
         <div class="v-list-item__icon">
           <v-img src="" />
         </div>
-        <router-link class="text-decoration-none text-black" to="/privacy-policy">
+        <router-link
+          class="text-decoration-none text-black"
+          to="/privacy-policy"
+        >
           <v-list-item-title style="font-size: 12px">
             Privacy Policy
           </v-list-item-title>
@@ -469,32 +668,64 @@
       <div class="text-center" style="width: 100%">
         <p style="font-size: 13px" class="mb-1">Made in Singapore</p>
         <h3 style="font-size: 13px">Get connected</h3>
-        <v-row class="d-flex justify-center mt-1" :class="{ 'mb-2': userName == null }">
+        <v-row
+          class="d-flex justify-center mt-1"
+          :class="{ 'mb-2': userName == null }"
+        >
           <v-col cols="3" class="d-flex justify-end">
             <a :href="contactData?.facebook">
-              <v-img src="@/assets/images/icons/facebook.png" height="40" width="32" />
+              <v-img
+                src="@/assets/images/icons/facebook.png"
+                height="40"
+                width="32"
+              />
             </a>
           </v-col>
           <v-col class="d-flex justify-center" cols="3">
             <a :href="contactData?.instagram">
-              <v-img src="@/assets/images/icons/insta.png" height="40" width="32" />
+              <v-img
+                src="@/assets/images/icons/insta.png"
+                height="40"
+                width="32"
+              />
             </a>
           </v-col>
           <v-col class="d-flex justify-start" cols="3">
             <a :href="contactData?.tiktok">
-              <v-img src="@/assets/images/icons/tiktok.png" class="mt-1" height="35" width="35" />
+              <v-img
+                src="@/assets/images/icons/tiktok.png"
+                class="mt-1"
+                height="35"
+                width="35"
+              />
             </a>
           </v-col>
-          <v-col class="d-flex justify-center flex-column align-center" cols="12">
+          <v-col
+            class="d-flex justify-center flex-column align-center"
+            cols="12"
+          >
             <p class="text-caption">Wha'ts App Support (24 hrs)</p>
             <a
-              :href="`https://api.whatsapp.com/send?phone=${footerData?.whats_app}&text=The Gypsy Support here - How may I help you. ?`">
-              <v-img src="@/assets/whatsapp.svg" class="mt-1" height="35" width="35" />
+              :href="`https://api.whatsapp.com/send?phone=${footerData?.whats_app}&text=The Gypsy Support here - How may I help you. ?`"
+            >
+              <v-img
+                src="@/assets/whatsapp.svg"
+                class="mt-1"
+                height="35"
+                width="35"
+              />
             </a>
           </v-col>
         </v-row>
-        <div v-if="userName != null" style="font-size: 12px" class="text-grey my-4">
-          <router-link class="text-decoration-none text-grey" to="/privacy-policy">
+        <div
+          v-if="userName != null"
+          style="font-size: 12px"
+          class="text-grey my-4"
+        >
+          <router-link
+            class="text-decoration-none text-grey"
+            to="/privacy-policy"
+          >
             Privacy
           </router-link>
           |
@@ -524,9 +755,11 @@
         <v-divider class="mt-2 mb-n2" />
         <v-container class="footer-bottom pb-2 d-flex justify-center">
           <div class="d-flag d-flex justify-space-between w-100 align-center">
-            <img style="max-width: 40px; border: 1px solid black"
+            <img
+              style="max-width: 40px; border: 1px solid black"
               src="data:image/png;base64,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"
-              alt="Singapore" />
+              alt="Singapore"
+            />
             <div id="footerCurrentTime" style="font-size: 0.7rem">
               {{ currentTime }}
             </div>
@@ -536,33 +769,60 @@
     </div>
   </v-navigation-drawer>
 
-  <v-dialog v-model="dialog" fullscreen persistent height="100vh" class="mt-16" z-index="1000000">
-    <v-card height="90vh" class="mt-16" style="border-top-left-radius: 30px; border-top-right-radius: 30px"
-      prepend-icon="mdi-map-marker">
+  <v-dialog
+    v-model="dialog"
+    fullscreen
+    persistent
+    height="100vh"
+    class="mt-16"
+    z-index="1000000"
+  >
+    <v-card
+      height="90vh"
+      class="mt-16"
+      style="border-top-left-radius: 30px; border-top-right-radius: 30px"
+      prepend-icon="mdi-map-marker"
+    >
       <template #title>
-        <span class="font-weight-bold" style="font-size: 18px">Choose your location</span>
+        <span class="font-weight-bold" style="font-size: 18px"
+          >Choose your location</span
+        >
       </template>
       <template #append>
-        <v-btn variant="text" icon="mdi-close" text="Ok" @click="dialog = false" />
+        <v-btn
+          variant="text"
+          icon="mdi-close"
+          text="Ok"
+          @click="dialog = false"
+        />
       </template>
       <v-card-text class="px-4" style="height: 100px">
         <div v-for="item in country" :key="item.id">
-          <div v-if="item.count > 0" class="d-flex mb-6 align-content-center" @click="changeItemSelected(item)">
+          <div
+            v-if="item.count > 0"
+            class="d-flex mb-6 align-content-center"
+            @click="changeItemSelected(item)"
+          >
             <div class="w15">
               <v-img height="20" width="30" :src="$fileURL + item?.flag" />
             </div>
             <div class="d-flex justify-space-between w85">
               <p style="font-size: 14px !important">
-                <span :class="{
-                  'font-weight-bold': item.title == selectedPlace,
-                }">{{ item.title }}</span>
+                <span
+                  :class="{
+                    'font-weight-bold': item.title == selectedPlace,
+                  }"
+                  >{{ item.title }}</span
+                >
                 (
-                <span class="text-blue-darken-4">{{ item.count }}
+                <span class="text-blue-darken-4"
+                  >{{ item.count }}
                   {{
                     item?.count == "1" || item?.count == "0"
                       ? "Property"
                       : "Properties"
-                  }}</span>
+                  }}</span
+                >
                 )
               </p>
 
@@ -572,21 +832,30 @@
             </div>
           </div>
 
-          <div v-for="data in item.cities" :key="data.id" @click="changeItemSelected2(data)">
+          <div
+            v-for="data in item.cities"
+            :key="data.id"
+            @click="changeItemSelected2(data)"
+          >
             <div v-if="data.count > 0" class="d-flex mb-6 align-content-center">
               <div class="w15" />
               <div class="w85 d-flex justify-space-between">
                 <p style="font-size: 14px !important">
-                  <span :class="{
-                    'font-weight-bold': data.title == selectedPlace,
-                  }">{{ data.title }}</span>
+                  <span
+                    :class="{
+                      'font-weight-bold': data.title == selectedPlace,
+                    }"
+                    >{{ data.title }}</span
+                  >
                   (
-                  <span class="text-blue-darken-4">{{ data.count }}
+                  <span class="text-blue-darken-4"
+                    >{{ data.count }}
                     {{
                       data?.count == "1" || data?.count == "0"
                         ? "Property"
                         : "Properties"
-                    }}</span>
+                    }}</span
+                  >
                   )
                 </p>
                 <v-icon v-if="data.title == selectedPlace" color="green">
@@ -600,35 +869,72 @@
     </v-card>
   </v-dialog>
 
-  <v-dialog v-model="dialog2" fullscreen persistent height="90vh" class="mt-16" z-index="1000000">
-    <v-card height="90vh" class="mt-16" style="border-top-left-radius: 30px; border-top-right-radius: 30px">
+  <v-dialog
+    v-model="dialog2"
+    fullscreen
+    persistent
+    height="90vh"
+    class="mt-16"
+    z-index="1000000"
+  >
+    <v-card
+      height="90vh"
+      class="mt-16"
+      style="border-top-left-radius: 30px; border-top-right-radius: 30px"
+    >
       <!-- <template #append>
 
       </template> -->
 
-      <v-card-title class="pt-10 d-flex justify-space-between position-fixed bg-white" style="z-index: 1000">
+      <v-card-title
+        class="pt-10 d-flex justify-space-between position-fixed bg-white"
+        style="z-index: 1000"
+      >
         <div class="navbar__search navbar__search__mobile w-100">
-          <v-text-field id="product_name" v-model="search" class="form-control mr-sm-2 ml-md-n3 search-input"
-            style="font-style: italic" placeholder="Explore Properties" density="compact" color="blue-grey-lighten-2"
-            clearable />
+          <v-text-field
+            id="product_name"
+            v-model="search"
+            class="form-control mr-sm-2 ml-md-n3 search-input"
+            style="font-style: italic"
+            placeholder="Explore Properties"
+            density="compact"
+            color="blue-grey-lighten-2"
+            clearable
+          />
           <button class="btn btn--search">
             <v-icon color="white"> mdi-magnify </v-icon>
           </button>
         </div>
-        <v-btn variant="text" icon="mdi-close" text="Ok" @click="dialog2 = false" />
+        <v-btn
+          variant="text"
+          icon="mdi-close"
+          text="Ok"
+          @click="dialog2 = false"
+        />
       </v-card-title>
 
-      <v-card-text class="px-4" style="padding-bottom: 100px; padding-top: 120px">
+      <v-card-text
+        class="px-4"
+        style="padding-bottom: 100px; padding-top: 120px"
+      >
         <div v-for="(item, index) in filteredMalls" :key="index" class="mb-2">
-          <div v-if="!item?.mmo_id" class="text-black font-weight-bold" style="font-size: 12px"
-            @click="gotoMallDetail(item)">
+          <div
+            v-if="!item?.mmo_id"
+            class="text-black font-weight-bold"
+            style="font-size: 12px"
+            @click="gotoMallDetail(item)"
+          >
             <div class="d-flex align-center" style="width: 100%">
               <div style="width: 20% !important" class="py-1">
-                <v-img height="40" style="
+                <v-img
+                  height="40"
+                  style="
                     width: 100% !important;
                     object-fit: cover !important;
                     object-position: center !important;
-                  " :src="item?.mainImage">
+                  "
+                  :src="item?.mainImage"
+                >
                   <template #placeholder>
                     <div class="skeleton" />
                   </template>
@@ -641,20 +947,29 @@
                 <p class="text-grey">
                   <span>{{ `${item?.town}` }}</span> (<span class="text-red">{{
                     `${item?.distanceText}`
-                  }}</span><span class="text-black"> away</span>)
+                  }}</span
+                  ><span class="text-black"> away</span>)
                 </p>
               </div>
             </div>
           </div>
-          <div v-else class="mb-2 text-black font-weight-bold" style="font-size: 12px"
-            @click="gotoMerchantDetail(item)">
+          <div
+            v-else
+            class="mb-2 text-black font-weight-bold"
+            style="font-size: 12px"
+            @click="gotoMerchantDetail(item)"
+          >
             <div class="d-flex align-center" style="width: 100%">
               <div style="width: 20% !important" class="py-1">
-                <v-img height="40" style="
+                <v-img
+                  height="40"
+                  style="
                     width: 100% !important;
                     object-fit: cover !important;
                     object-position: center !important;
-                  " :src="item?.image">
+                  "
+                  :src="item?.image"
+                >
                   <template #placeholder>
                     <div class="skeleton" />
                   </template>
@@ -674,6 +989,7 @@
 </template>
 
 <script>
+import { appId, fileURL } from "@/util/variables";
 import { mapState, mapMutations } from "vuex";
 // import app from "@/util/eventBus";
 import axios from "@/util/axios";
@@ -693,6 +1009,7 @@ export default {
   data() {
     return {
       titleWelcome: "Sign-Up / Sign-in",
+      logo: null,
       tokenStart: null,
       userImage: null,
       userName: null,
@@ -702,7 +1019,6 @@ export default {
       dialog2: false,
       drawer: false,
       headerData: {},
-      logo: "",
       search: null,
       activeMalls: [],
       countryId: null,
@@ -714,6 +1030,13 @@ export default {
       screenWidth: window.innerWidth,
       selectedPlace: null,
       selectedCountry: "Singapore",
+      selectedLocation: {
+        country_id: 1,
+        currency_symbol: "S$",
+        country: "Singapore",
+        city: "Singapore City",
+      },
+      locationDropdown: [],
       isTrending: false,
       trendings: [],
     };
@@ -774,8 +1097,8 @@ export default {
       this.getHeaderUserData();
     }
     this.getLogo();
-    this.getCountryMall();
     this.getTrendings();
+    this.getLocationDropDownData();
 
     app.config.globalProperties.$eventBus.$on(
       "getTokenStart",
@@ -909,8 +1232,9 @@ export default {
       axios
         .get(`/gypsy-user`, {
           headers: {
-            Authorization: `Bearer ${this.tokenProvider ? this.tokenProvider : token
-              }`,
+            Authorization: `Bearer ${
+              this.tokenProvider ? this.tokenProvider : token
+            }`,
           },
         })
         .then((response) => {
@@ -991,7 +1315,8 @@ export default {
     getActiveMallData() {
       axios
         .get(
-          `/malls/active-list/${this.latitude}/${this.longitude}/-1/${this.itemSelectedComplete?.id || 1
+          `/malls/active-list/${this.latitude}/${this.longitude}/-1/${
+            this.itemSelectedComplete?.id || 1
           }`,
         )
         .then((response) => {
@@ -1032,8 +1357,9 @@ export default {
       axios
         .get(
           this.itemSelectedComplete?.id
-            ? `/mall-merchant-outlets/list-by-status/all/${this.latitude}/${this.longitude
-            }/${this.itemSelectedComplete?.id || 1}`
+            ? `/mall-merchant-outlets/list-by-status/all/${this.latitude}/${
+                this.longitude
+              }/${this.itemSelectedComplete?.id || 1}`
             : `/mall-merchant-outlets/list-by-status/all/${this.latitude}/${this.longitude}/1`,
         )
         .then((response) => {
@@ -1110,118 +1436,39 @@ export default {
           console.log(error);
         });
     },
-    getCountryMall() {
+    getLocationDropDownData() {
       this.isLoading = true;
       axios
-        .get(`/app-country-list/${this.$appId}`)
+        .get(`/app-city-list/${this.$appId}`)
         .then((response) => {
           const data = response.data.data;
-          this.country = data.map((country) => {
+          // console.log("country: ", data);
+          this.locationDropdown = data.map((country) => {
             return {
-              id: country.country_id,
-              title: country.country_name,
-              count: country.property_count,
-              oneCity: country.one_city == "Y" ? true : false,
-              path: "#",
-              flag: country.flag,
-              cities: [],
+              country_id: country.country_id,
+              currency_symbol: country.currency_symbol,
+              country: country.country_name,
+              flagUrl: country.flag,
+              cities: [
+                {
+                  city_id: country.city_id,
+                  country_id: country.country_id,
+                  currency_symbol: country.currency_symbol,
+                  name: country.city_name,
+                  imageUrl: country.city_image,
+                  count: country.product_count,
+                },
+              ],
             };
           });
-          // console.log(this.country);
-          const defaultCountry = data
-            .filter((c) => c.country_name == this.countryDevice)
-            .map((country) => {
-              return {
-                id: country.country_id,
-                title: country.country_name,
-                count: country.property_count,
-                oneCity: country.one_city == "Y" ? true : false,
-                path: "#",
-                flag: country.flag,
-                cities: [],
-              };
-            });
-          // console.log("map country head", defaultCountry);
-          this.setItemSelectedComplete(
-            defaultCountry.length > 0 ? defaultCountry[0] : this.country[0],
-          );
-          localStorage.setItem(
-            "mallCount",
-            defaultCountry.length > 0
-              ? defaultCountry[0].count
-              : this.country[0].count,
-          );
-          this.setItemSelected(
-            defaultCountry.length > 0
-              ? defaultCountry[0].title
-              : this.country[0].title,
-          );
-          if (this.selectedPlace == null) {
-            this.selectedPlace =
-              defaultCountry.length > 0
-                ? defaultCountry[0].title
-                : this.country[0].title;
-          }
-          this.getCityMall();
-          // this.getActiveMallData();
-          // this.getMallMerchantItemsByCountry();
+          const defaultCountry = this.locationDropdown[0];
+          const defaultCity = defaultCountry.cities[0];
+          this.selectLocation(defaultCountry, defaultCity);
+          // console.log("country: ", this.locationDropdown);
         })
         .catch((error) => {
           // eslint-disable-next-line
-          console.log(error);
-        })
-        .finally(() => {
-          this.isLoading = false;
-        });
-    },
-    getCityMall() {
-      this.isLoading = true;
-
-      // Reset cities for all countries before making the API request
-      this.country.forEach((item, index) => {
-        this.country[index].cities = [];
-      });
-
-      axios
-        .get(
-          `/app-city-list/${this.$appId}/${this.itemSelectedComplete?.id || 1}`,
-        )
-        .then((response) => {
-          const data = response.data.data;
-
-          let selectedIndex = this.country.findIndex(
-            (item) => item.id === this.itemSelectedComplete?.id,
-          );
-
-          if (selectedIndex !== -1 && selectedIndex !== 0) {
-            // Hapus item dari posisi saat ini
-            let selectedItem = this.country.splice(selectedIndex, 1)[0];
-            // Sisipkan item ke indeks pertama
-            this.country.unshift(selectedItem);
-          }
-
-          this.city = data.map((city) => {
-            return {
-              id: city.city_id,
-              title: city.city_name,
-              count: city.property_count,
-              image: city?.city_image || "",
-              countryId: city.country_id,
-              path: "#",
-            };
-          });
-
-          let index = this.country.findIndex(
-            (item) => item.id === this.itemSelectedComplete?.id,
-          );
-
-          if (index !== -1 && this.country[index].oneCity === false) {
-            this.country[index].cities = this.city;
-          }
-          console.log(this.country);
-        })
-        .catch((error) => {
-          console.log(error);
+          console.log("country", error);
         })
         .finally(() => {
           this.isLoading = false;
@@ -1234,7 +1481,6 @@ export default {
       localStorage.setItem("mallCount", this.itemSelectedComplete?.count);
       this.setItemSelected2("---Select City---");
       this.setItemSelected2Complete(null);
-      this.getCityMall();
       // this.getActiveMallData();
       app.config.globalProperties.$eventBus.$emit("getActiveDataByCountryCity");
       this.dialog = false;
@@ -1382,5 +1628,28 @@ header.v-sheet.v-app-bar {
   100% {
     background-position: -100% 0;
   }
+}
+
+.location-selector {
+  background-color: #f5f5f5 !important;
+  border-radius: 8px;
+  padding: 0 10px;
+  height: 40px;
+}
+
+.location-selector:hover {
+  background-color: #eeeeee !important;
+}
+
+.w15 {
+  width: 15%;
+}
+
+.w85 {
+  width: 85%;
+}
+
+.gap-2 {
+  gap: 8px;
 }
 </style>
