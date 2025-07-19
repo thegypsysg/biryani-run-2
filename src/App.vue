@@ -1,11 +1,6 @@
 <template>
   <v-app>
     <div>
-      <!-- <router-view v-slot="{ Component }">
-        <transition name="fade" mode="out-in">
-          <Component :is="Component" />
-        </transition>
-      </router-view> -->
       <Header
         v-if="$route.name != 'Buy Studio' && $route.name != 'Buy Detail'"
         :is-header="
@@ -45,6 +40,52 @@
         </Transition>
       </RouterView>
     </div>
+    <!-- <v-dialog v-model="isLoggedIn" persistent width="auto">
+      <v-card width="350">
+        <v-card-text class="">
+          <h4 class="mt-4 mb-8 text-center">
+            Please Sign Up or Login to proceed with Adding Items to your Cart
+          </h4>
+          <v-btn class="mb-4 w-100 bg-primary" @click="closeIsLoggedIn">
+            OK
+          </v-btn>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+    <v-dialog v-model="isCartEmpty" persistent width="auto">
+      <v-card width="350">
+        <v-card-text class="">
+          <h4 class="mt-4 mb-8 text-center">
+            Your Cart is Empty . Please add products in your cart first
+          </h4>
+          <v-btn class="mb-4 w-100 bg-primary" @click="closeIsCartEmpty">
+            OK
+          </v-btn>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+    <v-dialog v-model="isCountryUpdating" persistent width="auto">
+      <v-card width="350">
+        <v-card-text class="">
+          <h4 class="mt-4 mb-8 text-center">
+            We will be updating this very soon pls come back again
+          </h4>
+          <v-btn class="mb-4 w-100 bg-primary" @click="closeIsCountryUpdating">
+            OK
+          </v-btn>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+    <v-dialog v-model="isEmptyDelivery" persistent width="auto">
+      <v-card width="350">
+        <v-card-text class="">
+          <h4 class="mt-4 mb-8 text-center">Please select atleast 1 option</h4>
+          <v-btn class="mb-4 w-100 bg-primary" @click="closeIsEmptyDelivery">
+            OK
+          </v-btn>
+        </v-card-text>
+      </v-card>
+    </v-dialog> -->
   </v-app>
 </template>
 
@@ -70,6 +111,12 @@ export default {
       let title = "";
       if (this.currentRoute === "/my-profile") {
         title = "My Profile";
+      } else if (this.currentRoute === "/my-favorites") {
+        title = "My Favorites";
+      } else if (this.currentRoute === "/checkout") {
+        title = "Checkout";
+      } else if (this.currentRoute === "/price-list") {
+        title = "Price List";
       } else if (this.currentRoute === "/sign-in") {
         title = "Sign-Up / Sign-in";
       } else if (this.currentRoute === "/social-sign-up") {
@@ -94,8 +141,11 @@ export default {
     isProfile() {
       return (
         this.currentRoute === "/my-profile" ||
+        this.currentRoute === "/my-favorites" ||
         this.currentRoute === "/sign-in" ||
-        this.currentRoute === "/social-sign-up"
+        this.currentRoute === "/social-sign-up" ||
+        this.currentRoute === "/sign-up-email" ||
+        this.currentRoute === "/price-list"
       );
     },
     isBatamProperties() {
@@ -104,6 +154,7 @@ export default {
     isSignIn() {
       return (
         this.currentRoute === "/sign-in" ||
+        this.currentRoute === "/sign-up-email" ||
         this.currentRoute === "/social-sign-up"
       );
     },
@@ -188,6 +239,67 @@ export default {
     },
   },
 };
+</script>
+
+<script setup>
+import { ref, watch, computed } from "vue"; // Ensure these are imported
+import { useStore } from "vuex";
+
+const store = useStore();
+
+const isLoggedIn = ref(false);
+// const isCartEmpty = ref(false);
+const isCountryUpdating = ref(false);
+// const isEmptyDelivery = ref(false);
+
+const isNotLoggedIn = computed(() => store.state.isNotLoggedIn);
+// const isCartEmptyStore = computed(() => store.state.isCartEmpty);
+const isCountryUpdatingStore = computed(() => store.state.isCountryUpdating);
+// const isEmptyDeliveryStore = computed(() => store.state.isEmptyDelivery);
+
+const closeIsLoggedIn = () => {
+  isLoggedIn.value = false;
+  store.commit("setIsNotLoggedIn", false);
+};
+
+// const closeIsCartEmpty = () => {
+//   isCartEmpty.value = false;
+//   store.commit("setIsCartEmpty", false);
+// };
+
+const closeIsCountryUpdating = () => {
+  isCountryUpdating.value = false;
+  store.commit("setIsCountryUpdating", false);
+};
+
+// const closeIsEmptyDelivery = () => {
+//   isEmptyDelivery.value = false;
+//   store.commit("setIsEmptyDelivery", false);
+// };
+
+watch(isNotLoggedIn, (newX) => {
+  if (newX == true) {
+    isLoggedIn.value = true;
+  }
+});
+
+// watch(isCartEmptyStore, (newX) => {
+//   if (newX == true) {
+//     isCartEmpty.value = true;
+//   }
+// });
+
+watch(isCountryUpdatingStore, (newX) => {
+  if (newX == true) {
+    isCountryUpdating.value = true;
+  }
+});
+
+// watch(isEmptyDeliveryStore, (newX) => {
+//   if (newX == true) {
+//     isEmptyDelivery.value = true;
+//   }
+// });
 </script>
 
 <style>

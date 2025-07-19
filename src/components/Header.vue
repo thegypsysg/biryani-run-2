@@ -13,7 +13,7 @@
         <v-img
           class="logo-img"
           :src="$fileURL + logo"
-          height="50"
+          height="35"
           transition="fade-transition"
         >
           <template #placeholder>
@@ -23,113 +23,264 @@
       </div>
     </router-link>
 
-    <div v-if="!isHeader" class="desktop__app">
-      <!-- v-if="!isProfile && !isMobileProduct" -->
-      <v-menu v-if="!isProfile">
-        <template #activator="{ props }">
-          <v-btn
-            class="ml-4 location-selector"
-            v-bind="props"
-            variant="text"
-            color="#494949"
-            append-icon="mdi-chevron-down"
-          >
-            <div class="d-flex align-center gap-2">
-              <v-avatar size="24" v-if="selectedLocation.country">
-                <v-img
-                  :src="
-                    $fileURL +
-                    locationDropdown.find(
-                      (l) => l.country === selectedLocation.country,
-                    )?.flagUrl
-                  "
-                  cover
-                ></v-img>
-              </v-avatar>
-              <span class="text-caption">{{ selectedLocation.city }}</span>
-            </div>
-          </v-btn>
-        </template>
+    <v-menu v-if="!isProfile && !isMobileProduct">
+      <template #activator="{ props }">
+        <v-btn
+          class="ml-4 location-selector"
+          v-bind="props"
+          variant="text"
+          color="#494949"
+          append-icon="mdi-chevron-down"
+        >
+          <div class="d-flex align-center gap-2">
+            <v-avatar size="24" v-if="selectedLocation.country">
+              <v-img
+                :src="
+                  $fileURL +
+                  locationDropdown.find(
+                    (l) => l.country === selectedLocation.country,
+                  )?.flagUrl
+                "
+                cover
+              ></v-img>
+            </v-avatar>
+            <span class="searchCityName">{{ selectedLocation.city }}</span>
+          </div>
+        </v-btn>
+      </template>
 
-        <v-card min-width="300">
-          <v-card-title>
-            <span class="text-subtitle-2">Choose Your Location</span>
-          </v-card-title>
+      <v-card min-width="300">
+        <v-card-title>
+          <span class="text-subtitle-2">Choose Your Location</span>
+        </v-card-title>
 
-          <v-list>
-            <template
-              v-for="(location, index) in locationDropdown"
-              :key="index"
+        <v-list>
+          <template v-for="(location, index) in locationDropdown" :key="index">
+            <!-- Country Header -->
+            <v-list-subheader>
+              <div class="d-flex align-center gap-2">
+                <v-avatar size="24">
+                  <v-img :src="$fileURL + location.flagUrl" cover></v-img>
+                </v-avatar>
+                <span class="text-subtitle-1 font-weight-medium">
+                  {{ location.country }}
+                </span>
+              </div>
+            </v-list-subheader>
+
+            <!-- Cities -->
+            <v-list-item
+              v-for="(city, cityIndex) in location.cities"
+              :key="`${index}-${cityIndex}`"
+              :value="city.name"
+              :active="selectedLocation.city === city.name"
+              variant="text"
+              active-color="primary"
+              @click="selectLocation(location, city)"
+              class="pl-7"
             >
-              <!-- Country Header -->
-              <v-list-subheader>
-                <div class="d-flex align-center gap-2">
-                  <v-avatar size="24">
-                    <v-img :src="$fileURL + location.flagUrl" cover></v-img>
-                  </v-avatar>
-                  <span class="text-subtitle-1 font-weight-medium">
-                    {{ location.country }}
-                  </span>
-                </div>
-              </v-list-subheader>
-
-              <!-- Cities -->
-              <v-list-item
-                v-for="(city, cityIndex) in location.cities"
-                :key="`${index}-${cityIndex}`"
-                :value="city.name"
-                :active="selectedLocation.city === city.name"
-                variant="text"
-                active-color="primary"
-                @click="selectLocation(location, city)"
-                class="pl-7"
+              <template #prepend>
+                <v-avatar size="24" class="">
+                  <v-img :src="$fileURL + city.imageUrl" cover></v-img>
+                </v-avatar>
+              </template>
+              <v-list-item-title
+                >{{ city.name }}
+                <span class="font-weight-bold"
+                  >(<span class="text-blue-darken-4">{{ city.count }}</span>
+                  Products)</span
+                ></v-list-item-title
               >
-                <template #prepend>
-                  <v-avatar size="24" class="">
-                    <v-img :src="$fileURL + city.imageUrl" cover></v-img>
-                  </v-avatar>
-                </template>
-                <v-list-item-title
-                  >{{ city.name }}
-                  <span class="font-weight-bold"
-                    >(<span class="text-blue-darken-4">{{ city.count }}</span>
-                    Products)</span
-                  ></v-list-item-title
-                >
-              </v-list-item>
-            </template>
-          </v-list>
-        </v-card>
-      </v-menu>
-    </div>
+            </v-list-item>
+          </template>
+        </v-list>
+      </v-card>
+    </v-menu>
 
-    <data
-      v-if="
-        $route.name == 'Trending-buy' ||
-        $route.name == 'Trending-rent' ||
-        $route.name == 'Trending-roommates' ||
-        $route.name == 'Trending-staycation' ||
-        $route.name == 'Trending-vacation' ||
-        $route.name == 'Trending-co-living' ||
-        $route.name == 'Trending-co-working'
+    <form
+      v-if="!isDesktop && isProduct"
+      class="navbar__search ml-2"
+      :class="
+        isMobileProduct ? 'mobile__navbar__search' : 'navbar__search__desktop'
       "
-      class="d-flex align-center ga-4"
     >
-      <div
-        class="d-none d-md-block text-h5 font-weight-black text-no-wrap text-red-darken-4"
-        style="text-transform: capitalize !important"
+      <v-autocomplete
+        id="product_name"
+        v-model="search"
+        class="form-control mr-sm-2 ml-md-n3 search-input"
+        item-title="product_name"
+        item-value="product_id"
+        :items="activeMalls"
+        :custom-filter="filterMalls"
+        style="font-style: italic"
+        placeholder="Chicken, Mutton ,  Prawn"
+        density="compact"
+        color="blue-grey-lighten-2"
       >
-        {{ $route.path.replaceAll("-", " ").replaceAll("/", "") }}
-      </div>
-    </data>
+        <template #item="{ props, item }">
+          <div
+            v-if="item.raw.ranges.length > 0"
+            class="mb-4 px-2"
+            v-bind="props"
+          >
+            <p
+              v-if="item.raw.showBrandName"
+              style="font-size: 12px"
+              class="font-weight-bold text-red-darken-4 mb-2"
+            >
+              {{ item.raw.brand_name }}
+            </p>
+            <div
+              v-for="range in item.raw.ranges"
+              class="d-flex align-center w-100 mb-2"
+            >
+              <div style="width: 15%" class="mr-2">
+                <div
+                  style="
+                    height: 45px;
+                    width: 100%;
+                    object-fit: cover;
+                    object-position: center;
+                  "
+                >
+                  <v-img
+                    height="45"
+                    cover
+                    :src="
+                      range.image_1
+                        ? $fileURL + range.image_1
+                        : $fileURL + item.raw.image
+                    "
+                  >
+                    <template #placeholder>
+                      <div class="skeleton" />
+                    </template>
+                  </v-img>
+                </div>
+              </div>
+              <div
+                class="d-flex align-center justify-space-between"
+                style="font-size: 12px; width: 85%"
+              >
+                <div class="w-100">
+                  <a
+                    class="text-decoration-none text-black font-weight-bold"
+                    :href="`/product/${item.raw.encrypted_id}?range_id=${range.range_id}`"
+                  >
+                    <!-- @click="
+                      getProductDetailsLink(
+                        item.raw.product_id,
+                        item.raw.encrypted_id,
+                        range.range_id,
+                      )
+                    " -->
+                    <p class="mb-1 font-weight-regular">
+                      {{
+                        `${item?.raw?.product_name} ${range?.quantity?.quantity_name}`
+                      }}
+                    </p>
+                    <p class="font-weight-regular">
+                      <span>{{
+                        item.raw.percentage && item.raw.country_name
+                          ? `${item.raw.percentage}% | ${item.raw.country_name}`
+                          : item.raw.percentage
+                            ? `${item.raw.percentage}%`
+                            : item.raw.country_name
+                              ? `${item.raw.country_name}`
+                              : ""
+                      }}</span>
+                    </p>
+                  </a>
+                  <div class="d-flex justify-space-between align-center">
+                    <span class="text-red-darken-1 font-weight-bold">
+                      <template v-if="range?.price_list?.rate">
+                        {{ selectedCountry.currency_symbol }}
+                        {{ range?.price_list?.rate }}
+                      </template>
+                    </span>
+                    <!-- <span v-show="range?.price_list?.rate">
+                      <v-btn
+                        v-if="!isInCart(item.raw, range)"
+                        @click.stop.prevent="addToCartData(item.raw, range)"
+                        size="xs"
+                        color="black"
+                        class="text-caption py-1 px-8"
+                        variant="flat"
+                        >Add</v-btn
+                      >
+                      <div
+                        v-else="isInCart(item.raw, range)"
+                        class="d-flex align-center ga-2"
+                      >
+                        <v-btn
+                          size="xs"
+                          color="black"
+                          class="text-caption pa-1 rounded-0"
+                          variant="flat"
+                          icon
+                          @click.stop.prevent="
+                            updateQuantity(item.raw, 'decrease')
+                          "
+                        >
+                          <v-icon>mdi-minus</v-icon>
+                        </v-btn>
+
+                        <span>
+                          {{ cartQuantity(item.raw, range) }}
+                        </span>
+
+                        <v-btn
+                          size="xs"
+                          color="black"
+                          class="text-caption pa-1 rounded-0"
+                          variant="flat"
+                          icon
+                          @click.stop.prevent="
+                            updateQuantity(item.raw, 'increase')
+                          "
+                        >
+                          <v-icon>mdi-plus</v-icon>
+                        </v-btn>
+                      </div>
+                    </span> -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+      </v-autocomplete>
+      <button class="btn btn--search search-button" type="submit">
+        <v-icon color="white"> mdi-magnify </v-icon>
+      </button>
+    </form>
+
+    <div
+      v-if="!isDesktop && !isProfile && !isProduct"
+      @click="toggleMobileSearchBar()"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="22"
+        height="22"
+        fill="currentColor"
+        class="bi bi-search"
+        viewBox="0 0 16 16"
+      >
+        <path
+          d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"
+        />
+      </svg>
+    </div>
 
     <div
       v-if="isHeader || isProfile"
-      class="ml-6 d-flex flex-row navbar-header"
+      class="ml-6 d-flex navbar-header"
       :class="{ 'navbar-header-mobile': !isDesktop && isProfile }"
     >
       <div class="divider" :class="{ 'd-none': !isDesktop && isProfile }" />
-      <h1>{{ titleHeader }}</h1>
+      <h1 v-if="isDekstop">{{ titleHeader }}</h1>
+      <h2 v-else>{{ titleHeader }}</h2>
     </div>
 
     <v-spacer v-if="isHeader || isProfile" />
@@ -142,43 +293,146 @@
         id="product_name"
         v-model="search"
         class="form-control mr-sm-2 ml-md-n3 search-input"
-        item-title="name"
-        item-value="name"
+        item-title="product_name"
+        item-value="product_id"
         :items="activeMalls"
+        :custom-filter="filterMalls"
         style="font-style: italic"
-        placeholder="Chicken, Mutton ,  Prawn"
+        placeholder="Chicken, Mutton , Prawn"
         density="compact"
         color="blue-grey-lighten-2"
       >
         <template #item="{ props, item }">
-          <div class="mb-2" v-bind="props">
-            <router-link
-              class="text-decoration-none text-black font-weight-bold"
-              to="#"
+          <div
+            v-if="item.raw.ranges.length > 0"
+            class="mb-4 px-2"
+            v-bind="props"
+          >
+            <p
+              v-if="item.raw.showBrandName"
+              style="font-size: 12px"
+              class="font-weight-bold text-red-darken-4 mb-2"
             >
-              <div class="d-flex align-center w-100">
-                <div class="w-25 py-1">
-                  <div style="width: 60px">
-                    <v-img height="40" :src="item?.raw?.mainImage">
-                      <template #placeholder>
-                        <div class="skeleton" />
-                      </template>
-                    </v-img>
-                  </div>
-                </div>
-                <div class="w-75" style="font-size: 12px">
-                  <p class="mb-1">
-                    {{ `${item?.raw?.name} (${item?.raw?.subIndustryName})` }}
-                  </p>
-                  <p class="text-grey">
-                    <span>{{ `${item?.raw?.town}` }}</span> (<span
-                      class="text-red"
-                      >{{ `${item?.raw?.distanceText}` }}</span
-                    ><span class="text-black"> away</span>)
-                  </p>
+              {{ item.raw.brand_name }}
+            </p>
+            <div
+              v-for="range in item.raw.ranges"
+              class="d-flex align-center w-100 mb-2"
+            >
+              <div style="width: 15%" class="mr-2">
+                <div
+                  style="
+                    height: 45px;
+                    width: 100%;
+                    object-fit: cover;
+                    object-position: center;
+                  "
+                >
+                  <v-img
+                    height="45"
+                    cover
+                    :src="
+                      range.image_1
+                        ? $fileURL + range.image_1
+                        : $fileURL + item.raw.image
+                    "
+                  >
+                    <template #placeholder>
+                      <div class="skeleton" />
+                    </template>
+                  </v-img>
                 </div>
               </div>
-            </router-link>
+              <div
+                class="d-flex align-center justify-space-between"
+                style="font-size: 12px; width: 85%"
+              >
+                <div class="w-100">
+                  <div
+                    class="text-decoration-none text-black font-weight-bold"
+                    :href="`/product/${item.raw.encrypted_id}?range_id=${range.range_id}`"
+                  >
+                    <!-- @click="
+                      getProductDetailsLink(
+                        item.raw.product_id,
+                        item.raw.encrypted_id,
+                        range.range_id,
+                      )
+                    " -->
+                    <p class="mb-1 font-weight-regular">
+                      {{
+                        `${item?.raw?.product_name} ${range?.quantity?.quantity_name}`
+                      }}
+                    </p>
+
+                    <p class="font-weight-regular">
+                      <span>{{
+                        item.raw.percentage && item.raw.country_name
+                          ? `${item.raw.percentage}% | ${item.raw.country_name}`
+                          : item.raw.percentage
+                            ? `${item.raw.percentage}%`
+                            : item.raw.country_name
+                              ? `${item.raw.country_name}`
+                              : ""
+                      }}</span>
+                    </p>
+                  </div>
+                  <div class="d-flex justify-space-between align-center">
+                    <span class="text-red-darken-1 font-weight-bold">
+                      <template v-if="range?.price_list?.rate">
+                        {{ selectedCountry.currency_symbol }}
+                        {{ range?.price_list?.rate }}
+                      </template>
+                    </span>
+                    <!-- <span v-show="range?.price_list?.rate">
+                      <v-btn
+                        v-if="!isInCart(item.raw, range)"
+                        @click.stop.prevent="addToCartData(item.raw, range)"
+                        size="xs"
+                        color="black"
+                        class="text-caption py-1 px-8"
+                        variant="flat"
+                        >Add</v-btn
+                      >
+                      <div
+                        v-else="isInCart(item.raw, range)"
+                        class="d-flex align-center ga-2"
+                      >
+                        <v-btn
+                          size="xs"
+                          color="black"
+                          class="text-caption pa-1 rounded-0"
+                          variant="flat"
+                          icon
+                          @click.stop.prevent="
+                            updateQuantity(item.raw, 'decrease')
+                          "
+                        >
+                          <v-icon>mdi-minus</v-icon>
+                        </v-btn>
+
+                        <span>
+                          {{ cartQuantity(item.raw, range) }}
+                        </span>
+
+                        <v-btn
+                          size="xs"
+                          color="black"
+                          class="text-caption pa-1 rounded-0"
+                          variant="flat"
+                          icon
+                          @click.stop.prevent="
+                            updateQuantity(item.raw, 'increase')
+                          "
+                        >
+                          <v-icon>mdi-plus</v-icon>
+                        </v-btn>
+                      </div>
+                    </span> -->
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </template>
       </v-autocomplete>
@@ -187,46 +441,21 @@
       </button>
     </form>
 
-    <!-- <div v-if="isBatamProperties" class="d-none d-md-flex ga-2 w-100">
-      <div class="text-h4 font-weight-black text-no-wrap">
-        <span class="text-red-darken-4">Batam</span> Properties
-      </div>
-      <div class="d-flex justify-center w-100">
-        <div class="d-flex gap-2 align-center text-caption">
-          <label class="text-subtitle-1 text-no-wrap"
-            >Indonesia (5 Properties)</label
-          >
-          <v-select
-            v-model="selected"
-            :items="['Property 1', 'Property 2', 'Property 3']"
-            label="Select an option"
-          ></v-select>
-        </div>
-        <div class="d-flex gap-2 align-center text-caption">
-          <label class="text-subtitle-1 text-no-wrap"
-            >Batam (5 Properties)</label
-          >
-          <v-select
-            v-model="selected"
-            :items="['Property 1', 'Property 2', 'Property 3']"
-            label="Select an option"
-          ></v-select>
-        </div>
-      </div>
-    </div> -->
-
-    <!-- <v-spacer></v-spacer> -->
-
     <!-- if NOT mobile view -->
     <div
       v-if="!isHeader && !isProfile && !userName && !isSmall"
       class="btn_sign__up-cont"
     >
-      <v-btn elevation="0" class="btn_sign__up" to="/sign-in">
+      <v-btn
+        elevation="0"
+        class="btn_sign__up"
+        @click="$router.push('/sign-in')"
+      >
         <span> Sign Up / Sign In</span>
       </v-btn>
       <div class="btn_sign__up-hover" />
     </div>
+
     <v-btn
       v-if="!isHeader && !isProfile && !isSmall && userName"
       elevation="0"
@@ -287,7 +516,7 @@
       </v-img>
       <img
         v-else-if="userImage == null && !isLoading"
-        src="@/assets/images/icons/user_icon.png"
+        :src="images.user"
         cover
         height="48"
         style="height: 100%; width: 100%"
@@ -296,60 +525,80 @@
 
     <template v-if="!isProfile" #extension>
       <div class="mobile__app text-center w-100">
-        <template
-          v-if="
-            $route.name == 'Trending-buy' ||
-            $route.name == 'Trending-rent' ||
-            $route.name == 'Trending-roommates' ||
-            $route.name == 'Trending-staycation' ||
-            $route.name == 'Trending-vacation' ||
-            $route.name == 'Trending-co-living' ||
-            $route.name == 'Trending-co-working'
-          "
-        >
-          <div class="d-flex justify-center mx-auto" style="width: max-content">
-            <v-btn
-              v-if="
-                isSmall &&
-                ($route.name == 'Trending-buy' ||
-                  $route.name == 'Trending-rent' ||
-                  $route.name == 'Trending-roommates' ||
-                  $route.name == 'Trending-staycation' ||
-                  $route.name == 'Trending-vacation' ||
-                  $route.name == 'Trending-co-living' ||
-                  $route.name == 'Trending-co-working')
-              "
-              style="font-size: 15px; color: #494949"
-              variant="text"
-              :disabled="isLoading"
-              @click="dialog = true"
-            >
-              <template
-                v-if="!itemSelectedComplete || itemSelectedComplete == null"
+        <template v-if="activeLocationButton && isSmall">
+          <v-menu v-if="locationPlaceholder" v-model="userLocation">
+            <template v-slot:activator="{ props }">
+              <v-btn
+                variant="text"
+                v-bind="props"
+                color="#494949"
+                append-icon="mdi-chevron-down"
               >
-                <span>{{ selectedPlace || itemSelected }}</span>
-              </template>
-              <template
-                v-if="itemSelectedComplete || itemSelectedComplete != null"
-              >
-                <div style="border-radius: 50%; height: 20px; width: 20px">
-                  <v-img
-                    style="
-                      width: 100% !important;
-                      height: 20px !important;
-                      object-fit: cover !important;
-                      object-position: center !important;
-                    "
-                    :src="$fileURL + itemSelectedComplete?.flag"
-                  />
+                <template v-slot:prepend>
+                  <v-avatar
+                    :image="$fileURL + itemSelectedComplete?.flag"
+                    size="x-small"
+                  ></v-avatar>
+                </template>
+
+                {{ locationPlaceholder }}
+              </v-btn>
+            </template>
+
+            <v-card min-width="300">
+              <v-card-title>
+                <div class="d-flex align-center ga-2">
+                  <v-icon size="small">mdi-map-marker</v-icon>
+                  <p class="text-subtitle-2">Choose Your Location</p>
                 </div>
-                <span class="ml-2">{{
-                  selectedPlace || itemSelectedComplete?.title
-                }}</span>
-              </template>
-              <v-icon right dark> mdi-menu-down </v-icon>
-            </v-btn>
-          </div>
+              </v-card-title>
+
+              <v-list>
+                <template
+                  v-for="(location, index) in locationDropdown"
+                  :key="index"
+                >
+                  <!-- Country Header -->
+                  <v-list-subheader>
+                    <div class="d-flex align-center gap-2">
+                      <v-avatar size="24">
+                        <v-img :src="$fileURL + location.flagUrl" cover></v-img>
+                      </v-avatar>
+                      <span class="text-subtitle-1 font-weight-medium">
+                        {{ location.country }} ({{ location.properties }}
+                        Properties)
+                      </span>
+                    </div>
+                  </v-list-subheader>
+
+                  <!-- Cities -->
+                  <v-list-item
+                    v-for="(city, cityIndex) in location.cities"
+                    :key="`${index}-${cityIndex}`"
+                    :value="city.name"
+                    :active="selectedLocation.city === city.name"
+                    variant="text"
+                    active-color="primary"
+                    @click="selectLocation(location, city)"
+                    class="pl-7"
+                  >
+                    <template #prepend>
+                      <v-avatar size="24" class="mr-2">
+                        <v-img :src="$fileURL + city.imageUrl" cover></v-img>
+                      </v-avatar>
+                    </template>
+                    <v-list-item-title>{{ city.name }}</v-list-item-title>
+                  </v-list-item>
+                </template>
+              </v-list>
+            </v-card>
+          </v-menu>
+
+          <v-skeleton-loader
+            width="200"
+            v-else
+            type="list-item-two-line"
+          ></v-skeleton-loader>
         </template>
 
         <!-- if NOT mobile view -->
@@ -360,7 +609,7 @@
           <v-btn
             elevation="0"
             class="btn_sign__up d-flex align-center"
-            to="/sign-in"
+            @click="$router.push('/sign-in')"
           >
             <span> Sign Up / Sign In</span>
           </v-btn>
@@ -376,61 +625,161 @@
           Logout
         </v-btn>
 
-        <form class="navbar__search navbar__search__mobile mx-auto">
-          <v-autocomplete
-            id="product_name"
-            v-model="search"
-            class="form-control mr-sm-2 ml-md-n3 search-input"
-            item-title="name"
-            item-value="name"
-            :items="activeMalls"
-            style="font-style: italic"
-            placeholder="Chicken, Mutton , Prawn"
-            density="compact"
-            color="blue-grey-lighten-2"
-          >
-            <template #item="{ props, item }">
-              <div class="mb-2" v-bind="props">
-                <router-link
-                  class="text-decoration-none text-black font-weight-bold"
-                  style="font-size: 12px"
-                  to="#"
+        <div v-if="isSmall && !isProduct" class="ma-4">
+          <form v-if="openMobileSearchBar" class="navbar__search mx-auto">
+            <v-autocomplete
+              id="product_name"
+              v-model="search"
+              class="form-control mr-sm-2 ml-md-n3 search-input"
+              item-title="product_name"
+              item-value="product_id"
+              :items="activeMalls"
+              :custom-filter="filterMalls"
+              style="font-style: italic"
+              placeholder="Chicken, Mutton , Prawn"
+              density="compact"
+              color="blue-grey-lighten-2"
+            >
+              <template #item="{ props, item }">
+                <div
+                  v-if="item.raw.ranges.length > 0"
+                  class="mb-4 px-2"
+                  v-bind="props"
                 >
-                  <div class="d-flex align-center" style="width: 100%">
-                    <div style="width: 30% !important" class="py-1">
-                      <div style="width: 100px">
-                        <v-img height="40" :src="item?.raw?.mainImage">
+                  <p
+                    v-if="item.raw.showBrandName"
+                    style="font-size: 12px"
+                    class="font-weight-bold text-red-darken-4 mb-2"
+                  >
+                    {{ item.raw.brand_name }}
+                  </p>
+                  <div
+                    v-for="range in item.raw.ranges"
+                    class="d-flex align-center w-100 mb-2"
+                  >
+                    <div style="width: 15%" class="mr-2">
+                      <div
+                        style="
+                          height: 45px;
+                          width: 100%;
+                          object-fit: cover;
+                          object-position: center;
+                        "
+                      >
+                        <v-img
+                          height="45"
+                          cover
+                          :src="
+                            range.image_1
+                              ? $fileURL + range.image_1
+                              : $fileURL + item.raw.image
+                          "
+                        >
                           <template #placeholder>
                             <div class="skeleton" />
                           </template>
                         </v-img>
                       </div>
                     </div>
-                    <div style="width: 70% !important" class="pl-2">
-                      <p class="mb-1">
-                        {{
-                          `${item?.raw?.name} (${item?.raw?.subIndustryName})`
-                        }}
-                      </p>
-                      <p class="text-grey">
-                        <span>{{ `${item?.raw?.town}` }}</span> (<span
-                          class="text-red"
-                          >{{ `${item?.raw?.distanceText}` }}</span
-                        ><span class="text-black"> away</span>)
-                      </p>
+                    <div
+                      class="d-flex align-center justify-space-between"
+                      style="font-size: 12px; width: 85%"
+                    >
+                      <div class="w-100">
+                        <div
+                          class="text-decoration-none text-black font-weight-bold"
+                          @click="
+                            getProductDetailsLink(
+                              item.raw.product_id,
+                              item.raw.encrypted_id,
+                              range.range_id,
+                            )
+                          "
+                        >
+                          <!-- :href="`/product/${item.raw.encrypted_id}?range_id=${range.range_id}`" -->
+                          <p class="mb-1 font-weight-regular">
+                            {{
+                              `${item?.raw?.product_name} ${range?.quantity?.quantity_name}`
+                            }}
+                          </p>
+                          <p class="font-weight-regular">
+                            <span>{{
+                              item.raw.percentage && item.raw.country_name
+                                ? `${item.raw.percentage}% | ${item.raw.country_name}`
+                                : item.raw.percentage
+                                  ? `${item.raw.percentage}%`
+                                  : item.raw.country_name
+                                    ? `${item.raw.country_name}`
+                                    : ""
+                            }}</span>
+                          </p>
+                        </div>
+                        <div class="d-flex justify-space-between align-center">
+                          <span class="text-red-darken-1 font-weight-bold">
+                            <template v-if="range?.price_list?.rate">
+                              {{ selectedCountry.currency_symbol }}
+                              {{ range?.price_list?.rate }}
+                            </template>
+                          </span>
+                          <!-- <span v-show="range?.price_list?.rate">
+                            <v-btn
+                              v-if="!isInCart(item.raw, range)"
+                              @click.stop.prevent="
+                                addToCartData(item.raw, range)
+                              "
+                              size="xs"
+                              color="black"
+                              class="text-caption py-1 px-8"
+                              variant="flat"
+                              >Add</v-btn
+                            >
+                            <div
+                              v-else="isInCart(item.raw, range)"
+                              class="d-flex align-center ga-2"
+                            >
+                              <v-btn
+                                size="xs"
+                                color="black"
+                                class="text-caption pa-1 rounded-0"
+                                variant="flat"
+                                icon
+                                @click.stop.prevent="
+                                  updateQuantity(item.raw, 'decrease')
+                                "
+                              >
+                                <v-icon>mdi-minus</v-icon>
+                              </v-btn>
+
+                              <span>
+                                {{ cartQuantity(item.raw, range) }}
+                              </span>
+
+                              <v-btn
+                                size="xs"
+                                color="black"
+                                class="text-caption pa-1 rounded-0"
+                                variant="flat"
+                                icon
+                                @click.stop.prevent="
+                                  updateQuantity(item.raw, 'increase')
+                                "
+                              >
+                                <v-icon>mdi-plus</v-icon>
+                              </v-btn>
+                            </div>
+                          </span> -->
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </router-link>
-              </div>
-            </template>
-          </v-autocomplete>
-          <button class="btn btn--search" type="submit">
-            <v-icon color="white"> mdi-magnify </v-icon>
-          </button>
-        </form>
-
-        <div v-if="$route.name == 'HomePage'" class="ma-4">
-          <ExploreOurMenuList :desktop="false" />
+                </div>
+              </template>
+            </v-autocomplete>
+            <button class="btn btn--search" type="submit">
+              <v-icon color="white"> mdi-magnify </v-icon>
+            </button>
+          </form>
+          <ExploreOurMenuList :desktop="false" v-if="!isProduct" />
         </div>
 
         <div id="trending-container" class="d-sm-none"></div>
@@ -480,23 +829,21 @@
     </template>
   </v-app-bar>
 
-  <v-navigation-drawer
-    v-if="isSmall"
-    v-model="drawer"
-    temporary
-    location="right"
-  >
+  <v-navigation-drawer v-model="drawer" temporary location="right">
     <div
       class="drawer__top"
       :class="{ 'py-6': userName == null, 'py-2': userName != null }"
     >
-      <router-link
-        v-if="userName == null"
-        class="text-decoration-none"
-        to="/sign-in"
-      >
-        <span style="font-size: 1.125rem; color: white">Sign up / Sign In</span>
-      </router-link>
+      <div v-if="userName == null" class="btn_sign__up-cont-drawer">
+        <v-btn
+          elevation="0"
+          class="btn_sign__up"
+          @click="$router.push('/sign-in')"
+        >
+          <span> Sign Up / Sign In</span>
+        </v-btn>
+        <div class="btn_sign__up-drawer-hover" />
+      </div>
       <div v-else class="d-flex align-center">
         <div style="width: 55px; height: 55px; border-radius: 50%">
           <v-img
@@ -509,7 +856,7 @@
             "
           >
             <template #placeholder>
-              <div class="skeleton" />
+              <v-skeleton-loader type="image"></v-skeleton-loader>
             </template>
           </v-img>
         </div>
@@ -588,18 +935,14 @@
     <ul class="pt-1" nav dense>
       <li class="v-list-item">
         <div class="v-list-item__icon">
-          <v-img height="20" width="30" src="@/assets/images/icons/home.png" />
+          <v-img height="20" width="30" :src="images.home" />
         </div>
         <v-list-item-title style="font-size: 12px"> Home </v-list-item-title>
       </li>
 
       <li v-if="userName != null" class="v-list-item mt-n2">
         <div class="v-list-item__icon">
-          <v-img
-            height="18"
-            width="25"
-            src="@/assets/images/icons/menu-shopper.png"
-          />
+          <v-img height="18" width="25" :src="images.shopper" />
         </div>
         <router-link class="text-decoration-none text-black" to="/my-profile">
           <v-list-item-title style="font-size: 12px">
@@ -610,7 +953,7 @@
 
       <li class="v-list-item mt-n2">
         <div class="v-list-item__icon">
-          <v-img height="18" width="25" src="@/assets/images/icons/shop.png" />
+          <v-img height="18" width="25" :src="images.shop" />
         </div>
         <v-list-item-title style="font-size: 12px"> My Cart </v-list-item-title>
       </li>
@@ -628,16 +971,33 @@
           <v-img src="" />
         </div>
 
-        <v-list-item-title style="font-size: 12px">
+        <router-link
+          v-if="isSmall"
+          class="text-decoration-none text-black"
+          to="/my-favorites"
+        >
+          <v-list-item-title style="font-size: 12px">
+            My Favorites
+          </v-list-item-title>
+        </router-link>
+        <v-list-item-title
+          v-else
+          @click="isBestViewed = true"
+          class="cursor-pointer"
+          style="font-size: 12px"
+        >
           My Favorites
         </v-list-item-title>
       </li>
+
       <li v-if="userName != null" class="v-list-item mt-n2">
         <div class="v-list-item__icon">
           <v-img src="" />
         </div>
 
-        <v-list-item-title style="font-size: 12px"> My Apps </v-list-item-title>
+        <v-list-item-title class="cursor-pointer" style="font-size: 12px">
+          QR Code - For Payments
+        </v-list-item-title>
       </li>
       <li v-if="userName == null" class="v-list-item mt-n2">
         <div class="v-list-item__icon">
@@ -673,31 +1033,18 @@
           :class="{ 'mb-2': userName == null }"
         >
           <v-col cols="3" class="d-flex justify-end">
-            <a :href="contactData?.facebook">
-              <v-img
-                src="@/assets/images/icons/facebook.png"
-                height="40"
-                width="32"
-              />
+            <a :href="footerData?.facebook">
+              <v-img :src="images.facebook" height="40" width="32" />
             </a>
           </v-col>
           <v-col class="d-flex justify-center" cols="3">
-            <a :href="contactData?.instagram">
-              <v-img
-                src="@/assets/images/icons/insta.png"
-                height="40"
-                width="32"
-              />
+            <a :href="footerData?.instagram">
+              <v-img :src="images.instagram" height="40" width="32" />
             </a>
           </v-col>
           <v-col class="d-flex justify-start" cols="3">
-            <a :href="contactData?.tiktok">
-              <v-img
-                src="@/assets/images/icons/tiktok.png"
-                class="mt-1"
-                height="35"
-                width="35"
-              />
+            <a :href="footerData?.tiktok">
+              <v-img :src="images.tiktok" class="mt-1" height="35" width="35" />
             </a>
           </v-col>
           <v-col
@@ -709,7 +1056,7 @@
               :href="`https://api.whatsapp.com/send?phone=${footerData?.whats_app}&text=The Gypsy Support here - How may I help you. ?`"
             >
               <v-img
-                src="@/assets/whatsapp.svg"
+                :src="images.whatsapp"
                 class="mt-1"
                 height="35"
                 width="35"
@@ -740,15 +1087,15 @@
               style="text-decoration: none; font-size: 10px"
               :href="`https://api.whatsapp.com/send?phone=${footerData?.whats_app}&text=Hello!`"
             >
-              {{ contactData?.whats_app }}
+              {{ footerData?.whats_app }}
             </a>
           </div>
           <div>
             <h5>Contact us</h5>
             <a
               style="text-decoration: none; font-size: 10px"
-              :href="`mailto:${contactData?.email_id}`"
-              >{{ contactData?.email_id }}</a
+              :href="`mailto:${footerData?.email_id}`"
+              >{{ footerData?.email_id }}</a
             >
           </div>
         </div> -->
@@ -769,102 +1116,13 @@
     </div>
   </v-navigation-drawer>
 
-  <v-dialog
-    v-model="dialog"
-    fullscreen
-    persistent
-    height="100vh"
-    class="mt-16"
-    z-index="1000000"
-  >
-    <v-card
-      height="90vh"
-      class="mt-16"
-      style="border-top-left-radius: 30px; border-top-right-radius: 30px"
-      prepend-icon="mdi-map-marker"
-    >
-      <template #title>
-        <span class="font-weight-bold" style="font-size: 18px"
-          >Choose your location</span
-        >
-      </template>
-      <template #append>
-        <v-btn
-          variant="text"
-          icon="mdi-close"
-          text="Ok"
-          @click="dialog = false"
-        />
-      </template>
-      <v-card-text class="px-4" style="height: 100px">
-        <div v-for="item in country" :key="item.id">
-          <div
-            v-if="item.count > 0"
-            class="d-flex mb-6 align-content-center"
-            @click="changeItemSelected(item)"
-          >
-            <div class="w15">
-              <v-img height="20" width="30" :src="$fileURL + item?.flag" />
-            </div>
-            <div class="d-flex justify-space-between w85">
-              <p style="font-size: 14px !important">
-                <span
-                  :class="{
-                    'font-weight-bold': item.title == selectedPlace,
-                  }"
-                  >{{ item.title }}</span
-                >
-                (
-                <span class="text-blue-darken-4"
-                  >{{ item.count }}
-                  {{
-                    item?.count == "1" || item?.count == "0"
-                      ? "Property"
-                      : "Properties"
-                  }}</span
-                >
-                )
-              </p>
-
-              <v-icon v-if="item.title == selectedPlace" color="green">
-                mdi-check-circle
-              </v-icon>
-            </div>
-          </div>
-
-          <div
-            v-for="data in item.cities"
-            :key="data.id"
-            @click="changeItemSelected2(data)"
-          >
-            <div v-if="data.count > 0" class="d-flex mb-6 align-content-center">
-              <div class="w15" />
-              <div class="w85 d-flex justify-space-between">
-                <p style="font-size: 14px !important">
-                  <span
-                    :class="{
-                      'font-weight-bold': data.title == selectedPlace,
-                    }"
-                    >{{ data.title }}</span
-                  >
-                  (
-                  <span class="text-blue-darken-4"
-                    >{{ data.count }}
-                    {{
-                      data?.count == "1" || data?.count == "0"
-                        ? "Property"
-                        : "Properties"
-                    }}</span
-                  >
-                  )
-                </p>
-                <v-icon v-if="data.title == selectedPlace" color="green">
-                  mdi-check-circle
-                </v-icon>
-              </div>
-            </div>
-          </div>
-        </div>
+  <v-dialog v-model="isBestViewed" persistent width="auto">
+    <v-card width="350">
+      <v-card-text class="">
+        <h4 class="mt-4 mb-8 text-center">Best Viewed on Mobile</h4>
+        <v-btn class="mb-4 w-100 bg-primary" @click="isBestViewed = false">
+          OK
+        </v-btn>
       </v-card-text>
     </v-card>
   </v-dialog>
@@ -882,10 +1140,6 @@
       class="mt-16"
       style="border-top-left-radius: 30px; border-top-right-radius: 30px"
     >
-      <!-- <template #append>
-
-      </template> -->
-
       <v-card-title
         class="pt-10 d-flex justify-space-between position-fixed bg-white"
         style="z-index: 1000"
@@ -936,7 +1190,7 @@
                   :src="item?.mainImage"
                 >
                   <template #placeholder>
-                    <div class="skeleton" />
+                    <v-skeleton-loader type="image"></v-skeleton-loader>
                   </template>
                 </v-img>
               </div>
@@ -971,7 +1225,7 @@
                   :src="item?.image"
                 >
                   <template #placeholder>
-                    <div class="skeleton" />
+                    <v-skeleton-loader type="image"></v-skeleton-loader>
                   </template>
                 </v-img>
               </div>
@@ -989,16 +1243,17 @@
 </template>
 
 <script>
-import { appId, fileURL } from "@/util/variables";
 import { mapState, mapMutations } from "vuex";
-// import app from "@/util/eventBus";
-import axios from "@/util/axios";
 import moment from "moment-timezone";
+import { setAuthHeader } from "@/util/axios";
+import axios from "@/util/axios";
 import app from "@/util/eventBus";
+// import app from "@/util/eventBus";
 export default {
   // eslint-disable-next-line vue/multi-word-component-names, vue/no-reserved-component-names
   name: "Header",
   props: [
+    "isWelcome",
     "titleHeader",
     "isHeader",
     "isDesktop",
@@ -1008,7 +1263,29 @@ export default {
   ],
   data() {
     return {
-      titleWelcome: "Sign-Up / Sign-in",
+      platformFee: null,
+      taxAmount: null,
+      isBestViewed: false,
+      isQRCode: false,
+      viewCart: false,
+      isApply: false,
+      isEmployment: false,
+      isCheck: false,
+      path: "",
+      footerData: {
+        company_name: "",
+        location: "",
+        mobile_number: "",
+        whats_app: "",
+        email_id: "",
+        copyright: "",
+        facebook: "",
+        twitter: "",
+        instagram: "",
+        youtube: "",
+      },
+      trendingBtn: [],
+      isDetail: false,
       logo: null,
       tokenStart: null,
       userImage: null,
@@ -1018,14 +1295,11 @@ export default {
       dialog: false,
       dialog2: false,
       drawer: false,
+      openMobileSearchBar: false,
       headerData: {},
       search: null,
       activeMalls: [],
       countryId: null,
-      country: [],
-      city: [],
-      arr1: [],
-      arr2: [],
       currentTime: "",
       screenWidth: window.innerWidth,
       selectedPlace: null,
@@ -1039,14 +1313,26 @@ export default {
       locationDropdown: [],
       isTrending: false,
       trendings: [],
+      trendingCard: [],
     };
+  },
+  watch: {
+    $route() {
+      this.search = null;
+    },
   },
   computed: {
     ...mapState(["itemSelected"]),
     ...mapState(["itemSelected2"]),
     ...mapState(["itemSelectedComplete"]),
     ...mapState(["itemSelected2Complete"]),
-    ...mapState(["itemSelected", "ativeTag"]),
+    ...mapState(["detailHeader"]),
+    ...mapState(["countryRecognised"]),
+    ...mapState(["idCountryRecognised"]),
+    ...mapState(["skillRecognised"]),
+    ...mapState(["idSkillRecognised"]),
+    ...mapState(["selectedCountry"]),
+    ...mapState(["activeTag"]),
     latitude() {
       return localStorage.getItem("latitude");
     },
@@ -1060,12 +1346,9 @@ export default {
       return this.screenWidth < 640;
     },
     filteredMalls() {
-      if (!this.search) {
-        return this.activeMalls;
-      }
-      const searchTextLower = this.search.toLowerCase();
+      if (!this.search) return this.activeMalls;
       return this.activeMalls.filter((item) =>
-        item.name.toLowerCase().includes(searchTextLower),
+        item.brand_name.toLowerCase().includes(this.search.toLowerCase()),
       );
     },
     tokenProvider() {
@@ -1084,6 +1367,42 @@ export default {
     token() {
       return localStorage.getItem("token");
     },
+    authToken() {
+      return localStorage.getItem("token");
+    },
+    isPrivacy() {
+      return this.$route.path == "/privacy-policy";
+    },
+    isFavorites() {
+      return this.$route.path == "/my-favorites";
+    },
+    isTerms() {
+      return this.$route.path == "/our-terms";
+    },
+    isMyProfile() {
+      return this.$route.path == "/my-profile";
+    },
+    isProduct() {
+      return this.$route.path.includes("product");
+    },
+    isMobileProduct() {
+      return this.screenWidth < 640 && this.$route.path.includes("product");
+    },
+    isResumeProfile() {
+      return this.$route.path == "/resume-profile";
+    },
+    isHome() {
+      return this.$route.path === "/";
+    },
+    isSpecific() {
+      return this.$route.params.name;
+    },
+    isRecognised() {
+      return this.$route.path === "/recognised-qualifications";
+    },
+    isDetailPage() {
+      return this.$route.path.includes("detail");
+    },
   },
   created() {
     window.addEventListener("resize", this.handleResize);
@@ -1092,30 +1411,38 @@ export default {
   mounted() {
     const token = localStorage.getItem("token");
     if (this.tokenProvider != null) {
+      setAuthHeader(this.tokenProvider);
       this.getHeaderUserData();
     } else if (token) {
+      setAuthHeader(token);
       this.getHeaderUserData();
     }
-    this.getLogo();
-    this.getTrendings();
+    this.search = null;
+    this.getAppContact();
+    this.getTrendingCardData();
     this.getLocationDropDownData();
+    this.getLogo();
+    this.getProductCategoryListData();
 
+    app.config.globalProperties.$eventBus.$on(
+      "changeHeaderPath",
+      this.changeHeaderPath,
+    );
     app.config.globalProperties.$eventBus.$on(
       "getTokenStart",
       this.getTokenStart,
     );
     app.config.globalProperties.$eventBus.$on(
-      "getHeaderUserData",
-      this.getHeaderUserData,
+      "getTrendingCardData2",
+      this.getTrendingCardData2,
     );
-    app.config.globalProperties.$eventBus.$on("openSearch", this.openSearch);
     app.config.globalProperties.$eventBus.$on(
       "changeHeaderImage",
       this.changeHeaderImage,
     );
     app.config.globalProperties.$eventBus.$on(
-      "changeHeaderWelcome2",
-      this.changeHeaderWelcome2,
+      "getHeaderUserData",
+      this.getHeaderUserData,
     );
     app.config.globalProperties.$eventBus.$on(
       "changeHeaderWelcome3",
@@ -1126,80 +1453,117 @@ export default {
   },
   beforeUnmount() {
     app.config.globalProperties.$eventBus.$off(
-      "changeHeaderImage",
-      this.changeHeaderImage,
+      "changeHeaderPath",
+      this.changeHeaderPath,
     );
     app.config.globalProperties.$eventBus.$off(
       "getTokenStart",
       this.getTokenStart,
     );
     app.config.globalProperties.$eventBus.$off(
-      "getHeaderUserData",
-      this.getHeaderUserData,
+      "getTrendingCardData2",
+      this.getTrendingCardData2,
     );
     app.config.globalProperties.$eventBus.$off(
-      "changeHeaderWelcome2",
-      this.changeHeaderWelcome2,
+      "changeHeaderImage",
+      this.changeHeaderImage,
+    );
+    app.config.globalProperties.$eventBus.$off(
+      "getHeaderUserData",
+      this.getHeaderUserData,
     );
     app.config.globalProperties.$eventBus.$off(
       "changeHeaderWelcome3",
       this.changeHeaderWelcome3,
     );
-
-    app.config.globalProperties.$eventBus.$off("openSearch", this.openSearch);
+  },
+  unmounted() {
+    window.removeEventListener("resize", this.handleResize);
   },
   methods: {
     ...mapMutations([
+      "setActiveTag",
       "setItemSelected",
       "setItemSelectedComplete",
       "setItemSelected2",
       "setItemSelected2Complete",
       "setSelectedTrending",
+      "setCountryRecognised",
+      "setSkillRecognised",
+      "setIdCountryRecognised",
+      "setIdSkillRecognised",
+      "setFooterData",
+      "setCategoryData",
+      "setSelectedCountry",
+      "setIsCartEmpty",
+      "setUserName",
     ]),
+    capitalizeFirstLetter(sentence) {
+      const words = sentence.split(" ");
+      for (let i = 0; i < words.length; i++) {
+        const word = words[i];
+        words[i] = word.charAt(0).toUpperCase() + word.slice(1);
+      }
+      const capitalizedSentence = words.join(" ");
+      return capitalizedSentence;
+    },
+    handleResize() {
+      this.screenWidth = window.innerWidth;
+    },
+    toggleMobileSearchBar() {
+      this.openMobileSearchBar = !this.openMobileSearchBar;
+    },
+    changeHeaderPath(path) {
+      //console.log(image)
+      this.path = path;
+    },
+    getTokenStart(tokenParam) {
+      this.tokenStart = tokenParam;
+    },
+    getTrendingCardData2() {
+      this.tokenStart = null;
+    },
     changeHeaderImage(image) {
-      console.log(image);
+      // console.log(image);
       this.userImage = this.$fileURL + image;
     },
-    changeHeaderWelcome2() {
-      this.userName = localStorage.getItem("name");
-      this.userDated = localStorage.getItem("last_login");
-      this.userImage = this.$fileURL + localStorage.getItem("user_image");
-      console.log(this.userName);
-      console.log(this.userDated);
-      console.log(this.userImage);
-      this.getHeaderUserData();
-      // this.titleWelcome = title;
-    },
+
     changeHeaderWelcome3() {
       this.getHeaderUserData2();
       // this.titleWelcome = title;
     },
+    getAppContact() {
+      // this.isLoading = true;
+      axios
+        .get(`/app/contact/${this.$appId}`)
+        .then((response) => {
+          const data = response.data.data;
+          this.setFooterData(data);
+          this.footerData = {
+            company_name: data.company_name || "",
+            location: data.location || "",
+            mobile_number: data.mobile_number || "",
+            whats_app: data.whats_app || "",
+            email_id: data.email_id || "",
+            copyright: data.copyright || "",
+            facebook: data.facebook || "",
+            twitter: data.twitter || "",
+            instagram: data.instagram || "",
+            youtube: data.youtube || "",
+          };
+        })
+        .catch((error) => {
+          // eslint-disable-next-line
+          console.log(error);
+        });
+      // .finally(() => {
+      //   this.isLoading = false;
+      // });
+    },
     loginGypsy() {
-      const externalURL = `https://www.the-gypsy.sg/sign-in?app_id=${this.$appId}`;
-      window.location.href = externalURL;
-      console.log(externalURL);
-      //axios
-      //  .post(`/gypsy-login/google`, {
-      //    app_id: 5,
-      //  })
-      //  .then((response) => {
-      //    console.log(response);
-      //    //if (response) {
-      //    //  window.location.assign(response.data.target_url);
-      //    //} else {
-      //    //  window.location.href = "/sign-in";
-      //    //}
-      //    //console.log(response.data.target_url);
-      //  })
-      //  .catch((error) => {
-      //    console.log(error);
-      //    //window.location.href = "/sign-in";
-      //  });
+      this.$router.push("/sign-in");
     },
 
-    getTokenStart(tokenParam) {
-      this.tokenStart = tokenParam;
-    },
     logout() {
       const token = localStorage.getItem("token");
       axios
@@ -1210,7 +1574,7 @@ export default {
         })
         .then((response) => {
           const data = response.data.data;
-          console.log(data);
+          // console.log(data);
           localStorage.setItem("name", null);
           localStorage.setItem("userName", null);
           localStorage.setItem("g_id", null);
@@ -1303,125 +1667,69 @@ export default {
       this.$router.push(`/merchant-id/${item?.merchant_id}`);
       localStorage.setItem("merchantDetailData", JSON.stringify(item));
     },
-    openSearch() {
-      this.dialog2 = true;
+    async getProductCategoryListData() {
+      this.isLoading = true;
+      try {
+        const response = await axios.get(
+          `/categories-with-products/app/${this.$appId}`,
+        );
+        const data = response.data.data;
+        this.setCategoryData(data);
+        // Flatten data dan kelompokkan berdasarkan brand_id
+        const groupedBrands = {};
+        const processedMalls = [];
+
+        data.forEach((category) => {
+          category.brands.forEach((brand) => {
+            brand.products.forEach((product, index) => {
+              const key = brand.brand_id;
+              if (!groupedBrands[key]) {
+                groupedBrands[key] = true; // Tandai bahwa brand ini sudah muncul
+                processedMalls.push({
+                  ...product,
+                  brand_id: brand.brand_id,
+                  brand_name: brand.brand_name,
+                  product_id: product.product_id,
+                  category_id: category.category_id,
+                  slug: product.product_name.toLowerCase().replace(/\s+/g, "-"),
+                  country_id: brand?.country?.country_id,
+                  country_name: brand?.country?.country_name,
+                  showBrandName: true, // Hanya produk pertama dalam brand yang menampilkan nama brand
+                  isCount: false,
+                  count: 1,
+                });
+              } else {
+                processedMalls.push({
+                  ...product,
+                  brand_id: brand.brand_id,
+                  brand_name: brand.brand_name,
+                  product_id: product.product_id,
+                  category_id: category.category_id,
+                  slug: product.product_name.toLowerCase().replace(/\s+/g, "-"),
+                  country_id: brand?.country?.country_id,
+                  country_name: brand?.country?.country_name,
+                  showBrandName: false, // Produk lainnya tidak menampilkan nama brand
+                  isCount: false,
+                  count: 1,
+                });
+              }
+            });
+          });
+        });
+
+        this.activeMalls = processedMalls;
+        // console.log("iniii", this.activeMalls);
+      } catch (error) {
+        console.error("Error fetching product categories:", error);
+      } finally {
+        this.isLoading = false;
+      }
     },
     updateTime() {
       // Ambil zona waktu Singapore
       const singaporeTime = moment().tz("Asia/Singapore");
       // Format waktu dalam hh:mm:ss
       this.currentTime = singaporeTime.format("HH:mm:ss");
-    },
-    getActiveMallData() {
-      axios
-        .get(
-          `/malls/active-list/${this.latitude}/${this.longitude}/-1/${
-            this.itemSelectedComplete?.id || 1
-          }`,
-        )
-        .then((response) => {
-          const data = response.data.data;
-          // console.log(data);
-          const result = data
-            .sort((a, b) => a.partner_name.localeCompare(b.partner_name))
-            .map((item) => {
-              return {
-                ...item,
-                id: item.mall_id || 0,
-                town: item.town_name || "",
-                city: item.city_name || "",
-                country: item.country_name || "",
-                distance: item.distance || 0,
-                distanceText: this.formatDistance(item.distance),
-                featured: item.featured || "N",
-                latitude: item.latitude || "",
-                longitude: item.longitude || "",
-                logo: this.$fileURL + item.logo || "",
-                mainImage: this.$fileURL + item.main_image || "",
-                oneCity: item.one_city || "N",
-                partnerId: item.partner_id || 0,
-                name: item.partner_name || "",
-                subIndustryName: item.sub_industry_name || "",
-              };
-            });
-          this.activeMalls.push(...result);
-          console.log(this.activeMalls);
-        })
-        .catch((error) => {
-          // eslint-disable-next-line
-          console.log(error);
-          throw error;
-        });
-    },
-    getMallMerchantItemsByCountry() {
-      axios
-        .get(
-          this.itemSelectedComplete?.id
-            ? `/mall-merchant-outlets/list-by-status/all/${this.latitude}/${
-                this.longitude
-              }/${this.itemSelectedComplete?.id || 1}`
-            : `/mall-merchant-outlets/list-by-status/all/${this.latitude}/${this.longitude}/1`,
-        )
-        .then((response) => {
-          const data = response.data.data;
-
-          const items = data
-            .filter((item) => item.active === "Y")
-            .map((item) => {
-              return {
-                ...item,
-                name: item?.partner_name || "",
-                image: this.$fileURL + item.logo || "",
-                distanceText: this.formatDistance(parseInt(item?.distance)),
-              };
-            });
-
-          let uniqueItems = {};
-          for (let i = 0; i < items.length; i++) {
-            const name = items[i].name;
-            if (!uniqueItems[name]) {
-              uniqueItems[name] = {
-                ...items[i],
-                name: name,
-                image: items[i].image,
-              };
-            }
-          }
-
-          // this.mallMerchantItems = Object.values(uniqueItems);
-          const result = Object.values(uniqueItems);
-
-          this.activeMalls.push(...result);
-          console.log(this.activeMalls);
-
-          // this.mallPromotionsItems = data
-          //   .filter((item) => item.active === "Y")
-          //   .map((item) => {
-          //     return {
-          //       id: item.mmo_id || 1,
-          //       name: item.mall_name || "",
-          //     };
-          //   });
-        })
-        .catch((error) => {
-          // eslint-disable-next-line
-          console.log(error);
-          throw error;
-        });
-    },
-    formatDistance(distance) {
-      if (distance === 0 || distance === null) {
-        return "0";
-      } else {
-        //const roundedDistance = Math.round(distance * 10) / 10;
-        //const formattedDistance = roundedDistance.toLocaleString('en-US', {
-        //  minimumFractionDigits: 1,
-        //  maximumFractionDigits: 1,
-        //});
-        //return `${formattedDistance} km`;
-
-        return distance.toFixed(1);
-      }
     },
     getLogo() {
       axios
@@ -1435,6 +1743,38 @@ export default {
           // eslint-disable-next-line
           console.log(error);
         });
+    },
+    getTrendingCardData() {
+      // this.isLoading = true;
+      axios
+        .get(`/skillgroups/${this.$appId}`)
+        .then((response) => {
+          const data = response.data.data;
+          // console.log(data);
+          this.trendingCard = data.map((item) => {
+            return {
+              id: item.sgm_id || 1,
+              img: item.image || "",
+              title: item.group_name || "",
+              tag: item.group_name || "",
+              desc: item.description || "",
+            };
+          });
+          this.trendingBtn = data.map((item) => {
+            return {
+              id: item.sgm_id || 1,
+              title: item.group_name || "",
+              tag: item.group_name || "",
+            };
+          });
+        })
+        .catch((error) => {
+          // eslint-disable-next-line
+          console.log(error);
+        });
+      // .finally(() => {
+      //   this.isLoading = false;
+      // });
     },
     getLocationDropDownData() {
       this.isLoading = true;
@@ -1474,54 +1814,89 @@ export default {
           this.isLoading = false;
         });
     },
-    changeItemSelected(item) {
-      this.setItemSelected(item.title);
-      this.selectedPlace = item.title;
-      this.setItemSelectedComplete(item);
-      localStorage.setItem("mallCount", this.itemSelectedComplete?.count);
-      this.setItemSelected2("---Select City---");
-      this.setItemSelected2Complete(null);
-      // this.getActiveMallData();
-      app.config.globalProperties.$eventBus.$emit("getActiveDataByCountryCity");
-      this.dialog = false;
-    },
-    changeItemSelected2(item) {
-      this.setItemSelected2(item.title);
-      this.selectedPlace = item.title;
-      this.setItemSelected2Complete(item);
-      app.config.globalProperties.$eventBus.$emit("getActiveDataByCountryCity");
-      this.dialog = false;
+
+    selectLocation(country, city) {
+      // console.log(country.currency_symbol);
+      this.selectedLocation = {
+        ...city,
+        currency_symbol: country.currency_symbol ?? "S$",
+        country_id: country.country_id,
+        country: country.country,
+        city: city.name,
+      };
+      this.setSelectedCountry(this.selectedLocation);
+      // this.$store.dispatch(
+      //   "getDeliveryCharges",
+      //   this.selectedLocation.country_id,
+      // );
+      // console.log("selected: ", this.selectedLocation);
     },
     goToPath(data) {
       this.setSelectedTrending(data);
       this.$router.push(data.to);
     },
-    getTrendings() {
-      axios
-        .get(`/list-main-categories`)
-        .then((response) => {
-          const data = response.data.data;
-          this.trendings = data
-            .sort((a, b) => a.category_id < b.category_id)
-            .map((item) => ({
-              ...item,
-              icon: item.icon_image,
-              title: item.category_name,
-              to: item.link_name.includes("asdf")
-                ? "/buy"
-                : item.link_name.includes("roomates")
-                  ? "/roommates"
-                  : item.link_name.split("https://4walls.sg")[1],
-            }));
-        })
-        .catch((error) => {
-          // eslint-disable-next-line
-          console.log(error);
-          throw error;
-        });
+    filterMalls(value, query, item) {
+      if (!query) return true;
+      const text = query.toLowerCase();
+      return (
+        item.raw.brand_name.toLowerCase().includes(text) ||
+        item.raw.product_name.toLowerCase().includes(text)
+      );
     },
   },
 };
+</script>
+
+<script setup>
+// import { useStore } from "vuex";
+// import { useCart } from "@/composables/useCart";
+// import { watch, computed } from "vue";
+
+// Import images
+import homeIcon from "@/assets/images/icons/home.png";
+import shopperIcon from "@/assets/images/icons/menu-shopper.png";
+import shopIcon from "@/assets/images/icons/shop.png";
+import userIcon from "@/assets/images/icons/user_icon.png";
+import facebookIcon from "@/assets/images/icons/facebook.png";
+import instaIcon from "@/assets/images/icons/insta.png";
+import tiktokIcon from "@/assets/images/icons/tiktok.png";
+import whatsappIcon from "@/assets/whatsapp.svg";
+
+// Make images available to template
+const images = {
+  home: homeIcon,
+  shopper: shopperIcon,
+  shop: shopIcon,
+  user: userIcon,
+  facebook: facebookIcon,
+  instagram: instaIcon,
+  tiktok: tiktokIcon,
+  whatsapp: whatsappIcon,
+};
+
+// const store = useStore();
+// const { isInCart, cartQuantity, addToCart, updateQuantity } = useCart();
+
+// const token = computed(() => {
+//   return localStorage.getItem("token");
+// });
+
+// const getDeliveryCharges = () => {
+//   store.dispatch("getDeliveryCharges", 1);
+// };
+
+// const addToCartData = (data, range) => {
+//   // console.log(token.value);
+//   if (token.value == "null") {
+//     store.commit("setIsNotLoggedIn", true);
+//   } else {
+//     addToCart(data, range);
+//   }
+// };
+
+// watch(() => {
+//   getDeliveryCharges();
+// });
 </script>
 
 <style scoped>
@@ -1539,7 +1914,9 @@ header.v-sheet.v-app-bar {
 
 .logo-img-container {
   min-height: 50px;
-  /* set to whatever value suits your needs */
+  display: flex;
+  justify-content: center;
+  align-items: center;
   min-width: 100px;
   /* set to whatever value suits your needs */
 }
@@ -1574,6 +1951,8 @@ header.v-sheet.v-app-bar {
 
 .navbar-header-mobile {
   font-size: 12px;
+  /* display: grid !important;
+  grid-template-columns: 1fr 1fr !important; */
 }
 
 .btn_sign__up-cont {
@@ -1581,10 +1960,35 @@ header.v-sheet.v-app-bar {
   overflow: hidden;
   background: #0197d5;
   width: min-content;
+  box-sizing: border-box;
+}
+
+.btn_sign__up-cont:hover {
+  outline: 2px #eeeeee solid;
+}
+
+.btn_sign__up-cont-drawer {
+  position: relative;
+  overflow: hidden;
+  background: #0197d5;
+  width: min-content;
+  box-sizing: border-box;
+}
+
+.btn_sign__up-cont-drawer:hover {
+  outline: 2px #eeeeee solid;
+}
+
+@media (max-width: 599px) {
+  .btn_sign__up-cont {
+    display: none;
+  }
 }
 
 .btn_sign__up span {
   z-index: 1000;
+  margin-top: auto;
+  margin-bottom: auto;
 }
 
 .btn_sign__up-hover {
@@ -1603,13 +2007,20 @@ header.v-sheet.v-app-bar {
   border-radius: 0px;
 }
 
-.skeleton {
+.btn_sign__up-drawer-hover {
+  position: absolute;
+  border-radius: 50%;
+  bottom: -50px;
+  height: 50px;
   width: 100%;
-  height: 100%;
-  border-radius: 0;
-  background: linear-gradient(-90deg, #f2f2f2 0%, #e1e1e1 50%, #f2f2f2 100%);
-  background-size: 400% 400%;
-  animation: skeleton 1.6s ease infinite;
+  background: #002e41;
+  -webkit-transition: all 0.2s;
+  transition: all 0.2s;
+}
+
+.btn_sign__up-cont-drawer:hover .btn_sign__up-drawer-hover {
+  bottom: 0px;
+  border-radius: 0px;
 }
 
 .w15 {
@@ -1620,14 +2031,24 @@ header.v-sheet.v-app-bar {
   width: 85%;
 }
 
-@keyframes skeleton {
-  0% {
-    background-position: 100% 0;
-  }
+.gap-2 {
+  gap: 8px;
+}
 
-  100% {
-    background-position: -100% 0;
-  }
+.gap-2 {
+  gap: 8px;
+}
+
+.v-list-item {
+  min-height: 44px !important;
+}
+
+.v-list-item--active {
+  background-color: #f5f5f5;
+}
+
+.searchCityName {
+  font-size: 12px !important;
 }
 
 .location-selector {
@@ -1641,15 +2062,52 @@ header.v-sheet.v-app-bar {
   background-color: #eeeeee !important;
 }
 
-.w15 {
-  width: 15%;
+#trending-filter-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
 }
 
-.w85 {
-  width: 85%;
+#trending-filter-container::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
-.gap-2 {
+#scroll-trending {
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
   gap: 8px;
+  padding-bottom: 4px;
+}
+
+/* Make buttons more compact on mobile */
+@media (max-width: 599px) {
+  #scroll-trending .v-btn {
+    padding: 0 16px !important;
+  }
+}
+
+/* Add media query for small screens */
+@media (max-width: 599px) {
+  .btn_sign__up {
+    width: 100%; /* Make button full width */
+  }
+
+  /* Add this to the parent container to enable flex wrapping */
+  .v-app-bar > .v-container {
+    flex-wrap: wrap;
+  }
+  .mobile__navbar__search {
+    width: 55% !important;
+    height: 35px !important;
+    margin-left: 15px !important;
+  }
+
+  .search-button {
+    padding: 6px 6px !important;
+    right: 2px !important;
+  }
 }
 </style>

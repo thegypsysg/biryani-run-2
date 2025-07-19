@@ -61,7 +61,7 @@ export default {
     },
   },
   mounted() {
-    this.getCountryMall();
+    // this.getCountryMall();
     Promise.all([this.getAppDetails1()])
       .then(() => {
         this.isLoading = false;
@@ -82,7 +82,11 @@ export default {
     );
   },
   methods: {
-    ...mapMutations(["setItemSelected", "setItemSelectedComplete"]),
+    ...mapMutations([
+      "setItemSelected",
+      "setItemSelectedComplete",
+      "setAppDetails",
+    ]),
     getCountryMall() {
       this.isLoading = true;
       axios

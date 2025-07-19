@@ -1,48 +1,8 @@
 <template>
-  <!-- <div v-if="!desktop" class="d-flex ga-6 overflow-x-auto flex-row scroll-menu">
-    <div
-      v-for="(menu, i) in menuLists"
-      :key="i"
-      class="d-flex align-center ga-4 flex-column"
-    >
-      <a @click="" class="d-flex border-black pa-2 rounded-lg">
-        <v-avatar :size="40">
-          <v-img aspect-ratio="1" cover :src="$fileURL + menu.img"></v-img>
-        </v-avatar>
-        <p class="text-no-wrap d-flex align-center pl-2 text-caption">
-          {{ menu.title }}
-        </p>
-      </a>
-    </div>
-  </div>
-  <div v-if="desktop">
-    <v-container>
-      <Carousel v-bind="settings" :breakpoints>
-        <Slide v-for="(menu, i) in menuLists" :key="i">
-          <a @click="">
-            <v-avatar :size="100" v-if="desktop">
-              <v-img aspect-ratio="1" cover :src="$fileURL + menu.img"></v-img>
-            </v-avatar>
-
-            <p
-              class="font-weight-bold text-caption text-center pt-2 no-text-wrap"
-            >
-              {{ menu.title }}
-            </p>
-          </a>
-        </Slide>
-
-        <template #addons>
-          <Navigation />
-        </template>
-      </Carousel>
-    </v-container>
-  </div> -->
-
   <div v-if="!desktop" class="d-flex ga-6 overflow-x-auto flex-row scroll-menu">
     <div
-      v-for="(menu, i) in menuLists"
-      :key="i"
+      v-for="menu in menuLists"
+      :key="menu.id"
       class="d-flex align-center ga-4 flex-column"
       @click="scrollToSection(formatName(menu.title), true)"
     >
@@ -79,7 +39,7 @@
       </v-btn> -->
 
       <Splide class="px-16" ref="splideRef" :options="splideOptions">
-        <SplideSlide v-for="(menu, i) in menuLists" :key="i">
+        <SplideSlide v-for="menu in menuLists" :key="menu.id">
           <v-card
             @click="scrollToSection(formatName(menu.title), false)"
             class="card-wrapper"
@@ -118,6 +78,7 @@
 
 <script lang="ts" setup>
 import { onMounted, nextTick, ref } from "vue";
+import { appId } from "@/util/variables";
 import axios from "@/util/axios";
 import { Splide, SplideSlide } from "@splidejs/vue-splide";
 import "@splidejs/vue-splide/css";
@@ -191,13 +152,13 @@ function scrollToSection(sectionId, mobile) {
 const formatName = (name) => name.toLowerCase().replace(/\s+/g, "");
 
 async function getMenuList() {
-  const res = await axios.get("/list-biryani-main-categories");
+  const res = await axios.get(`/list-main-categories-by-app-id/${appId}`);
   menuLists.value = res.data.data.map((item: any) => ({
     title: item.category_name,
     img: item.main_image,
-    id: item.category_name,
+    id: item.mc_id,
   }));
-  console.log(menuLists.value);
+  // console.log(menuLists.value);
 }
 
 // const settings: breakpoints = {
