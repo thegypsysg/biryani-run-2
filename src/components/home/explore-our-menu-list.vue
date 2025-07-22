@@ -90,7 +90,7 @@ defineProps<{
 }>();
 
 const splideOptions = {
-  perPage: 7,
+  perPage: 8,
   arrows: true,
   pagination: false,
   gap: "2rem",

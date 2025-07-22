@@ -1,20 +1,26 @@
 <template>
-  <div style="
+  <div
+    style="
       height: 100vh;
       position: fixed;
       top: 30px;
       left: 0;
       right: 0;
       z-index: 0;
-    ">
+    "
+  >
     <!-- Gambar background -->
     <v-img
       src="https://www.myprotein.com/images?url=https://blogscdn.thehut.net/app/uploads/sites/478/2019/03/intermittent-fasting-ft_1661177868.jpg"
-      aspect-ratio="16/9" cover :class="['zoom-effect', { zoomed: isZoomed }]"
-      style="height: 100%; z-index: 0; position: relative"></v-img>
+      aspect-ratio="16/9"
+      cover
+      :class="['zoom-effect', { zoomed: isZoomed }]"
+      style="height: 100%; z-index: 0; position: relative"
+    ></v-img>
 
     <!-- Overlay abu-abu dengan opacity -->
-    <div style="
+    <div
+      style="
         position: absolute;
         top: 0;
         left: 0;
@@ -22,10 +28,12 @@
         bottom: 0;
         background-color: rgba(0, 0, 0, 0.5);
         z-index: 1;
-      "></div>
+      "
+    ></div>
 
     <!-- Teks dan tombol di atas banner -->
-    <v-row style="
+    <v-row
+      style="
         z-index: 2;
         position: absolute;
         top: 0;
@@ -34,15 +42,31 @@
         height: 100vh;
         margin-left: 10px;
         margin-top: 70px;
-      " class="d-flex align-center">
-      <div :data-aos="!isSmall ? 'fade-left' : 'fade-right'" data-aos-offset="200" data-aos-duration="2000"
-        data-aos-easing="ease-in-sine">
-        <v-col cols="12" class="d-flex flex-column align-start" style="padding-left: 20px">
+      "
+      class="d-flex align-center"
+    >
+      <div
+        :data-aos="!isSmall ? 'fade-left' : 'fade-right'"
+        data-aos-offset="200"
+        data-aos-duration="2000"
+        data-aos-easing="ease-in-sine"
+      >
+        <v-col
+          cols="12"
+          class="d-flex flex-column align-start"
+          style="padding-left: 20px"
+        >
           <h1 style="color: #fff; font-size: 46px; font-weight: bold">
             What's Your<br />Favourite Biryani
           </h1>
 
-          <v-btn size="x-large" color="white" rounded elevation="0" class="font-weight-light mt-8 capitalize">
+          <v-btn
+            size="x-large"
+            color="white"
+            rounded
+            elevation="0"
+            class="font-weight-light mt-8 capitalize"
+          >
             View Menu
           </v-btn>
         </v-col>
@@ -50,38 +74,37 @@
     </v-row>
   </div>
 
-  <div style="
+  <div
+    style="
       min-height: 100vh;
       position: relative;
       z-index: 2;
       background-color: #fff;
       margin-top: 100vh;
-    ">
-    <v-container class="mx-auto px-4 medium:px-16" style="max-width: 1200px">
-      <ExploreOurMenu class="d-none d-md-block" />
+    "
+  >
+    <ExploreOurMenu class="d-none d-md-block" />
 
-      <DeliveryBiryani />
-
+    <DeliveryBiryani />
+    <div class="mx-auto px-2 px-md-10 mt-10">
       <template v-for="item in menuLists" :key="item.id">
         <RestaurantDish :id="item.id" :menuLists="item" :fileURL="$fileURL" />
       </template>
-
-     
-    </v-container>
+    </div>
     <Footer />
   </div>
 </template>
 
 <script setup>
-import 'vue3-carousel/dist/carousel.css'
+import "vue3-carousel/dist/carousel.css";
 import { ref, onMounted } from "vue"; // Ensure these are imported
-import ExploreOurMenu from '@/components/home/explore-our-menu.vue';
-import DeliveryBiryani from '@/components/home/delivery-biryani.vue';
-import ChickenBiryani from '@/components/home/chicken-biryani.vue';
-import MuttonBiryani from '@/components/home/mutton-biryani.vue';
-import VegBiryani from '@/components/home/veg-biryani.vue';
-import LambBiryani from '@/components/home/lamb-biryani.vue';
-import PrawnBiryani from '@/components/home/prawn-biryani.vue';
+import ExploreOurMenu from "@/components/home/explore-our-menu.vue";
+import DeliveryBiryani from "@/components/home/delivery-biryani.vue";
+import ChickenBiryani from "@/components/home/chicken-biryani.vue";
+import MuttonBiryani from "@/components/home/mutton-biryani.vue";
+import VegBiryani from "@/components/home/veg-biryani.vue";
+import LambBiryani from "@/components/home/lamb-biryani.vue";
+import PrawnBiryani from "@/components/home/prawn-biryani.vue";
 import { eventBus } from "@/util/bus";
 import axios from "@/util/axios";
 import AOS from "aos";
@@ -114,7 +137,7 @@ const handleIntersection = (entries, observer) => {
 };
 
 async function getMenuList() {
-  const res = await axios.get('/list-biryani-main-categories');
+  const res = await axios.get("/list-biryani-main-categories");
   console.log(res.data);
   menuLists.value = res.data.data;
 }
@@ -182,9 +205,9 @@ onMounted(() => {
 const props = defineProps({
   isSmall: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 </script>
 
 <style>
