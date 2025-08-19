@@ -85,10 +85,10 @@
   >
     <ExploreOurMenu class="d-none d-md-block" />
 
-    <DeliveryBiryani />
+    <!-- <DeliveryBiryani /> -->
     <div class="mx-auto px-2 px-md-10 mt-10">
       <template v-for="item in menuLists" :key="item.id">
-        <RestaurantDish :id="item.id" :menuLists="item" :fileURL="$fileURL" />
+        <RestaurantDish :id="item.mc_id" :menuLists="item" :fileURL="fileURL" />
       </template>
     </div>
     <Footer />
@@ -97,7 +97,7 @@
 
 <script setup>
 import "vue3-carousel/dist/carousel.css";
-import { ref, onMounted } from "vue"; // Ensure these are imported
+import { ref, onMounted, computed, watch } from "vue"; // Ensure these are imported
 import ExploreOurMenu from "@/components/home/explore-our-menu.vue";
 import DeliveryBiryani from "@/components/home/delivery-biryani.vue";
 import ChickenBiryani from "@/components/home/chicken-biryani.vue";
@@ -108,6 +108,10 @@ import PrawnBiryani from "@/components/home/prawn-biryani.vue";
 import { eventBus } from "@/util/bus";
 import axios from "@/util/axios";
 import AOS from "aos";
+import { useStore } from "vuex";
+import { appId, fileURL } from "@/util/variables";
+
+const store = useStore();
 
 const isZoomed = ref(false);
 const listData = ref([]);
@@ -115,17 +119,16 @@ const listDataCommercial = ref([]);
 const listMainCategories = ref([]);
 const isLoading = ref(true);
 const menuLists = ref([]);
+const selectedCountry = computed(() => store.state.selectedCountry);
+const latitude = computed(() => localStorage.getItem("latitude"));
+const longitude = computed(() => localStorage.getItem("longitude"));
+watch(selectedCountry, (newX) => {
+  // console.log("country is", newX);
+  getMenuList(newX.city_id);
+});
 function scrollToSection() {
   eventBus.scrollToSection = "happeningTarget"; // Ganti dengan ID section yang diinginkan
 }
-
-onMounted(() => {
-  AOS.init();
-  setTimeout(() => {
-    isZoomed.value = true;
-  }, 100); // Small delay to ensure the transition starts after mount
-  getMenuList();
-});
 
 const handleIntersection = (entries, observer) => {
   entries.forEach((entry) => {
@@ -136,10 +139,14 @@ const handleIntersection = (entries, observer) => {
   });
 };
 
-async function getMenuList() {
-  const res = await axios.get("/list-biryani-main-categories");
-  console.log(res.data);
+async function getMenuList(cityId) {
+  const res = await axios.get(
+    `/list-main-categories-by-app-id/${appId}/${cityId}/${latitude.value}/${longitude.value}`,
+  );
   menuLists.value = res.data.data;
+  // .filter(
+  //   (item) => item.onBoardDishes.length > 0,
+  // );
 }
 
 function get4WallsPropertyData() {
@@ -198,6 +205,12 @@ onMounted(() => {
     observer.observe(card);
   });
 
+  AOS.init();
+  setTimeout(() => {
+    isZoomed.value = true;
+  }, 100); // Small delay to ensure the transition starts after mount
+
+  getMenuList();
   get4WallsPropertyData();
   getListMainCategories();
   get4WallsPropertyDataCommercial();

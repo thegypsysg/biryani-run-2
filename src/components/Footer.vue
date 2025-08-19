@@ -1,161 +1,131 @@
 <template>
-  <v-container class="mt-6 footer_lks">
-    <v-row>
-      <v-col cols="12" sm="12" md="3">
-        <h2 class="footer_title">About {{ footerData?.company_name }}</h2>
-        <p
-          class="footer_paragraph"
-          style="margin-bottom: 16px; margin-top: 34px"
+  <!-- <v-container class="mt-6 footer_lks"> -->
+  <v-row class="mx-auto px-2 px-md-10 mt-10">
+    <v-col cols="12" sm="12" md="3">
+      <h2 class="footer_title">About {{ footerData?.company_name }}</h2>
+      <p class="footer_paragraph" style="margin-bottom: 16px; margin-top: 34px">
+        {{ footerData?.company_name + " is a " + appDetails1?.app_detail }}
+      </p>
+      <ul class="footer_social">
+        <li>
+          <v-icon
+            color="#FA2964"
+            size="20"
+            class="mr-2 mdi mdi-map-marker"
+            aria-hidden="true"
+          />
+          {{ footerData?.location }}
+        </li>
+        <li>
+          <v-icon
+            color="#FA2964"
+            size="20"
+            class="mr-2 fa fa-phone"
+            aria-hidden="true"
+          />
+          {{ footerData?.mobile_number }}
+        </li>
+        <li>
+          <v-icon color="#FA2964" size="20" class="mr-2 fab fa-whatsapp" />
+          {{ footerData?.whats_app }}
+        </li>
+        <li>
+          <v-icon
+            color="#FA2964"
+            size="20"
+            class="mr-2 fa fa-envelope"
+            aria-hidden="true"
+          />
+          <a :href="`mailto:${footerData?.email_id}`">{{
+            footerData?.email_id
+          }}</a>
+        </li>
+      </ul>
+    </v-col>
+    <v-col cols="12" sm="12" md="3">
+      <h2 class="footer_title" style="margin-bottom: 16px">
+        Trending Categories
+      </h2>
+      <ul class="footer_links" style="margin-top: 37px">
+        <li
+          v-for="item in menuLists?.slice(0, 5)"
+          :key="item.id"
+          @click="scrollToSection(formatName(item.title), true)"
+          class="font-weight-bold cursor-pointer"
         >
-          {{ footerData?.company_name + " is a " + appDetails1?.app_detail }}
-        </p>
-        <ul class="footer_social">
-          <li>
-            <v-icon
-              color="#FA2964"
-              size="20"
-              class="mr-2 mdi mdi-map-marker"
-              aria-hidden="true"
-            />
-            {{ footerData?.location }}
-          </li>
-          <li>
-            <v-icon
-              color="#FA2964"
-              size="20"
-              class="mr-2 fa fa-phone"
-              aria-hidden="true"
-            />
-            {{ footerData?.mobile_number }}
-          </li>
-          <li>
-            <v-icon color="#FA2964" size="20" class="mr-2 fab fa-whatsapp" />
-            {{ footerData?.whats_app }}
-          </li>
-          <li>
-            <v-icon
-              color="#FA2964"
-              size="20"
-              class="mr-2 fa fa-envelope"
-              aria-hidden="true"
-            />
-            <a :href="`mailto:${footerData?.email_id}`">{{
-              footerData?.email_id
-            }}</a>
-          </li>
-        </ul>
-      </v-col>
-      <v-col cols="12" sm="12" md="3">
-        <h2 class="footer_title" style="margin-bottom: 16px">Quick links</h2>
-        <ul class="footer_links" style="margin-top: 37px">
-          <li class="font-weight-bold">
-            <!-- <img src="@/assets/links-arrow.svg" height="12" /> -->
-            Property Developers
-          </li>
-          <li class="font-weight-bold">
-            <!-- <img src="@/assets/links-arrow.svg" height="12" /> -->
-            Property Agents
-          </li>
-          <li class="font-weight-bold">
-            <!-- <img src="@/assets/links-arrow.svg" height="12" /> -->
-            Owners
-          </li>
-          <!-- <li class="text-blue-accent-4">
-            <img src="@/assets/links-arrow.svg" height="12" />
-            All Malls
-          </li> -->
-        </ul>
-      </v-col>
-      <v-col cols="12" sm="12" md="3">
-        <h2 class="footer_title">Our Apps</h2>
-        <v-row>
-          <v-col cols="6">
-            <ul class="footer_links" style="margin-top: 37px">
-              <li class="font-weight-bold">
-                Buy
-              </li>
-              <li class="font-weight-bold">
-                Rent
-              </li>
-              <li class="font-weight-bold">
-                Roommates
-              </li>
-              <li class="font-weight-bold">
-                Staycation
-              </li>
-              <li class="font-weight-bold">
-                Vacation
-              </li>
-            </ul>
+          {{ item.title }}
+        </li>
+      </ul>
+      <div class="mt-4">
+        <a href="#" class="view-all">View all</a>
+      </div>
+    </v-col>
+    <v-col cols="12" sm="12" md="3">
+      <h2 class="footer_title">Featured Restaurants</h2>
+      <div class="categories-grid mt-6">
+        <v-row dense>
+          <v-col
+            v-for="item in menuLists?.slice(0, 6)"
+            :key="item.id"
+            cols="4"
+            class="pa-1 pa-md-3"
+          >
+            <div
+              class="category-item"
+              @click="scrollToSection(formatName(item.title), true)"
+            >
+              <!-- <div class="category-title mb-2">{{ item.title }}</div> -->
+              <v-img
+                :src="$fileURL + item.img"
+                :height="isSmall ? '35' : '50'"
+                cover
+                class="rounded"
+              >
+              </v-img>
+            </div>
           </v-col>
-          <v-col cols="6">
-            <ul class="footer_links" style="margin-top: 37px">
-              <li class="font-weight-bold">
-                Co-Working
-              </li>
-              <li class="font-weight-bold">
-                Co-Living
-              </li>
-            </ul>
-          </v-col>
-          <!-- <v-col cols="6">
-            <ul class="footer_links" style="margin-top: 37px">
-              <li class="text-blue-accent-4">
-                <img src="@/assets/links-arrow.svg" height="12" />
-                Category
-              </li>
-              <li class="text-blue-accent-4">
-                <img src="@/assets/links-arrow.svg" height="12" />
-                Voucher Promos
-              </li>
-              <li class="text-blue-accent-4">
-                <img src="@/assets/links-arrow.svg" height="12" />
-                People Promos
-              </li>
-              <li class="text-blue-accent-4">
-                <img src="@/assets/links-arrow.svg" height="12" />
-                Other Types
-              </li>
-            </ul>
-          </v-col> -->
         </v-row>
-      </v-col>
-      <v-col cols="12" sm="12" md="3">
-        <p class="font-weight-light mb-n6 mt-2" style="text-align: left">
-          Coming Soon...
-        </p>
-        <h5
-          v-if="isSmall"
-          class="font-weight-bold mb-4"
-          style="margin-bottom: 16px; text-align: center"
-        >
-          Explore {{ footerData?.company_name }} on your Mobile
-        </h5>
-        <h5
-          v-if="!isSmall"
-          class="font-weight-bold mt-10"
-          style="margin-bottom: 16px"
-        >
-          Explore {{ footerData?.company_name }} on your Mobile
-        </h5>
-        <div class="d-flex w-100 justify-center">
-          <v-btn variant="text" class="p-0">
-            <img
-              height="35"
-              style="border-radius: 10px"
-              src="@/assets/images/play-store.jpg"
-            />
-          </v-btn>
-          <v-btn variant="text" class="p-0">
-            <img
-              height="35"
-              style="border-radius: 10px"
-              src="@/assets/images/app-store.jpg"
-            />
-          </v-btn>
-        </div>
-        <!-- <input class="footer_input" placeholder="Type your email" /> -->
-        <!-- <div class="footer-btn-cont">
+      </div>
+      <div class="mt-4">
+        <a href="#" class="view-all">View all</a>
+      </div>
+    </v-col>
+    <v-col cols="12" sm="12" md="3">
+      <p class="font-weight-light mb-n6 mt-2" style="text-align: left">
+        Coming Soon...
+      </p>
+      <h5
+        v-if="isSmall"
+        class="font-weight-bold mb-4"
+        style="margin-bottom: 16px; text-align: center"
+      >
+        Explore {{ footerData?.company_name }} on your Mobile
+      </h5>
+      <h5
+        v-if="!isSmall"
+        class="font-weight-bold mt-10"
+        style="margin-bottom: 16px"
+      >
+        Explore {{ footerData?.company_name }} on your Mobile
+      </h5>
+      <div class="d-flex w-100 justify-center">
+        <v-btn variant="text" class="p-0">
+          <img
+            height="35"
+            style="border-radius: 10px"
+            src="@/assets/images/play-store.jpg"
+          />
+        </v-btn>
+        <v-btn variant="text" class="p-0">
+          <img
+            height="35"
+            style="border-radius: 10px"
+            src="@/assets/images/app-store.jpg"
+          />
+        </v-btn>
+      </div>
+      <!-- <input class="footer_input" placeholder="Type your email" /> -->
+      <!-- <div class="footer-btn-cont">
           <v-btn
             class="footer-btn"
             style="
@@ -170,9 +140,9 @@
           </v-btn>
           <div class="footer-btn-hover" />
         </div> -->
-      </v-col>
-    </v-row>
-  </v-container>
+    </v-col>
+  </v-row>
+  <!-- </v-container> -->
 
   <v-footer
     class="bg-black text-center justify-center footer__content"
@@ -241,62 +211,6 @@
   >
     <i class="fa fa-long-arrow-up" aria-hidden="true"></i>
   </a>
-
-  <!-- <div
-    v-if="isSmall"
-    class="cart-mobile d-flex align-center justify-space-between px-4 align-content-center"
-  >
-    <div
-      class="d-flex flex-column align-center py-2 pb-4 px-2 active-menu"
-      style="gap: 5px"
-    >
-      <v-icon class="cart-title-icon" size="40" color="#36454F">
-        mdi mdi-home
-      </v-icon>
-      <span>Home</span>
-    </div>
-    <div
-      class="d-flex flex-column align-center py-2 pb-4 px-2"
-      style="gap: 5px"
-      @click="openSearch"
-    >
-      <v-icon class="cart-title-icon" size="40" color="#36454F">
-        mdi mdi-magnify
-      </v-icon>
-      <span>Search</span>
-    </div>
-    <div
-      class="d-flex flex-column align-center py-2 pb-4 px-2"
-      style="gap: 5px"
-    >
-      <v-icon class="cart-title-icon" size="40" color="#36454F">
-        mdi mdi-share-outline
-      </v-icon>
-      <span>Share</span>
-    </div>
-    <div
-      v-if="userName == null"
-      class="d-flex flex-column align-center py-2 pb-4 px-2"
-      style="gap: 5px"
-      @click="loginGypsy()"
-    >
-      <v-icon class="cart-title-icon" size="40" color="#36454F">
-        mdi mdi-account-outline
-      </v-icon>
-      <span v-if="!isLoading" class="text-blue-darken-1">Sign In</span>
-    </div>
-    <div
-      v-else
-      class="d-flex flex-column align-center py-2 pb-4 px-2"
-      style="gap: 5px"
-      @click="logout()"
-    >
-      <v-icon class="cart-title-icon" size="40" color="#36454F">
-        mdi mdi-account-outline
-      </v-icon>
-      <span v-if="!isLoading" class="text-red-darken-1">Logout</span>
-    </div>
-  </div> -->
 </template>
 
 <script>
@@ -315,6 +229,7 @@ export default {
       superAppData: null,
       footerData: null,
       screenWidth: window.innerWidth,
+      menuLists: [],
     };
   },
   computed: {
@@ -343,6 +258,7 @@ export default {
     this.getAppDetails1();
     this.getSupeApp();
     this.getAppDetails2();
+    this.getMenuList();
 
     const token = localStorage.getItem("token");
     if (this.tokenProvider != null) {
@@ -389,6 +305,30 @@ export default {
     app.config.globalProperties.$eventBus.$off("getUserName", this.getUserName);
   },
   methods: {
+    scrollToSection(sectionId, mobile) {
+      const cardSection = document.getElementById(sectionId);
+
+      // this.$nextTick(() => {
+      if (cardSection) {
+        const cardRect = cardSection.getBoundingClientRect();
+        const scrollTop =
+          window.pageYOffset || document.documentElement.scrollTop;
+        const offset = mobile
+          ? cardRect.top + scrollTop - 220
+          : cardRect.top + scrollTop - 100; // Nilai offset yang diinginkan, dalam piksel
+
+        window.scrollTo({
+          top: offset,
+          behavior: "smooth",
+        });
+      }
+      // });
+      // window.scrollBy(0, -scrollOffset);
+    },
+
+    formatName(name) {
+      name.toLowerCase().replace(/\s+/g, "");
+    },
     getUserName(name) {
       this.userName = name;
     },
@@ -406,6 +346,22 @@ export default {
     changeHeaderWelcome3() {
       this.getHeaderUserData2();
       // this.titleWelcome = title;
+    },
+    async getMenuList() {
+      try {
+        const res = await axios.get(
+          `/list-main-categories-by-app-id/${this.$appId}`,
+        );
+        console.log(res);
+        this.menuLists = res.data.data.map((item) => ({
+          title: item.category_name,
+          img: item.main_image,
+          id: item.mc_id,
+        }));
+        // console.log(menuLists.value);
+      } catch (error) {
+        console.log(error);
+      }
     },
     getHeaderUserData() {
       this.isLoading = true;
@@ -677,5 +633,19 @@ export default {
   100% {
     background-position: -100% 0;
   }
+}
+
+.category-item {
+  transition: transform 0.3s ease;
+}
+
+.category-item:hover {
+  transform: scale(1.05);
+}
+
+.view-all {
+  color: #ff1b6d;
+  text-decoration: none;
+  font-weight: 500;
 }
 </style>
