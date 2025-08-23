@@ -39,6 +39,7 @@
           <component :is="Component" />
         </Transition>
       </RouterView>
+      <FooterMobile v-show="!isDesktop && !isProfile"></FooterMobile>
     </div>
     <!-- <v-dialog v-model="isLoggedIn" persistent width="auto">
       <v-card width="350">
@@ -94,6 +95,8 @@ import { RouterView } from "vue-router";
 import Header from "@/components/Header.vue";
 import app from "@/util/eventBus";
 import axios from "@/util/axios";
+
+import FooterMobile from "@/components/FooterMobile.vue";
 
 export default {
   name: "App",

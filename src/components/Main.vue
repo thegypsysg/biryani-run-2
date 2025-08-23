@@ -86,7 +86,7 @@
     <ExploreOurMenu class="d-none d-md-block" />
 
     <!-- <DeliveryBiryani /> -->
-    <div class="mx-auto px-2 px-md-10 mt-10">
+    <div class="mt-10">
       <template v-for="item in menuLists" :key="item.id">
         <RestaurantDish :id="item.mc_id" :menuLists="item" :fileURL="fileURL" />
       </template>
@@ -143,10 +143,9 @@ async function getMenuList(cityId) {
   const res = await axios.get(
     `/list-main-categories-by-app-id/${appId}/${cityId}/${latitude.value}/${longitude.value}`,
   );
-  menuLists.value = res.data.data;
-  // .filter(
-  //   (item) => item.onBoardDishes.length > 0,
-  // );
+  menuLists.value = res.data.data.filter(
+    (item) => item.onBoardDishes.length > 0,
+  );
 }
 
 function get4WallsPropertyData() {

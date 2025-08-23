@@ -88,7 +88,7 @@
                 >{{ city.name }}
                 <span class="font-weight-bold"
                   >(<span class="text-blue-darken-4">{{ city.count }}</span>
-                  Products)</span
+                  Dishes)</span
                 ></v-list-item-title
               >
             </v-list-item>

@@ -141,7 +141,7 @@
     </div>
     <p
       class="font-weight-bold text-white"
-      style="position: absolute; bottom: 70px; left: 30px"
+      style="position: absolute; bottom: 85px; left: 30px"
     >
       236 views
     </p>

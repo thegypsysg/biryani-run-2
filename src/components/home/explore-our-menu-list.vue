@@ -59,7 +59,9 @@
               <div
                 class="text-no-wrap d-flex align-center font-weight-bold text-caption"
               >
-                <span class="text-red-darken-1"> 2 </span>
+                <span class="text-red-darken-1">
+                  {{ menu?.onBoardDishes?.length }}
+                </span>
                 &nbsp;
                 <span> Restaurants</span>
               </div>
@@ -77,12 +79,15 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, nextTick, ref } from "vue";
+import { onMounted, nextTick, ref, watch, computed } from "vue";
 import { appId } from "@/util/variables";
 import axios from "@/util/axios";
 import { Splide, SplideSlide } from "@splidejs/vue-splide";
 import "@splidejs/vue-splide/css";
+import { useStore } from "vuex";
 // import { Carousel, Slide, Pagination, Navigation } from 'vue3-carousel';
+
+const store = useStore();
 
 defineProps<{
   // height: string
@@ -112,6 +117,15 @@ const isBeginning = ref(true);
 const isEnd = ref(false);
 
 const menuLists = ref([]);
+
+const selectedCountry = computed(() => store.state.selectedCountry);
+const latitude = computed(() => localStorage.getItem("latitude"));
+const longitude = computed(() => localStorage.getItem("longitude"));
+
+watch(selectedCountry, (newX) => {
+  // console.log("country is", newX);
+  getMenuList(newX.city_id);
+});
 
 const goNext = () => {
   splideRef.value?.splide?.go("+1");
@@ -151,13 +165,18 @@ function scrollToSection(sectionId, mobile) {
 
 const formatName = (name) => name.toLowerCase().replace(/\s+/g, "");
 
-async function getMenuList() {
-  const res = await axios.get(`/list-main-categories-by-app-id/${appId}`);
-  menuLists.value = res.data.data.map((item: any) => ({
-    title: item.category_name,
-    img: item.main_image,
-    id: item.mc_id,
-  }));
+async function getMenuList(cityId) {
+  const res = await axios.get(
+    `/list-main-categories-by-app-id/${appId}/${cityId}/${latitude.value}/${longitude.value}`,
+  );
+  menuLists.value = res.data.data
+    .filter((item) => item.onBoardDishes.length > 0)
+    .map((item: any) => ({
+      ...item,
+      title: item.category_name,
+      img: item.main_image,
+      id: item.mc_id,
+    }));
   // console.log(menuLists.value);
 }
 

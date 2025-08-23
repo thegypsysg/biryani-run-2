@@ -1,6 +1,6 @@
 <template>
   <!-- <v-container class="mt-6 footer_lks"> -->
-  <v-row class="mx-auto px-2 px-md-10 mt-10">
+  <v-row class="mx-auto px-2 px-md-10 mt-10 pb-6">
     <v-col cols="12" sm="12" md="3">
       <h2 class="footer_title">About {{ footerData?.company_name }}</h2>
       <p class="footer_paragraph" style="margin-bottom: 16px; margin-top: 34px">
@@ -50,14 +50,25 @@
         <li
           v-for="item in menuLists?.slice(0, 5)"
           :key="item.id"
-          @click="scrollToSection(formatName(item.title), true)"
+          @click="
+            scrollToSection(formatName(item.title), isSmall ? true : false)
+          "
           class="font-weight-bold cursor-pointer"
         >
           {{ item.title }}
         </li>
       </ul>
       <div class="mt-4">
-        <a href="#" class="view-all">View all</a>
+        <span
+          @click="
+            scrollToSection(
+              formatName(menuLists[0].title),
+              isSmall ? true : false,
+            )
+          "
+          class="view-all cursor-pointer"
+          >View all</span
+        >
       </div>
     </v-col>
     <v-col cols="12" sm="12" md="3">
@@ -72,12 +83,14 @@
           >
             <div
               class="category-item"
-              @click="scrollToSection(formatName(item.title), true)"
+              @click="
+                scrollToSection(formatName(item.title), isSmall ? true : false)
+              "
             >
               <!-- <div class="category-title mb-2">{{ item.title }}</div> -->
               <v-img
                 :src="$fileURL + item.img"
-                :height="isSmall ? '35' : '50'"
+                :height="isSmall ? '90' : '65'"
                 cover
                 class="rounded"
               >
@@ -90,39 +103,20 @@
         <a href="#" class="view-all">View all</a>
       </div>
     </v-col>
-    <v-col cols="12" sm="12" md="3">
-      <p class="font-weight-light mb-n6 mt-2" style="text-align: left">
-        Coming Soon...
-      </p>
-      <h5
-        v-if="isSmall"
-        class="font-weight-bold mb-4"
-        style="margin-bottom: 16px; text-align: center"
-      >
-        Explore {{ footerData?.company_name }} on your Mobile
-      </h5>
-      <h5
-        v-if="!isSmall"
-        class="font-weight-bold mt-10"
-        style="margin-bottom: 16px"
-      >
-        Explore {{ footerData?.company_name }} on your Mobile
-      </h5>
-      <div class="d-flex w-100 justify-center">
-        <v-btn variant="text" class="p-0">
-          <img
-            height="35"
-            style="border-radius: 10px"
-            src="@/assets/images/play-store.jpg"
-          />
-        </v-btn>
-        <v-btn variant="text" class="p-0">
-          <img
-            height="35"
-            style="border-radius: 10px"
-            src="@/assets/images/app-store.jpg"
-          />
-        </v-btn>
+    <v-col cols="12" md="3">
+      <div class="mobile-app-section">
+        <p class="coming-soon">Coming Soon...</p>
+        <p class="explore-text">
+          Explore {{ footerData?.company_name }} on your Mobile
+        </p>
+        <div class="store-buttons">
+          <a href="#" class="store-link">
+            <img alt="Google Play Store" src="@/assets/images/play-store.jpg" />
+          </a>
+          <a href="#" class="store-link">
+            <img alt="Apple App Store" src="@/assets/images/app-store.jpg" />
+          </a>
+        </div>
       </div>
       <!-- <input class="footer_input" placeholder="Type your email" /> -->
       <!-- <div class="footer-btn-cont">
@@ -145,7 +139,7 @@
   <!-- </v-container> -->
 
   <v-footer
-    class="bg-black text-center justify-center footer__content"
+    class="bg-black text-center justify-center footer__content mb-14 mb-md-0"
     :class="{ 'pb-4': isSmall }"
   >
     <v-spacer />
@@ -327,8 +321,9 @@ export default {
     },
 
     formatName(name) {
-      name.toLowerCase().replace(/\s+/g, "");
+      return name.toLowerCase().replace(/\s+/g, "");
     },
+
     getUserName(name) {
       this.userName = name;
     },
@@ -647,5 +642,59 @@ export default {
   color: #ff1b6d;
   text-decoration: none;
   font-weight: 500;
+}
+
+.coming-soon {
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.explore-text {
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+.store-button {
+  text-decoration: none;
+  display: block;
+}
+
+.store-button img {
+  height: 40px;
+  object-fit: contain;
+}
+
+.store-buttons {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.store-link img {
+  width: 120px;
+  height: 30px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+@media (max-width: 600px) {
+  .mobile-app-section {
+    text-align: center;
+    margin-top: 24px;
+  }
+
+  .store-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .store-link img {
+    width: 100px;
+    height: auto;
+  }
 }
 </style>
