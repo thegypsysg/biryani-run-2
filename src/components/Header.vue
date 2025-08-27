@@ -1606,6 +1606,7 @@ export default {
           //console.log(data);
 
           this.userName = data.name;
+          this.setUserName(data.name);
           localStorage.setItem("userName", data.name);
           this.userDated = data.last_login;
           this.userImage =

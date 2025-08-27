@@ -9,7 +9,7 @@
       >
         <span> Sign Up / Sign In</span>
       </v-btn>
-      <!-- <div v-else class="d-flex align-center justify-space-between">
+      <div v-else class="d-flex align-center justify-space-between">
         <div @click="viewCartClick">
           <v-badge
             :content="cartQuantity"
@@ -28,7 +28,7 @@
         <div v-else class="text-h5">
           <strong>{{ selectedCountry.currency_symbol }} 0</strong>
         </div>
-      </div> -->
+      </div>
     </v-container>
     <!-- <Cart :viewCart="viewCart" @update:viewCart="viewCart = $event" /> -->
   </div>

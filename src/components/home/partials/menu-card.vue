@@ -82,6 +82,7 @@
                 font-weight: 600;
                 font-size: 12px;
               "
+              @click="goToDetail(props.menu)"
             >
               <span class="text-white" style="">View Details</span>
               <v-icon right style="color: #fff"> mdi-chevron-right </v-icon>
@@ -117,7 +118,7 @@
         height="160px"
       ></v-img>
     </div>
-    <div class="card-btn-container d-flex justify-space-between">
+    <!-- <div class="card-btn-container d-flex justify-space-between">
       <v-btn
         color="white"
         class="card-btn"
@@ -138,12 +139,12 @@
       >
         <v-icon size="20" color="red"> mdi-heart-outline </v-icon>
       </v-btn>
-    </div>
+    </div> -->
     <p
       class="font-weight-bold text-white"
-      style="position: absolute; bottom: 85px; left: 30px"
+      style="position: absolute; bottom: 90px; left: 30px"
     >
-      236 views
+      {{ props.menu?.biryaniRunPrice?.views }} views
     </p>
     <div class="pa-0">
       <div class="d-flex justify-space-between align-center pa-2">
@@ -173,12 +174,20 @@
 
 <script lang="ts" setup>
 import { onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
 
 const props = defineProps<{
   menu: [];
   fileURL: string;
   isDesktop: boolean;
 }>();
+
+const goToDetail = (menu: any) => {
+  localStorage.setItem("categoryDetailData", JSON.stringify(menu));
+  router.push(`/category/${props.menu?.dish_id}`);
+};
 </script>
 
 <style>

@@ -601,8 +601,8 @@ export default {
           const message = error.response.data.email_id
             ? error.response.data.email_id[0]
             : error.response.data.message
-            ? error.response.data.message
-            : "Something Wrong!!!";
+              ? error.response.data.message
+              : "Something Wrong!!!";
           this.errorMessage = message;
           this.isError = true;
         })
@@ -632,11 +632,11 @@ export default {
           })
           .then((response) => {
             console.log(response);
-            // if (response) {
-            //   window.location.assign(response.data.target_url);
-            // } else {
-            //   window.location.href = "/sign-in";
-            // }
+            if (response) {
+              window.location.assign(response.data.target_url);
+            } else {
+              window.location.href = "/sign-in";
+            }
             console.log("target_url", response.data.target_url);
           })
           .catch((error) => {
@@ -665,8 +665,8 @@ export default {
           const message = error.response.data.email_id
             ? error.response.data.email_id[0]
             : error.response.data.message
-            ? error.response.data.message
-            : "Something Wrong!!!";
+              ? error.response.data.message
+              : "Something Wrong!!!";
           this.errorMessage = message;
           this.isError = true;
         })
@@ -682,7 +682,7 @@ export default {
           .substring(0, Math.max(0, username.length - 6))
           .replace(/./g, "*");
         const visiblePart = username.substring(
-          Math.max(0, username.length - 6)
+          Math.max(0, username.length - 6),
         );
         return hiddenPart + visiblePart + email.substring(atIndex);
       } else {
@@ -711,13 +711,13 @@ export default {
             const message = error.response.data.mobile_number
               ? error.response.data.mobile_number[0]
               : error.response.data.message
-              ? //? error.response.data.message
-                `This Mobile Number ${
-                  this.mobile
-                } is already exist in our database using the email id ${this.hideEmail(
-                  error.response.data.email_id
-                )}`
-              : "Something Wrong!!!";
+                ? //? error.response.data.message
+                  `This Mobile Number ${
+                    this.mobile
+                  } is already exist in our database using the email id ${this.hideEmail(
+                    error.response.data.email_id,
+                  )}`
+                : "Something Wrong!!!";
             this.errorMessage = message;
             this.isError = true;
           })
@@ -785,8 +785,8 @@ export default {
             const message = error.response.data.email_id
               ? error.response.data.email_id[0]
               : error.response.data.message
-              ? error.response.data.message
-              : "Something Wrong!!!";
+                ? error.response.data.message
+                : "Something Wrong!!!";
             this.errorMessage = message;
             this.isError = true;
           })
@@ -819,7 +819,7 @@ export default {
               localStorage.setItem("token", data.token);
               app.config.globalProperties.$eventBus.$emit(
                 "changeHeaderWelcome3",
-                "Sign-Up / Sign-in"
+                "Sign-Up / Sign-in",
               );
               this.$router.push(`/?token=${data.token}`);
             } else if (this.appIdLogin == "5") {
@@ -853,7 +853,7 @@ export default {
         localStorage.setItem("token", this.tokenLogin);
         app.config.globalProperties.$eventBus.$emit(
           "changeHeaderWelcome3",
-          "Sign-Up / Sign-in"
+          "Sign-Up / Sign-in",
         );
         this.$router.push(`/?token=${this.tokenLogin}`);
       } else if (this.appIdLogin == "5") {
@@ -972,7 +972,9 @@ export default {
   background-color: #fff;
   background-clip: padding-box;
   border-radius: 0.25rem;
-  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  transition:
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
 }
 
 @media screen and (prefers-reduced-motion: reduce) {

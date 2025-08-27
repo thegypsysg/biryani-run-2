@@ -24,6 +24,7 @@
           (currentRoute === '/all-events' && !isDesktop) ||
           (currentRoute === '/all-parking-info' && !isDesktop) ||
           (currentRoute === '/all-mall-offers' && !isDesktop) ||
+          currentRoute.includes('category') ||
           (currentRoute === '/all-malls' && !isDesktop)
             ? true
             : false

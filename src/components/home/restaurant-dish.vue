@@ -10,7 +10,7 @@
           'font-weight-bold': !isDesktop,
         }"
       >
-        {{ menuLists.category_name }}
+        {{ menuLists.category_name }} ({{ menuLists.onBoardDishes.length }})
       </div>
       <v-btn elevation="0" class="text-blue">View All</v-btn>
     </div>

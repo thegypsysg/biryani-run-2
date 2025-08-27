@@ -6,10 +6,10 @@ import SignUp from "@/views/SignUpForm.vue";
 import OTPEmailForm from "@/views/OTPEmailForm.vue";
 import CreatePasswordForm from "@/views/CreatePasswordForm.vue";
 import SocialLogin from "@/views/SocialLoginForm.vue";
+import CategoryDetail from "@/views/CategoryDetail.vue";
 // import DiscoverLocation from "@/views/city-properties/indexView.vue";
 // import Trending from "@/views/trending/indexView.vue";
 // import BuySegment from "@/views/buy_segment/indexView.vue";
-// import BuyDetail from "@/views/buy_detail/indexView.vue";
 // import MyProfile from "@/views/MyProfileView.vue";
 // import PromotionDiscountDetail from "@/components/PromotionDetail/PromotionDiscountDetail.vue";
 // import PromotionCategoryDetail from "@/components/PromotionDetail/PromotionCategoryDetail.vue";
@@ -88,6 +88,11 @@ const routes = [
       });
     },
   },
+  {
+    path: "/category/:id",
+    name: "Category Detail",
+    component: CategoryDetail,
+  },
   // {
   //   path: "/batam-properties",
   //   component: DiscoverLocation,
@@ -132,11 +137,7 @@ const routes = [
   //   name: "Buy Studio",
   //   component: BuySegment,
   // },
-  // {
-  //   path: "/buy/:id",
-  //   name: "Buy Detail",
-  //   component: BuyDetail,
-  // },
+
   // {
   //   path: "/discount-types",
   //   name: "Promotion Discount Types",

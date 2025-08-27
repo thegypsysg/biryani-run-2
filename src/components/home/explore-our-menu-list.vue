@@ -17,7 +17,9 @@
           <div
             class="text-no-wrap d-flex align-center font-weight-bold text-caption"
           >
-            <span class="text-red-darken-1"> 2 </span>
+            <span class="text-red-darken-1">
+              {{ menu?.onBoardDishes?.length }}
+            </span>
             &nbsp;
             <span> Restaurants</span>
           </div>
