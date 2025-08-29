@@ -471,7 +471,7 @@
       <div v-if="!isSmall" class="cart d-flex align-center">
         <div class="cart-line mr-2" />
         <v-icon size="35" color="black"> mdi mdi-cart-variant </v-icon>
-        <span>S$ 0</span>
+        <span>{{ selectedLocation?.currency_symbol }} 0</span>
       </div>
     </div>
 
@@ -1797,7 +1797,7 @@ export default {
                   currency_symbol: country.currency_symbol,
                   name: country.city_name,
                   imageUrl: country.city_image,
-                  count: country.product_count,
+                  count: country.dish_count,
                 },
               ],
             };

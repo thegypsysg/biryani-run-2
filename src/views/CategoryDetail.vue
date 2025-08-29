@@ -88,10 +88,7 @@
           <div class="d-flex" style="gap: 10px">
             <p class="text-grey-darken-2">
               <span class="text-red-darken-4">
-                <!-- {{
-                categoryData?.views || 0
-              }} -->
-                3354
+                {{ categoryData?.purchased || 0 }}
               </span>
               Have Purchased
             </p>
@@ -162,7 +159,8 @@
         <v-divider class="mt-14 mb-8"></v-divider>
         <div class="d-flex justify-space-between align-center">
           <h2 class="text-blue-lighten-1">
-            S$ {{ categoryData?.biryaniRunPrice?.rate }}
+            {{ selectedCountry?.currency_symbol }}
+            {{ categoryData?.biryaniRunPrice?.rate }}
           </h2>
           <!-- v-if="!isInCart(product, selectedRange)"
           @click="addToCartData(product, selectedRange)" -->
@@ -358,6 +356,15 @@ export default {
     },
   },
 };
+</script>
+
+<script setup>
+import { computed } from "vue";
+import { useStore } from "vuex";
+
+const store = useStore();
+
+const selectedCountry = computed(() => store.state.selectedCountry);
 </script>
 
 <style>

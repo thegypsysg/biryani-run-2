@@ -45,7 +45,7 @@
                         style="width: 150px; height: 150px; border-radius: 50%"
                         class="mt-5"
                       >
-                        <v-img
+                        <img
                           style="width: 100%; height: 100%; border-radius: 50%"
                           cover
                           :src="
@@ -647,18 +647,18 @@ export default {
         this.$route.query.email
         ? "L"
         : this.$route.query.social.toLowerCase() == "google" &&
-          this.$route.query.email
-        ? "G"
-        : this.$route.query.social.toLowerCase() == "facebook" &&
-          this.$route.query.email
-        ? "F"
-        : this.$route.query.social.toLowerCase() == "tiktok" &&
-          this.$route.query.email
-        ? "T"
-        : this.$route.query.social.toLowerCase() == "twitter" &&
-          this.$route.query.email
-        ? "X"
-        : "E";
+            this.$route.query.email
+          ? "G"
+          : this.$route.query.social.toLowerCase() == "facebook" &&
+              this.$route.query.email
+            ? "F"
+            : this.$route.query.social.toLowerCase() == "tiktok" &&
+                this.$route.query.email
+              ? "T"
+              : this.$route.query.social.toLowerCase() == "twitter" &&
+                  this.$route.query.email
+                ? "X"
+                : "E";
     },
   },
 
@@ -674,7 +674,7 @@ export default {
     this.getCountryCode();
     app.config.globalProperties.$eventBus.$emit(
       "changeHeaderWelcome",
-      this.socialProvider + " Registration"
+      this.socialProvider + " Registration",
     );
     console.log(this.emailProvider);
     console.log(this.nameProvider);
@@ -700,7 +700,7 @@ export default {
       this.$emit("backStep");
       app.config.globalProperties.$eventBus.$emit(
         "changeHeaderWelcome",
-        "Sign-Up / Sign-in"
+        "Sign-Up / Sign-in",
       );
     },
     onFileChangeInput(e) {
@@ -787,16 +787,16 @@ export default {
               this.socialType == "L"
                 ? "LinkedIn"
                 : this.socialType == "G"
-                ? "Google"
-                : this.socialType == "F"
-                ? "Facebook"
-                : this.socialType == "T"
-                ? "Tiktok"
-                : this.socialType == "X"
-                ? "Twitter"
-                : this.socialType == "E"
-                ? "Email"
-                : "";
+                  ? "Google"
+                  : this.socialType == "F"
+                    ? "Facebook"
+                    : this.socialType == "T"
+                      ? "Tiktok"
+                      : this.socialType == "X"
+                        ? "Twitter"
+                        : this.socialType == "E"
+                          ? "Email"
+                          : "";
 
             localStorage.setItem("social", typeSocial);
 
@@ -809,7 +809,7 @@ export default {
             this.gender = "";
             app.config.globalProperties.$eventBus.$emit(
               "changeHeaderWelcome",
-              "Sign Up Completed"
+              "Sign Up Completed",
             );
             this.nextStep();
             this.getUserData();
@@ -824,10 +824,10 @@ export default {
                 error.response.data.message
                   ? `This Mobile Number ${this.mobile} already exist in our database using the email id `
                   : error.response.status == 422 &&
-                    error.response.data.email_id == null &&
-                    error.response.data.message
-                  ? `This Mobile Number ${this.mobile} already exists in our database`
-                  : "";
+                      error.response.data.email_id == null &&
+                      error.response.data.message
+                    ? `This Mobile Number ${this.mobile} already exists in our database`
+                    : "";
               this.emailErrorPhone = error.response.data.email_id
                 ? error.response.data.email_id
                 : "";
@@ -837,8 +837,8 @@ export default {
               const message = error.response.data.email_id
                 ? error.response.data.email_id[0]
                 : error.response.data.message === ""
-                ? "Something Wrong!!!"
-                : error.response.data.message;
+                  ? "Something Wrong!!!"
+                  : error.response.data.message;
               this.errorMessage = message;
               this.isError = true;
             }
@@ -948,7 +948,9 @@ export default {
   background-color: #fff;
   background-clip: padding-box;
   border-radius: 0.25rem;
-  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  transition:
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
 }
 
 @media screen and (prefers-reduced-motion: reduce) {

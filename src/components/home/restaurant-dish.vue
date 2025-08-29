@@ -12,7 +12,12 @@
       >
         {{ menuLists.category_name }} ({{ menuLists.onBoardDishes.length }})
       </div>
-      <v-btn elevation="0" class="text-blue">View All</v-btn>
+      <v-btn
+        @click="isMobile ? undefined : (isBestViewed = true)"
+        elevation="0"
+        class="text-blue"
+        >View All</v-btn
+      >
     </div>
     <div class="position-relative">
       <!-- <v-btn
@@ -45,6 +50,17 @@
       </v-btn> -->
     </div>
   </div>
+
+  <v-dialog v-model="isBestViewed" persistent width="auto">
+    <v-card width="350">
+      <v-card-text class="">
+        <h4 class="mt-4 mb-8 text-center">Best Viewed on Mobile</h4>
+        <v-btn class="mb-4 w-100 bg-primary" @click="isBestViewed = false">
+          OK
+        </v-btn>
+      </v-card-text>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script lang="ts" setup>
@@ -66,6 +82,7 @@ const isDesktop = ref(true);
 const isBeginning = ref(true);
 const isEnd = ref(false);
 const isMobile = ref(false);
+const isBestViewed = ref(false);
 
 const splideOptions = computed(() => ({
   type: "slide",

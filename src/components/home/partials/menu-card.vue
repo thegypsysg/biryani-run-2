@@ -156,7 +156,7 @@
             }}
           </p>
           <div class="text-red text-start mt-2">
-            $
+            {{ selectedCountry?.currency_symbol }}
             {{
               props.menu?.biryaniRunPrice?.rate
                 ? parseFloat(props.menu?.biryaniRunPrice?.rate).toFixed(2)
@@ -173,9 +173,11 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref } from "vue";
+import { onMounted, ref, computed } from "vue";
 import { useRouter } from "vue-router";
+import { useStore } from "vuex";
 
+const store = useStore();
 const router = useRouter();
 
 const props = defineProps<{
@@ -183,6 +185,8 @@ const props = defineProps<{
   fileURL: string;
   isDesktop: boolean;
 }>();
+
+const selectedCountry = computed(() => store.state.selectedCountry);
 
 const goToDetail = (menu: any) => {
   localStorage.setItem("categoryDetailData", JSON.stringify(menu));
