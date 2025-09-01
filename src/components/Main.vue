@@ -86,7 +86,8 @@
     <ExploreOurMenu class="d-none d-md-block" />
 
     <!-- <DeliveryBiryani /> -->
-    <div class="mt-10">
+    <div class="mt-10" v-if="!isLoading">
+      <RestaurantServing :servingLists="servingLists" :fileURL="fileURL" />
       <template v-for="item in menuLists" :key="item.id">
         <RestaurantDish :id="item.mc_id" :menuLists="item" :fileURL="fileURL" />
       </template>
@@ -119,12 +120,14 @@ const listDataCommercial = ref([]);
 const listMainCategories = ref([]);
 const isLoading = ref(true);
 const menuLists = ref([]);
+const servingLists = ref([]);
 const selectedCountry = computed(() => store.state.selectedCountry);
 const latitude = computed(() => localStorage.getItem("latitude"));
 const longitude = computed(() => localStorage.getItem("longitude"));
 watch(selectedCountry, (newX) => {
   // console.log("country is", newX);
   getMenuList(newX.city_id);
+  getServingList(newX.city_id);
 });
 function scrollToSection() {
   eventBus.scrollToSection = "happeningTarget"; // Ganti dengan ID section yang diinginkan
@@ -140,12 +143,33 @@ const handleIntersection = (entries, observer) => {
 };
 
 async function getMenuList(cityId) {
-  const res = await axios.get(
-    `/list-main-categories-by-app-id/${appId}/${cityId}/${latitude.value}/${longitude.value}`,
-  );
-  menuLists.value = res.data.data.filter(
-    (item) => item.onBoardDishes.length > 0,
-  );
+  try {
+    isLoading.value = true;
+    const res = await axios.get(
+      `/list-main-categories-by-app-id/${appId}/${cityId}/${latitude.value}/${longitude.value}`,
+    );
+    menuLists.value = res.data.data.filter(
+      (item) => item.onBoardDishes.length > 0,
+    );
+  } catch (error) {
+    console.error("Error fetching menu list:", error);
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+async function getServingList(cityId) {
+  try {
+    isLoading.value = true;
+    const res = await axios.get(
+      `/list-biryani-run-price-restaurant/${cityId}/${latitude.value}/${longitude.value}`,
+    );
+    servingLists.value = res.data.data;
+  } catch (error) {
+    console.error("Error fetching serving list:", error);
+  } finally {
+    isLoading.value = false;
+  }
 }
 
 function get4WallsPropertyData() {
@@ -210,6 +234,7 @@ onMounted(() => {
   }, 100); // Small delay to ensure the transition starts after mount
 
   getMenuList();
+  getServingList();
   get4WallsPropertyData();
   getListMainCategories();
   get4WallsPropertyDataCommercial();
