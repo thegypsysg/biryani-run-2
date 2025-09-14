@@ -457,9 +457,13 @@
         <v-dialog v-model="isFacebook" persistent width="auto">
           <v-card width="350">
             <v-card-text class="">
-              <p class="my-4">
+              <!-- <p class="my-4">
                 Facebook Sign up is not available now please use your email or
                 Google.
+              </p> -->
+              <p class="my-4">
+                Facebook and Google Sign up is not available now please use your
+                email.
               </p>
               <v-btn class="mb-4 w-100 bg-primary" @click="isFacebook = false">
                 OK
@@ -624,6 +628,8 @@ export default {
     },
     loginSocial(social_name) {
       if (social_name == "facebook") {
+        this.isFacebook = true;
+      } else if (social_name == "google") {
         this.isFacebook = true;
       } else {
         axios
@@ -821,7 +827,8 @@ export default {
                 "changeHeaderWelcome3",
                 "Sign-Up / Sign-in",
               );
-              this.$router.push(`/?token=${data.token}`);
+              // this.$router.push(`/?token=${data.token}`);
+              window.location.href = `/?token=${data.token}`;
             } else if (this.appIdLogin == "5") {
               localStorage.setItem("social", "Email");
               const externalURL = `https://the-syringe.com?token=${data.token}`;
@@ -855,7 +862,9 @@ export default {
           "changeHeaderWelcome3",
           "Sign-Up / Sign-in",
         );
-        this.$router.push(`/?token=${this.tokenLogin}`);
+        // this.$router.push(`/?token=${this.tokenLogin}`);
+
+        window.location.href = `/?token=${this.tokenLogin}`;
       } else if (this.appIdLogin == "5") {
         localStorage.setItem("social", "Email");
         const externalURL = `https://the-syringe.com?token=${this.tokenLogin}`;

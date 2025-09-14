@@ -1,3 +1,48 @@
+<script lang="ts" setup>
+import { onMounted, ref, computed } from "vue";
+import { useCart } from "@/composables/useCart";
+import axios from "@/util/axios";
+import { fileURL, appId } from "@/main";
+import { useStore } from "vuex";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+const store = useStore();
+const { isInCart, cartQuantity, addToCart, updateQuantity } = useCart();
+
+const props = defineProps<{
+  menu: [];
+  fileURL: string;
+  isDesktop: boolean;
+}>();
+
+const loading = ref(false);
+
+const selectedCountry = computed(() => store.state.selectedCountry);
+const errorAddCart = computed(() => store.state.errorAddCart);
+const token = computed(() => {
+  return localStorage.getItem("token");
+});
+
+const userName = computed(() => {
+  return store.state.userName;
+});
+
+const addToCartData = (data) => {
+  // console.log(token.value);
+  if (token.value == "null") {
+    store.commit("setIsNotLoggedIn", true);
+  } else {
+    addToCart(data);
+  }
+};
+
+const goToDetail = (menu: any) => {
+  localStorage.setItem("categoryDetailData", JSON.stringify(menu));
+  router.push(`/category/${props.menu?.dish_id}`);
+};
+</script>
+
 <template>
   <div
     :class="{ 'bg-white': true, 'pa-3': isDesktop, 'pa-1': !isDesktop }"
@@ -164,35 +209,71 @@
             }}
           </div>
         </div>
-        <v-btn elevation="0" class="bg-black text-white mt-6 mt-md-4">
+        <!-- <v-btn elevation="0" class="bg-black text-white mt-6 mt-md-4">
           Add
-        </v-btn>
+        </v-btn> -->
+        <span>
+          <v-btn
+            v-if="!isInCart(props.menu)"
+            @click="addToCartData(props.menu)"
+            size="xs"
+            color="black"
+            class="text-caption py-1 px-8"
+            variant="flat"
+            >Add</v-btn
+          >
+          <div v-else="isInCart(props.menu)" class="d-flex align-center ga-2">
+            <v-btn
+              size="xs"
+              color="black"
+              class="text-caption pa-1 rounded-0"
+              variant="flat"
+              icon
+              @click="updateQuantity(props.menu, 'decrease')"
+            >
+              <v-icon>mdi-minus</v-icon>
+            </v-btn>
+
+            <span>
+              {{ cartQuantity(props.menu) }}
+            </span>
+
+            <v-btn
+              size="xs"
+              color="black"
+              class="text-caption pa-1 rounded-0"
+              variant="flat"
+              icon
+              @click="updateQuantity(props.menu, 'increase')"
+            >
+              <v-icon>mdi-plus</v-icon>
+            </v-btn>
+          </div>
+        </span>
       </div>
     </div>
   </div>
+  <v-dialog v-model="errorAddCart" max-width="400">
+    <v-card>
+      <v-card-text>
+        Cannot add other restaurants at this time , we are still working on a
+        multi-restaurant order system - Should we delete the existing restaurant
+        items ?
+      </v-card-text>
+      <v-card-actions>
+        <v-btn color="success" text @click="store.dispatch('clearCart')"
+          >Yes</v-btn
+        >
+        <v-btn
+          color="error"
+          text
+          @click="store.commit('setErrorAddCart', false)"
+          >No</v-btn
+        >
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
-
-<script lang="ts" setup>
-import { onMounted, ref, computed } from "vue";
-import { useRouter } from "vue-router";
-import { useStore } from "vuex";
-
-const store = useStore();
-const router = useRouter();
-
-const props = defineProps<{
-  menu: [];
-  fileURL: string;
-  isDesktop: boolean;
-}>();
-
-const selectedCountry = computed(() => store.state.selectedCountry);
-
-const goToDetail = (menu: any) => {
-  localStorage.setItem("categoryDetailData", JSON.stringify(menu));
-  router.push(`/category/${props.menu?.dish_id}`);
-};
-</script>
 
 <style>
 .card-cont {

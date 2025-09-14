@@ -73,8 +73,8 @@
       <v-img
         v-if="isDesktop"
         :src="
-          props.menu?.biryaniRunPrice?.dish_image
-            ? props.fileURL + props.menu?.biryaniRunPrice?.dish_image
+          props.menu?.location_image
+            ? props.fileURL + props.menu?.location_image
             : props.menu?.main_image
               ? props.fileURL + props.menu?.main_image
               : ''
@@ -106,7 +106,9 @@
           <p class="font-weight-black text-subtitle-2 text-start">
             <span class="text-red">{{ props.menu?.outlet_count }}</span> Outlets
             | <span class="text-red">{{ props.menu?.dish_count }}</span> Dishes
-            | <span class="text-green">Halal</span>
+            <template v-if="props.menu?.halal == 'Y'"
+              >| <span class="text-green">Halal</span></template
+            >
           </p>
         </div>
         <!-- <v-btn elevation="0" class="bg-black text-white mt-6 mt-md-4">

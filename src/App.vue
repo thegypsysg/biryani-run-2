@@ -42,7 +42,7 @@
       </RouterView>
       <FooterMobile v-show="!isDesktop && !isProfile"></FooterMobile>
     </div>
-    <!-- <v-dialog v-model="isLoggedIn" persistent width="auto">
+    <v-dialog v-model="isLoggedIn" persistent width="auto">
       <v-card width="350">
         <v-card-text class="">
           <h4 class="mt-4 mb-8 text-center">
@@ -66,7 +66,7 @@
         </v-card-text>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="isCountryUpdating" persistent width="auto">
+    <!-- <v-dialog v-model="isCountryUpdating" persistent width="auto">
       <v-card width="350">
         <v-card-text class="">
           <h4 class="mt-4 mb-8 text-center">
@@ -77,7 +77,7 @@
           </v-btn>
         </v-card-text>
       </v-card>
-    </v-dialog>
+    </v-dialog> -->
     <v-dialog v-model="isEmptyDelivery" persistent width="auto">
       <v-card width="350">
         <v-card-text class="">
@@ -87,17 +87,16 @@
           </v-btn>
         </v-card-text>
       </v-card>
-    </v-dialog> -->
+    </v-dialog>
   </v-app>
 </template>
 
 <script>
 import { RouterView } from "vue-router";
 import Header from "@/components/Header.vue";
+import FooterMobile from "@/components/FooterMobile.vue";
 import app from "@/util/eventBus";
 import axios from "@/util/axios";
-
-import FooterMobile from "@/components/FooterMobile.vue";
 
 export default {
   name: "App",
@@ -125,6 +124,8 @@ export default {
         title = "Sign-Up / Sign-in";
       } else if (this.currentRoute === "/social-sign-up") {
         title = "Social Registration";
+      } else if (this.currentRoute === "/sign-up-email") {
+        title = "Email Registration";
       } else if (this.currentRoute === "/discount-types") {
         title = "Promotions by Discount";
       } else if (this.currentRoute === "/category") {
@@ -184,62 +185,66 @@ export default {
     getApplicant(tokenParam) {
       this.isLoading = true;
       const token = localStorage.getItem("token");
-      axios
-        .get(`/gypsy-applicant`, {
-          headers: {
-            Authorization: `Bearer ${tokenParam ? tokenParam : token}`,
-          },
-        })
-        .then((response) => {
-          const data = response.data.data;
-          console.log(data);
-          if (data && data.basic_steps == null) {
-            this.token = tokenParam ? tokenParam : token;
-            app.config.globalProperties.$eventBus.$emit(
-              "getTokenStart",
-              tokenParam ? tokenParam : token,
-            );
-            localStorage.setItem("applicant_data", JSON.stringify(data));
-          } else if (
-            data &&
-            data.basic_steps == "C" &&
-            this.currentRoute == "/"
-          ) {
-            this.$router.push(`/${data.slug}`);
-            app.config.globalProperties.$eventBus.$emit("getTrendingCardData2");
-          } else if (data == null) {
-            app.config.globalProperties.$eventBus.$emit(
-              "changeHeaderPath",
-              "/",
-            );
-          }
 
-          if (data.slug) {
-            this.path = `/${data.slug}`;
-            app.config.globalProperties.$eventBus.$emit(
-              "changeHeaderPath",
-              `/${data.slug}`,
-            );
-          } else {
-            this.path = "/";
-            app.config.globalProperties.$eventBus.$emit(
-              "changeHeaderPath",
-              "/",
-            );
-          }
-          // else {
-          //   app.config.globalProperties.$eventBus.$emit('getTrendingCardData2');
-          // }
-        })
-        .catch((error) => {
-          // eslint-disable-next-line
-          console.log(error);
+      if (token || tokenParam)
+        axios
+          .get(`/gypsy-applicant`, {
+            headers: {
+              Authorization: `Bearer ${tokenParam ? tokenParam : token}`,
+            },
+          })
+          .then((response) => {
+            const data = response.data.data;
 
-          // app.config.globalProperties.$eventBus.$emit('getTrendingCardData2');
-        })
-        .finally(() => {
-          this.isLoading = false;
-        });
+            if (data && data.basic_steps == null) {
+              this.token = tokenParam ? tokenParam : token;
+              app.config.globalProperties.$eventBus.$emit(
+                "getTokenStart",
+                tokenParam ? tokenParam : token,
+              );
+              localStorage.setItem("applicant_data", JSON.stringify(data));
+            } else if (
+              data &&
+              data.basic_steps == "C" &&
+              this.currentRoute == "/"
+            ) {
+              this.$router.push(`/${data.slug}`);
+              app.config.globalProperties.$eventBus.$emit(
+                "getTrendingCardData2",
+              );
+            } else if (data == null) {
+              app.config.globalProperties.$eventBus.$emit(
+                "changeHeaderPath",
+                "/",
+              );
+            }
+
+            if (data.slug) {
+              this.path = `/${data.slug}`;
+              app.config.globalProperties.$eventBus.$emit(
+                "changeHeaderPath",
+                `/${data.slug}`,
+              );
+            } else {
+              this.path = "/";
+              app.config.globalProperties.$eventBus.$emit(
+                "changeHeaderPath",
+                "/",
+              );
+            }
+            // else {
+            //   app.config.globalProperties.$eventBus.$emit('getTrendingCardData2');
+            // }
+          })
+          .catch((error) => {
+            // eslint-disable-next-line
+            console.log(error);
+
+            // app.config.globalProperties.$eventBus.$emit('getTrendingCardData2');
+          })
+          .finally(() => {
+            this.isLoading = false;
+          });
     },
   },
 };
@@ -252,34 +257,34 @@ import { useStore } from "vuex";
 const store = useStore();
 
 const isLoggedIn = ref(false);
-// const isCartEmpty = ref(false);
+const isCartEmpty = ref(false);
 const isCountryUpdating = ref(false);
-// const isEmptyDelivery = ref(false);
+const isEmptyDelivery = ref(false);
 
 const isNotLoggedIn = computed(() => store.state.isNotLoggedIn);
-// const isCartEmptyStore = computed(() => store.state.isCartEmpty);
+const isCartEmptyStore = computed(() => store.state.isCartEmpty);
 const isCountryUpdatingStore = computed(() => store.state.isCountryUpdating);
-// const isEmptyDeliveryStore = computed(() => store.state.isEmptyDelivery);
+const isEmptyDeliveryStore = computed(() => store.state.isEmptyDelivery);
 
 const closeIsLoggedIn = () => {
   isLoggedIn.value = false;
   store.commit("setIsNotLoggedIn", false);
 };
 
-// const closeIsCartEmpty = () => {
-//   isCartEmpty.value = false;
-//   store.commit("setIsCartEmpty", false);
-// };
-
-const closeIsCountryUpdating = () => {
-  isCountryUpdating.value = false;
-  store.commit("setIsCountryUpdating", false);
+const closeIsCartEmpty = () => {
+  isCartEmpty.value = false;
+  store.commit("setIsCartEmpty", false);
 };
 
-// const closeIsEmptyDelivery = () => {
-//   isEmptyDelivery.value = false;
-//   store.commit("setIsEmptyDelivery", false);
+// const closeIsCountryUpdating = () => {
+//   isCountryUpdating.value = false;
+//   store.commit("setIsCountryUpdating", false);
 // };
+
+const closeIsEmptyDelivery = () => {
+  isEmptyDelivery.value = false;
+  store.commit("setIsEmptyDelivery", false);
+};
 
 watch(isNotLoggedIn, (newX) => {
   if (newX == true) {
@@ -287,23 +292,23 @@ watch(isNotLoggedIn, (newX) => {
   }
 });
 
-// watch(isCartEmptyStore, (newX) => {
-//   if (newX == true) {
-//     isCartEmpty.value = true;
-//   }
-// });
-
-watch(isCountryUpdatingStore, (newX) => {
+watch(isCartEmptyStore, (newX) => {
   if (newX == true) {
-    isCountryUpdating.value = true;
+    isCartEmpty.value = true;
   }
 });
 
-// watch(isEmptyDeliveryStore, (newX) => {
+// watch(isCountryUpdatingStore, (newX) => {
 //   if (newX == true) {
-//     isEmptyDelivery.value = true;
+//     isCountryUpdating.value = true;
 //   }
 // });
+
+watch(isEmptyDeliveryStore, (newX) => {
+  if (newX == true) {
+    isEmptyDelivery.value = true;
+  }
+});
 </script>
 
 <style>

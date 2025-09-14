@@ -1,3 +1,814 @@
+<script>
+import { mapState, mapMutations } from "vuex";
+import moment from "moment-timezone";
+import { setAuthHeader } from "@/util/axios";
+import axios from "@/util/axios";
+import cartMixin from "@/mixins/cartMixin";
+import app from "@/util/eventBus";
+import { appId } from "@/util/variables";
+import Cart from "@/components/Cart.vue";
+// import ExploreOurMenuList from "@/components/home/ExploreOurMenuList.vue";
+// import app from "@/util/eventBus";
+
+export default {
+  // eslint-disable-next-line vue/multi-word-component-names, vue/no-reserved-component-names
+  name: "Header",
+  props: [
+    "isWelcome",
+    "titleHeader",
+    "isHeader",
+    "isDesktop",
+    "isProfile",
+    "isSignin",
+    "isBatamProperties",
+  ],
+  mixins: [cartMixin],
+  data() {
+    return {
+      platformFee: null,
+      taxAmount: null,
+      isBestViewed: false,
+      isQRCode: false,
+      viewCart: false,
+      isApply: false,
+      isEmployment: false,
+      isCheck: false,
+      path: "",
+      tokenStart: null,
+      footerData: {
+        company_name: "",
+        location: "",
+        mobile_number: "",
+        whats_app: "",
+        email_id: "",
+        copyright: "",
+        facebook: "",
+        twitter: "",
+        instagram: "",
+        youtube: "",
+      },
+      isLoading: false,
+      trendingBtn: [],
+      isDetail: false,
+      countryId: null,
+      cityId: null,
+      search: null,
+
+      logo: null,
+      tokenStart: null,
+      userImage: null,
+      userName: null,
+      userDated: null,
+      dialog: false,
+      dialog2: false,
+      drawer: false,
+      openMobileSearchBar: false,
+      headerData: {},
+      activeMalls: [],
+      currentTime: "",
+      screenWidth: window.innerWidth,
+      selectedPlace: null,
+      selectedLocation: {
+        country_id: 1,
+        currency_symbol: "S$",
+        country: "Singapore",
+        city: "Singapore City",
+      },
+      locationDropdown: [],
+      isTrending: false,
+      trendings: [],
+      trendingCard: [],
+    };
+  },
+  watch: {
+    $route() {
+      this.search = null;
+    },
+    selectedCountry() {
+      this.getTaxAmount();
+    },
+  },
+  computed: {
+    ...mapState(["deliveryCharges"]),
+    ...mapState(["itemSelected"]),
+    ...mapState(["itemSelected2"]),
+    ...mapState(["itemSelectedComplete"]),
+    ...mapState(["itemSelected2Complete"]),
+    ...mapState(["detailHeader"]),
+    ...mapState(["countryRecognised"]),
+    ...mapState(["idCountryRecognised"]),
+    ...mapState(["skillRecognised"]),
+    ...mapState(["idSkillRecognised"]),
+    ...mapState(["selectedCountry"]),
+    ...mapState(["activeTag"]),
+    ...mapState({
+      cartSubTotal: (state) =>
+        new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+        }).format(
+          state.cart.reduce(
+            (total, item) => total + item.price * item.quantity,
+            0,
+          ),
+        ),
+    }),
+    ...mapState({
+      cartTotalQuantity: (state) =>
+        state.cart.reduce((total, item) => total + item.quantity, 0),
+    }),
+    deliveryOptions() {
+      return this.$store.state.deliveryCharges;
+    },
+    subTotal() {
+      return this.$store.state.cart.reduce(
+        (total, item) => total + item.price * item.quantity,
+        0,
+      );
+    },
+    finalCartTotal() {
+      return (
+        this.subTotal +
+        this.selectedDeliveryPrice +
+        this.platformFee +
+        ((this.subTotal + this.selectedDeliveryPrice + 0.5) * this.taxAmount) /
+          100
+      ).toFixed(2);
+    },
+    selectedDeliveryPrice() {
+      if (this.$store.state.cart) {
+        // console.log(parseFloat(this.$store.state.cart[0].delivery_charges));
+        return parseFloat(this.$store.state.cart[0].delivery_charges);
+      } else {
+        return 0;
+      }
+    },
+    latitude() {
+      return localStorage.getItem("latitude");
+    },
+    longitude() {
+      return localStorage.getItem("longitude");
+    },
+    countryDevice() {
+      return localStorage.getItem("countryDevice");
+    },
+    isSmall() {
+      return this.screenWidth < 640;
+    },
+    filteredMalls() {
+      if (!this.search) return this.activeMalls;
+      return this.activeMalls.filter((item) =>
+        item.brand_name.toLowerCase().includes(this.search.toLowerCase()),
+      );
+    },
+    tokenProvider() {
+      // Mendapatkan URL dari browser
+      const url = new URL(window.location.href);
+
+      // Mendapatkan nilai token dari parameter query 'token'
+      const tokenParam = url.searchParams.get("token");
+      if (tokenParam) {
+        localStorage.setItem("token", tokenParam);
+      }
+
+      // Mengupdate data 'token' dalam komponen dengan nilai yang ditemukan
+      return tokenParam;
+    },
+    token() {
+      return localStorage.getItem("token");
+    },
+    authToken() {
+      return localStorage.getItem("token");
+    },
+    isPrivacy() {
+      return this.$route.path == "/privacy-policy";
+    },
+    isFavorites() {
+      return this.$route.path == "/my-favorites";
+    },
+    isTerms() {
+      return this.$route.path == "/our-terms";
+    },
+    isMyProfile() {
+      return this.$route.path == "/my-profile";
+    },
+    isProduct() {
+      return this.$route.path.includes("product");
+    },
+    isMobileProduct() {
+      return this.screenWidth < 640 && this.$route.path.includes("product");
+    },
+    isResumeProfile() {
+      return this.$route.path == "/resume-profile";
+    },
+    isSmall() {
+      return this.screenWidth < 640;
+    },
+    isHome() {
+      return this.$route.path === "/";
+    },
+    isSpecific() {
+      return this.$route.params.name;
+    },
+    isRecognised() {
+      return this.$route.path === "/recognised-qualifications";
+    },
+    isDetailPage() {
+      return this.$route.path.includes("detail");
+    },
+  },
+  created() {
+    window.addEventListener("resize", this.handleResize);
+    setInterval(this.updateTime, 1000);
+  },
+  mounted() {
+    const token = localStorage.getItem("token");
+    if (this.tokenProvider != null) {
+      setAuthHeader(this.tokenProvider);
+      this.getHeaderUserData();
+    } else if (token) {
+      setAuthHeader(token);
+      this.getHeaderUserData();
+    }
+    this.search = null;
+    this.getPlatformFee();
+    // this.getTaxAmount();
+    this.getAppContact();
+    this.getTrendingCardData();
+    this.getLocationDropDownData();
+    this.getLogo();
+    this.getProductCategoryListData();
+
+    app.config.globalProperties.$eventBus.$on(
+      "changeHeaderPath",
+      this.changeHeaderPath,
+    );
+    app.config.globalProperties.$eventBus.$on(
+      "getTokenStart",
+      this.getTokenStart,
+    );
+    app.config.globalProperties.$eventBus.$on(
+      "getTrendingCardData2",
+      this.getTrendingCardData2,
+    );
+    app.config.globalProperties.$eventBus.$on(
+      "changeHeaderImage",
+      this.changeHeaderImage,
+    );
+    app.config.globalProperties.$eventBus.$on(
+      "getHeaderUserData",
+      this.getHeaderUserData,
+    );
+    app.config.globalProperties.$eventBus.$on(
+      "changeHeaderWelcome3",
+      this.changeHeaderWelcome3,
+    );
+
+    // this.isTrending = this.$route.name.includes("Trending");
+  },
+  beforeUnmount() {
+    app.config.globalProperties.$eventBus.$off(
+      "changeHeaderPath",
+      this.changeHeaderPath,
+    );
+    app.config.globalProperties.$eventBus.$off(
+      "getTokenStart",
+      this.getTokenStart,
+    );
+    app.config.globalProperties.$eventBus.$off(
+      "getTrendingCardData2",
+      this.getTrendingCardData2,
+    );
+    app.config.globalProperties.$eventBus.$off(
+      "changeHeaderImage",
+      this.changeHeaderImage,
+    );
+    app.config.globalProperties.$eventBus.$off(
+      "getHeaderUserData",
+      this.getHeaderUserData,
+    );
+    app.config.globalProperties.$eventBus.$off(
+      "changeHeaderWelcome3",
+      this.changeHeaderWelcome3,
+    );
+  },
+  unmounted() {
+    window.removeEventListener("resize", this.handleResize);
+  },
+  methods: {
+    ...mapMutations([
+      "setActiveTag",
+      "setItemSelected",
+      "setItemSelectedComplete",
+      "setItemSelected2",
+      "setItemSelected2Complete",
+      "setSelectedTrending",
+      "setCountryRecognised",
+      "setSkillRecognised",
+      "setIdCountryRecognised",
+      "setIdSkillRecognised",
+      "setFooterData",
+      "setCategoryData",
+      "setSelectedCountry",
+      "setIsCartEmpty",
+      "setUserName",
+    ]),
+    viewCartClick() {
+      if (this.cartTotalQuantity > 0) {
+        this.viewCart = true;
+      } else {
+        this.setIsCartEmpty(true);
+      }
+    },
+    async getTaxAmount() {
+      // let data = null;
+
+      try {
+        // await axios
+        //   .get(`/gypsy-user`, {
+        //     headers: { Authorization: `Bearer ${this.authToken}` },
+        //   })
+        //   .then((response) => {
+        //     data = response.data.data?.country_current;
+        //   })
+        //   .catch((_) => {});
+
+        const response = await axios.get(`/get-tax-amount`, {
+          headers: {
+            Authorization: `Bearer ${this.authToken}`,
+          },
+          params: {
+            country_id: this.selectedCountry.country_id,
+          },
+        });
+        if (response?.data?.data?.applicable === "Y") {
+          this.taxAmount = response.data.data?.tax_rate;
+        }
+      } catch (error) {
+        // eslint-disable-next-line
+        console.log(error);
+      }
+    },
+    //     async getProductDetailsLink(productId, encId, rangeId) {
+    //   try {
+    //     const response = await axios.post(
+    //       `/increment-product-view-count/products/${productId}/ranges/${rangeId}`,
+    //       {},
+    //     );
+    //     if (response.status == 200) {
+    //       this.$router.push(`/product/${encId}?range_id=${rangeId}`);
+    //     }
+    //   } catch (error) {
+    //     console.log(error);
+    //   }
+    // },
+    async getPlatformFee() {
+      let data = null;
+      try {
+        await axios
+          .get(`/get-app-id`, {
+            headers: {
+              Authorization: `Bearer ${this.authToken}`,
+            },
+            params: {
+              company_name: "Biryani Run",
+            },
+          })
+          .then((response) => {
+            data = response.data.data?.app_id;
+          })
+          .catch((error) => {
+            // eslint-disable-next-line
+            console.log(error);
+          });
+
+        const response = await axios.get(`/get-platform-fee`, {
+          headers: {
+            Authorization: `Bearer ${this.authToken}`,
+          },
+          params: {
+            app_id: data,
+          },
+        });
+
+        this.platformFee = parseFloat(response.data.data?.platform_fee);
+      } catch (error) {
+        console.error("Error getting tax rate:", error);
+        // const message = error.response?.data?.message || "Something went wrong!";
+        // snackbar.value = true;
+        // message.value = {
+        //     text: message,
+        //     color: "error"
+        // };
+      } finally {
+        // savingAddress.value = false;
+      }
+    },
+    capitalizeFirstLetter(sentence) {
+      const words = sentence.split(" ");
+      for (let i = 0; i < words.length; i++) {
+        const word = words[i];
+        words[i] = word.charAt(0).toUpperCase() + word.slice(1);
+      }
+      const capitalizedSentence = words.join(" ");
+      return capitalizedSentence;
+    },
+    handleResize() {
+      this.screenWidth = window.innerWidth;
+    },
+    toggleMobileSearchBar() {
+      this.openMobileSearchBar = !this.openMobileSearchBar;
+    },
+    changeHeaderPath(path) {
+      //console.log(image)
+      this.path = path;
+    },
+    getTokenStart(tokenParam) {
+      this.tokenStart = tokenParam;
+      setAuthHeader(tokenParam);
+    },
+    getTrendingCardData2() {
+      this.tokenStart = null;
+    },
+    changeHeaderImage(image) {
+      // console.log(image);
+      this.userImage = this.$fileURL + image;
+    },
+
+    changeHeaderWelcome3() {
+      this.getHeaderUserData2();
+      // this.titleWelcome = title;
+    },
+    getAppContact() {
+      // this.isLoading = true;
+      axios
+        .get(`/app/contact/${this.$appId}`)
+        .then((response) => {
+          const data = response.data.data;
+          this.setFooterData(data);
+          this.footerData = {
+            company_name: data.company_name || "",
+            location: data.location || "",
+            mobile_number: data.mobile_number || "",
+            whats_app: data.whats_app || "",
+            email_id: data.email_id || "",
+            copyright: data.copyright || "",
+            facebook: data.facebook || "",
+            twitter: data.twitter || "",
+            instagram: data.instagram || "",
+            youtube: data.youtube || "",
+          };
+        })
+        .catch((error) => {
+          // eslint-disable-next-line
+          console.log(error);
+        });
+      // .finally(() => {
+      //   this.isLoading = false;
+      // });
+    },
+    loginGypsy() {
+      this.$router.push("/sign-in");
+    },
+
+    logout() {
+      const token = localStorage.getItem("token");
+      axios
+        .get(`/gypsy-logout`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then((response) => {
+          const data = response.data.data;
+          // console.log(data);
+          localStorage.setItem("name", null);
+          localStorage.setItem("userName", null);
+          localStorage.setItem("g_id", null);
+          localStorage.setItem("user_image", null);
+          localStorage.setItem("token", null);
+          app.config.globalProperties.$eventBus.$emit("getUserName");
+          this.path = "/";
+          window.location.href = "/";
+        })
+        .catch((error) => {
+          // eslint-disable-next-line
+          console.log(error);
+        });
+    },
+    getHeaderUserData() {
+      this.isLoading = true;
+      //console.log(this.tokenProvider);
+      const token = localStorage.getItem("token");
+      axios
+        .get(`/gypsy-user`, {
+          headers: {
+            Authorization: `Bearer ${
+              this.tokenProvider ? this.tokenProvider : token
+            }`,
+          },
+        })
+        .then((response) => {
+          const data = response.data.data;
+          //console.log(data);
+
+          this.userName = data.name;
+          this.setUserName(data.name);
+          localStorage.setItem("userName", data.name);
+          this.userDated = data.last_login;
+          this.userImage =
+            data.image != null ? this.$fileURL + data.image : null;
+          app.config.globalProperties.$eventBus.$emit("getUserName");
+          // this.userImage = null;
+        })
+        .catch((error) => {
+          // eslint-disable-next-line
+          console.log(error.response.status == 401);
+          if (error.response.status == 401) {
+            localStorage.setItem("name", null);
+            localStorage.setItem("userName", null);
+            localStorage.setItem("g_id", null);
+            localStorage.setItem("user_image", null);
+            localStorage.setItem("token", null);
+            app.config.globalProperties.$eventBus.$emit("getUserName");
+          }
+        })
+        .finally(() => {
+          this.isLoading = false;
+        });
+    },
+    getHeaderUserData2() {
+      this.isLoading = true;
+      const token = localStorage.getItem("token");
+      axios
+        .get(`/gypsy-user`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then((response) => {
+          const data = response.data.data;
+          console.log(data);
+
+          this.userName = data.name;
+          this.setUserName(data.name);
+          this.userDated = data.last_login;
+          this.userImage =
+            data.image != null ? this.$fileURL + data.image : null;
+          // this.userImage = null;
+        })
+        .catch((error) => {
+          // eslint-disable-next-line
+          console.log(error);
+        })
+        .finally(() => {
+          this.isLoading = false;
+        });
+    },
+
+    gotoMallDetail(item) {
+      this.dialog2 = false;
+      this.$router.push(`/mall-id/${item?.id}`);
+      localStorage.setItem("mallDetailData", JSON.stringify(item));
+    },
+    gotoMerchantDetail(item) {
+      this.dialog2 = false;
+      this.$router.push(`/merchant-id/${item?.merchant_id}`);
+      localStorage.setItem("merchantDetailData", JSON.stringify(item));
+    },
+    async getProductCategoryListData() {
+      this.isLoading = true;
+      try {
+        const response = await axios.get(
+          `/categories-with-products/app/${this.$appId}`,
+        );
+        const data = response.data.data;
+        this.setCategoryData(data);
+        // Flatten data dan kelompokkan berdasarkan brand_id
+        const groupedBrands = {};
+        const processedMalls = [];
+
+        data.forEach((category) => {
+          category.brands.forEach((brand) => {
+            brand.products.forEach((product, index) => {
+              const key = brand.brand_id;
+              if (!groupedBrands[key]) {
+                groupedBrands[key] = true; // Tandai bahwa brand ini sudah muncul
+                processedMalls.push({
+                  ...product,
+                  brand_id: brand.brand_id,
+                  brand_name: brand.brand_name,
+                  product_id: product.product_id,
+                  category_id: category.category_id,
+                  slug: product.product_name.toLowerCase().replace(/\s+/g, "-"),
+                  country_id: brand?.country?.country_id,
+                  country_name: brand?.country?.country_name,
+                  showBrandName: true, // Hanya produk pertama dalam brand yang menampilkan nama brand
+                  isCount: false,
+                  count: 1,
+                });
+              } else {
+                processedMalls.push({
+                  ...product,
+                  brand_id: brand.brand_id,
+                  brand_name: brand.brand_name,
+                  product_id: product.product_id,
+                  category_id: category.category_id,
+                  slug: product.product_name.toLowerCase().replace(/\s+/g, "-"),
+                  country_id: brand?.country?.country_id,
+                  country_name: brand?.country?.country_name,
+                  showBrandName: false, // Produk lainnya tidak menampilkan nama brand
+                  isCount: false,
+                  count: 1,
+                });
+              }
+            });
+          });
+        });
+
+        this.activeMalls = processedMalls;
+        // console.log("iniii", this.activeMalls);
+      } catch (error) {
+        console.error("Error fetching product categories:", error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    updateTime() {
+      // Ambil zona waktu Singapore
+      const singaporeTime = moment().tz("Asia/Singapore");
+      // Format waktu dalam hh:mm:ss
+      this.currentTime = singaporeTime.format("HH:mm:ss");
+    },
+    getLogo() {
+      axios
+        .get(`/app/logo/${this.$appId}`)
+        .then((response) => {
+          const data = response.data.data;
+          // console.log(data);
+          this.logo = data;
+        })
+        .catch((error) => {
+          // eslint-disable-next-line
+          console.log(error);
+        });
+    },
+    getTrendingCardData() {
+      // this.isLoading = true;
+      axios
+        .get(`/skillgroups/${this.$appId}`)
+        .then((response) => {
+          const data = response.data.data;
+          // console.log(data);
+          this.trendingCard = data.map((item) => {
+            return {
+              id: item.sgm_id || 1,
+              img: item.image || "",
+              title: item.group_name || "",
+              tag: item.group_name || "",
+              desc: item.description || "",
+            };
+          });
+          this.trendingBtn = data.map((item) => {
+            return {
+              id: item.sgm_id || 1,
+              title: item.group_name || "",
+              tag: item.group_name || "",
+            };
+          });
+        })
+        .catch((error) => {
+          // eslint-disable-next-line
+          console.log(error);
+        });
+      // .finally(() => {
+      //   this.isLoading = false;
+      // });
+    },
+    getLocationDropDownData() {
+      this.isLoading = true;
+      axios
+        .get(`/app-city-list/${this.$appId}`)
+        .then((response) => {
+          const data = response.data.data;
+          // console.log("country: ", data);
+          this.locationDropdown = data.map((country) => {
+            return {
+              country_id: country.country_id,
+              currency_symbol: country.currency_symbol,
+              country: country.country_name,
+              flagUrl: country.flag,
+              cities: [
+                {
+                  city_id: country.city_id,
+                  country_id: country.country_id,
+                  currency_symbol: country.currency_symbol,
+                  name: country.city_name,
+                  imageUrl: country.city_image,
+                  count: country.dish_count,
+                },
+              ],
+            };
+          });
+          const defaultCountry = this.locationDropdown[0];
+          const defaultCity = defaultCountry.cities[0];
+          this.selectLocation(defaultCountry, defaultCity);
+          // console.log("country: ", this.locationDropdown);
+        })
+        .catch((error) => {
+          // eslint-disable-next-line
+          console.log("country", error);
+        })
+        .finally(() => {
+          this.isLoading = false;
+        });
+    },
+
+    selectLocation(country, city) {
+      // console.log(country.currency_symbol);
+      this.selectedLocation = {
+        ...city,
+        currency_symbol: country.currency_symbol ?? "S$",
+        country_id: country.country_id,
+        country: country.country,
+        city: city.name,
+      };
+      this.setSelectedCountry(this.selectedLocation);
+      this.$store.dispatch(
+        "getDeliveryCharges",
+        this.selectedLocation.country_id,
+      );
+      // console.log("selected: ", this.selectedLocation);
+    },
+    goToPath(data) {
+      this.setSelectedTrending(data);
+      this.$router.push(data.to);
+    },
+    filterMalls(value, query, item) {
+      if (!query) return true;
+      const text = query.toLowerCase();
+      return (
+        item.raw.brand_name.toLowerCase().includes(text) ||
+        item.raw.product_name.toLowerCase().includes(text)
+      );
+    },
+  },
+  // components: { ExploreOurMenuList },
+};
+</script>
+
+<script setup>
+import { useStore } from "vuex";
+import { useCart } from "@/composables/useCart";
+import { watch, computed } from "vue";
+
+// Import images
+import homeIcon from "@/assets/images/icons/home.png";
+import shopperIcon from "@/assets/images/icons/menu-shopper.png";
+import shopIcon from "@/assets/images/icons/shop.png";
+import userIcon from "@/assets/images/icons/user_icon.png";
+import facebookIcon from "@/assets/images/icons/facebook.png";
+import instaIcon from "@/assets/images/icons/insta.png";
+import tiktokIcon from "@/assets/images/icons/tiktok.png";
+import whatsappIcon from "@/assets/whatsapp.svg";
+
+// Make images available to template
+const images = {
+  home: homeIcon,
+  shopper: shopperIcon,
+  shop: shopIcon,
+  user: userIcon,
+  facebook: facebookIcon,
+  instagram: instaIcon,
+  tiktok: tiktokIcon,
+  whatsapp: whatsappIcon,
+};
+
+const store = useStore();
+const { isInCart, cartQuantity, addToCart, updateQuantity } = useCart();
+
+const token = computed(() => {
+  return localStorage.getItem("token");
+});
+
+const getDeliveryCharges = () => {
+  store.dispatch("getDeliveryCharges", 1);
+};
+
+const addToCartData = (data, range) => {
+  // console.log(token.value);
+  if (token.value == "null") {
+    store.commit("setIsNotLoggedIn", true);
+  } else {
+    addToCart(data, range);
+  }
+};
+
+watch(() => {
+  getDeliveryCharges();
+});
+</script>
+
 <template>
   <v-app-bar
     v-if="(isDesktop && !isHeader) || (isSmall && !isHeader)"
@@ -198,7 +1009,7 @@
                         {{ range?.price_list?.rate }}
                       </template>
                     </span>
-                    <!-- <span v-show="range?.price_list?.rate">
+                    <span v-show="range?.price_list?.rate">
                       <v-btn
                         v-if="!isInCart(item.raw, range)"
                         @click.stop.prevent="addToCartData(item.raw, range)"
@@ -208,7 +1019,7 @@
                         variant="flat"
                         >Add</v-btn
                       >
-                      <div
+                      <!-- <div
                         v-else="isInCart(item.raw, range)"
                         class="d-flex align-center ga-2"
                       >
@@ -241,8 +1052,8 @@
                         >
                           <v-icon>mdi-plus</v-icon>
                         </v-btn>
-                      </div>
-                    </span> -->
+                      </div> -->
+                    </span>
                   </div>
                 </div>
               </div>
@@ -384,7 +1195,7 @@
                         {{ range?.price_list?.rate }}
                       </template>
                     </span>
-                    <!-- <span v-show="range?.price_list?.rate">
+                    <span v-show="range?.price_list?.rate">
                       <v-btn
                         v-if="!isInCart(item.raw, range)"
                         @click.stop.prevent="addToCartData(item.raw, range)"
@@ -394,7 +1205,7 @@
                         variant="flat"
                         >Add</v-btn
                       >
-                      <div
+                      <!-- <div
                         v-else="isInCart(item.raw, range)"
                         class="d-flex align-center ga-2"
                       >
@@ -427,8 +1238,8 @@
                         >
                           <v-icon>mdi-plus</v-icon>
                         </v-btn>
-                      </div>
-                    </span> -->
+                      </div> -->
+                    </span>
                   </div>
                 </div>
               </div>
@@ -467,15 +1278,15 @@
     </v-btn>
 
     <!-- if NOT mobile view -->
-    <div>
+    <!-- <div>
       <div v-if="!isSmall" class="cart d-flex align-center">
         <div class="cart-line mr-2" />
         <v-icon size="35" color="black"> mdi mdi-cart-variant </v-icon>
         <span>{{ selectedLocation?.currency_symbol }} 0</span>
       </div>
-    </div>
+    </div> -->
 
-    <!-- <div>
+    <div>
       <div
         v-if="!isSmall && !isProfile"
         @click="viewCartClick"
@@ -495,7 +1306,7 @@
         </span>
         <Cart :viewCart="viewCart" @update:viewCart="viewCart = $event" />
       </div>
-    </div> -->
+    </div>
 
     <div
       v-if="!isSignin"
@@ -721,7 +1532,7 @@
                               {{ range?.price_list?.rate }}
                             </template>
                           </span>
-                          <!-- <span v-show="range?.price_list?.rate">
+                          <span v-show="range?.price_list?.rate">
                             <v-btn
                               v-if="!isInCart(item.raw, range)"
                               @click.stop.prevent="
@@ -733,7 +1544,7 @@
                               variant="flat"
                               >Add</v-btn
                             >
-                            <div
+                            <!-- <div
                               v-else="isInCart(item.raw, range)"
                               class="d-flex align-center ga-2"
                             >
@@ -766,8 +1577,8 @@
                               >
                                 <v-icon>mdi-plus</v-icon>
                               </v-btn>
-                            </div>
-                          </span> -->
+                            </div> -->
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -779,7 +1590,7 @@
               <v-icon color="white"> mdi-magnify </v-icon>
             </button>
           </form>
-          <ExploreOurMenuList :desktop="false" v-if="!isProduct" />
+          <!-- <ExploreOurMenuList :desktop="false" v-if="!isProduct" /> -->
         </div>
 
         <div id="trending-container" class="d-sm-none"></div>
@@ -1241,664 +2052,6 @@
     </v-card>
   </v-dialog>
 </template>
-
-<script>
-import { mapState, mapMutations } from "vuex";
-import moment from "moment-timezone";
-import { setAuthHeader } from "@/util/axios";
-import axios from "@/util/axios";
-import app from "@/util/eventBus";
-// import app from "@/util/eventBus";
-export default {
-  // eslint-disable-next-line vue/multi-word-component-names, vue/no-reserved-component-names
-  name: "Header",
-  props: [
-    "isWelcome",
-    "titleHeader",
-    "isHeader",
-    "isDesktop",
-    "isProfile",
-    "isSignin",
-    "isBatamProperties",
-  ],
-  data() {
-    return {
-      platformFee: null,
-      taxAmount: null,
-      isBestViewed: false,
-      isQRCode: false,
-      viewCart: false,
-      isApply: false,
-      isEmployment: false,
-      isCheck: false,
-      path: "",
-      footerData: {
-        company_name: "",
-        location: "",
-        mobile_number: "",
-        whats_app: "",
-        email_id: "",
-        copyright: "",
-        facebook: "",
-        twitter: "",
-        instagram: "",
-        youtube: "",
-      },
-      trendingBtn: [],
-      isDetail: false,
-      logo: null,
-      tokenStart: null,
-      userImage: null,
-      userName: null,
-      userDated: null,
-      isLoading: false,
-      dialog: false,
-      dialog2: false,
-      drawer: false,
-      openMobileSearchBar: false,
-      headerData: {},
-      search: null,
-      activeMalls: [],
-      countryId: null,
-      currentTime: "",
-      screenWidth: window.innerWidth,
-      selectedPlace: null,
-      selectedCountry: "Singapore",
-      selectedLocation: {
-        country_id: 1,
-        currency_symbol: "S$",
-        country: "Singapore",
-        city: "Singapore City",
-      },
-      locationDropdown: [],
-      isTrending: false,
-      trendings: [],
-      trendingCard: [],
-    };
-  },
-  watch: {
-    $route() {
-      this.search = null;
-    },
-  },
-  computed: {
-    ...mapState(["itemSelected"]),
-    ...mapState(["itemSelected2"]),
-    ...mapState(["itemSelectedComplete"]),
-    ...mapState(["itemSelected2Complete"]),
-    ...mapState(["detailHeader"]),
-    ...mapState(["countryRecognised"]),
-    ...mapState(["idCountryRecognised"]),
-    ...mapState(["skillRecognised"]),
-    ...mapState(["idSkillRecognised"]),
-    ...mapState(["selectedCountry"]),
-    ...mapState(["activeTag"]),
-    latitude() {
-      return localStorage.getItem("latitude");
-    },
-    longitude() {
-      return localStorage.getItem("longitude");
-    },
-    countryDevice() {
-      return localStorage.getItem("countryDevice");
-    },
-    isSmall() {
-      return this.screenWidth < 640;
-    },
-    filteredMalls() {
-      if (!this.search) return this.activeMalls;
-      return this.activeMalls.filter((item) =>
-        item.brand_name.toLowerCase().includes(this.search.toLowerCase()),
-      );
-    },
-    tokenProvider() {
-      // Mendapatkan URL dari browser
-      const url = new URL(window.location.href);
-
-      // Mendapatkan nilai token dari parameter query 'token'
-      const tokenParam = url.searchParams.get("token");
-      if (tokenParam) {
-        localStorage.setItem("token", tokenParam);
-      }
-
-      // Mengupdate data 'token' dalam komponen dengan nilai yang ditemukan
-      return tokenParam;
-    },
-    token() {
-      return localStorage.getItem("token");
-    },
-    authToken() {
-      return localStorage.getItem("token");
-    },
-    isPrivacy() {
-      return this.$route.path == "/privacy-policy";
-    },
-    isFavorites() {
-      return this.$route.path == "/my-favorites";
-    },
-    isTerms() {
-      return this.$route.path == "/our-terms";
-    },
-    isMyProfile() {
-      return this.$route.path == "/my-profile";
-    },
-    isProduct() {
-      return this.$route.path.includes("product");
-    },
-    isMobileProduct() {
-      return this.screenWidth < 640 && this.$route.path.includes("product");
-    },
-    isResumeProfile() {
-      return this.$route.path == "/resume-profile";
-    },
-    isHome() {
-      return this.$route.path === "/";
-    },
-    isSpecific() {
-      return this.$route.params.name;
-    },
-    isRecognised() {
-      return this.$route.path === "/recognised-qualifications";
-    },
-    isDetailPage() {
-      return this.$route.path.includes("detail");
-    },
-  },
-  created() {
-    window.addEventListener("resize", this.handleResize);
-    setInterval(this.updateTime, 1000);
-  },
-  mounted() {
-    const token = localStorage.getItem("token");
-    if (this.tokenProvider != null) {
-      setAuthHeader(this.tokenProvider);
-      this.getHeaderUserData();
-    } else if (token) {
-      setAuthHeader(token);
-      this.getHeaderUserData();
-    }
-    this.search = null;
-    this.getAppContact();
-    this.getTrendingCardData();
-    this.getLocationDropDownData();
-    this.getLogo();
-    this.getProductCategoryListData();
-
-    app.config.globalProperties.$eventBus.$on(
-      "changeHeaderPath",
-      this.changeHeaderPath,
-    );
-    app.config.globalProperties.$eventBus.$on(
-      "getTokenStart",
-      this.getTokenStart,
-    );
-    app.config.globalProperties.$eventBus.$on(
-      "getTrendingCardData2",
-      this.getTrendingCardData2,
-    );
-    app.config.globalProperties.$eventBus.$on(
-      "changeHeaderImage",
-      this.changeHeaderImage,
-    );
-    app.config.globalProperties.$eventBus.$on(
-      "getHeaderUserData",
-      this.getHeaderUserData,
-    );
-    app.config.globalProperties.$eventBus.$on(
-      "changeHeaderWelcome3",
-      this.changeHeaderWelcome3,
-    );
-
-    // this.isTrending = this.$route.name.includes("Trending");
-  },
-  beforeUnmount() {
-    app.config.globalProperties.$eventBus.$off(
-      "changeHeaderPath",
-      this.changeHeaderPath,
-    );
-    app.config.globalProperties.$eventBus.$off(
-      "getTokenStart",
-      this.getTokenStart,
-    );
-    app.config.globalProperties.$eventBus.$off(
-      "getTrendingCardData2",
-      this.getTrendingCardData2,
-    );
-    app.config.globalProperties.$eventBus.$off(
-      "changeHeaderImage",
-      this.changeHeaderImage,
-    );
-    app.config.globalProperties.$eventBus.$off(
-      "getHeaderUserData",
-      this.getHeaderUserData,
-    );
-    app.config.globalProperties.$eventBus.$off(
-      "changeHeaderWelcome3",
-      this.changeHeaderWelcome3,
-    );
-  },
-  unmounted() {
-    window.removeEventListener("resize", this.handleResize);
-  },
-  methods: {
-    ...mapMutations([
-      "setActiveTag",
-      "setItemSelected",
-      "setItemSelectedComplete",
-      "setItemSelected2",
-      "setItemSelected2Complete",
-      "setSelectedTrending",
-      "setCountryRecognised",
-      "setSkillRecognised",
-      "setIdCountryRecognised",
-      "setIdSkillRecognised",
-      "setFooterData",
-      "setCategoryData",
-      "setSelectedCountry",
-      "setIsCartEmpty",
-      "setUserName",
-    ]),
-    capitalizeFirstLetter(sentence) {
-      const words = sentence.split(" ");
-      for (let i = 0; i < words.length; i++) {
-        const word = words[i];
-        words[i] = word.charAt(0).toUpperCase() + word.slice(1);
-      }
-      const capitalizedSentence = words.join(" ");
-      return capitalizedSentence;
-    },
-    handleResize() {
-      this.screenWidth = window.innerWidth;
-    },
-    toggleMobileSearchBar() {
-      this.openMobileSearchBar = !this.openMobileSearchBar;
-    },
-    changeHeaderPath(path) {
-      //console.log(image)
-      this.path = path;
-    },
-    getTokenStart(tokenParam) {
-      this.tokenStart = tokenParam;
-    },
-    getTrendingCardData2() {
-      this.tokenStart = null;
-    },
-    changeHeaderImage(image) {
-      // console.log(image);
-      this.userImage = this.$fileURL + image;
-    },
-
-    changeHeaderWelcome3() {
-      this.getHeaderUserData2();
-      // this.titleWelcome = title;
-    },
-    getAppContact() {
-      // this.isLoading = true;
-      axios
-        .get(`/app/contact/${this.$appId}`)
-        .then((response) => {
-          const data = response.data.data;
-          this.setFooterData(data);
-          this.footerData = {
-            company_name: data.company_name || "",
-            location: data.location || "",
-            mobile_number: data.mobile_number || "",
-            whats_app: data.whats_app || "",
-            email_id: data.email_id || "",
-            copyright: data.copyright || "",
-            facebook: data.facebook || "",
-            twitter: data.twitter || "",
-            instagram: data.instagram || "",
-            youtube: data.youtube || "",
-          };
-        })
-        .catch((error) => {
-          // eslint-disable-next-line
-          console.log(error);
-        });
-      // .finally(() => {
-      //   this.isLoading = false;
-      // });
-    },
-    loginGypsy() {
-      this.$router.push("/sign-in");
-    },
-
-    logout() {
-      const token = localStorage.getItem("token");
-      axios
-        .get(`/gypsy-logout`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .then((response) => {
-          const data = response.data.data;
-          // console.log(data);
-          localStorage.setItem("name", null);
-          localStorage.setItem("userName", null);
-          localStorage.setItem("g_id", null);
-          localStorage.setItem("user_image", null);
-          localStorage.setItem("token", null);
-          app.config.globalProperties.$eventBus.$emit("getUserName");
-          this.path = "/";
-          window.location.href = "/";
-        })
-        .catch((error) => {
-          // eslint-disable-next-line
-          console.log(error);
-        });
-    },
-    getHeaderUserData() {
-      this.isLoading = true;
-      //console.log(this.tokenProvider);
-      const token = localStorage.getItem("token");
-      axios
-        .get(`/gypsy-user`, {
-          headers: {
-            Authorization: `Bearer ${
-              this.tokenProvider ? this.tokenProvider : token
-            }`,
-          },
-        })
-        .then((response) => {
-          const data = response.data.data;
-          //console.log(data);
-
-          this.userName = data.name;
-          this.setUserName(data.name);
-          localStorage.setItem("userName", data.name);
-          this.userDated = data.last_login;
-          this.userImage =
-            data.image != null ? this.$fileURL + data.image : null;
-          app.config.globalProperties.$eventBus.$emit("getUserName");
-          // this.userImage = null;
-        })
-        .catch((error) => {
-          // eslint-disable-next-line
-          console.log(error.response.status == 401);
-          if (error.response.status == 401) {
-            localStorage.setItem("name", null);
-            localStorage.setItem("userName", null);
-            localStorage.setItem("g_id", null);
-            localStorage.setItem("user_image", null);
-            localStorage.setItem("token", null);
-            app.config.globalProperties.$eventBus.$emit("getUserName");
-          }
-        })
-        .finally(() => {
-          this.isLoading = false;
-        });
-    },
-    getHeaderUserData2() {
-      this.isLoading = true;
-      const token = localStorage.getItem("token");
-      axios
-        .get(`/gypsy-user`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .then((response) => {
-          const data = response.data.data;
-          console.log(data);
-
-          this.userName = data.name;
-          this.userDated = data.last_login;
-          this.userImage =
-            data.image != null ? this.$fileURL + data.image : null;
-          // this.userImage = null;
-        })
-        .catch((error) => {
-          // eslint-disable-next-line
-          console.log(error);
-        })
-        .finally(() => {
-          this.isLoading = false;
-        });
-    },
-
-    gotoMallDetail(item) {
-      this.dialog2 = false;
-      this.$router.push(`/mall-id/${item?.id}`);
-      localStorage.setItem("mallDetailData", JSON.stringify(item));
-    },
-    gotoMerchantDetail(item) {
-      this.dialog2 = false;
-      this.$router.push(`/merchant-id/${item?.merchant_id}`);
-      localStorage.setItem("merchantDetailData", JSON.stringify(item));
-    },
-    async getProductCategoryListData() {
-      this.isLoading = true;
-      try {
-        const response = await axios.get(
-          `/categories-with-products/app/${this.$appId}`,
-        );
-        const data = response.data.data;
-        this.setCategoryData(data);
-        // Flatten data dan kelompokkan berdasarkan brand_id
-        const groupedBrands = {};
-        const processedMalls = [];
-
-        data.forEach((category) => {
-          category.brands.forEach((brand) => {
-            brand.products.forEach((product, index) => {
-              const key = brand.brand_id;
-              if (!groupedBrands[key]) {
-                groupedBrands[key] = true; // Tandai bahwa brand ini sudah muncul
-                processedMalls.push({
-                  ...product,
-                  brand_id: brand.brand_id,
-                  brand_name: brand.brand_name,
-                  product_id: product.product_id,
-                  category_id: category.category_id,
-                  slug: product.product_name.toLowerCase().replace(/\s+/g, "-"),
-                  country_id: brand?.country?.country_id,
-                  country_name: brand?.country?.country_name,
-                  showBrandName: true, // Hanya produk pertama dalam brand yang menampilkan nama brand
-                  isCount: false,
-                  count: 1,
-                });
-              } else {
-                processedMalls.push({
-                  ...product,
-                  brand_id: brand.brand_id,
-                  brand_name: brand.brand_name,
-                  product_id: product.product_id,
-                  category_id: category.category_id,
-                  slug: product.product_name.toLowerCase().replace(/\s+/g, "-"),
-                  country_id: brand?.country?.country_id,
-                  country_name: brand?.country?.country_name,
-                  showBrandName: false, // Produk lainnya tidak menampilkan nama brand
-                  isCount: false,
-                  count: 1,
-                });
-              }
-            });
-          });
-        });
-
-        this.activeMalls = processedMalls;
-        // console.log("iniii", this.activeMalls);
-      } catch (error) {
-        console.error("Error fetching product categories:", error);
-      } finally {
-        this.isLoading = false;
-      }
-    },
-    updateTime() {
-      // Ambil zona waktu Singapore
-      const singaporeTime = moment().tz("Asia/Singapore");
-      // Format waktu dalam hh:mm:ss
-      this.currentTime = singaporeTime.format("HH:mm:ss");
-    },
-    getLogo() {
-      axios
-        .get(`/app/logo/${this.$appId}`)
-        .then((response) => {
-          const data = response.data.data;
-          // console.log(data);
-          this.logo = data;
-        })
-        .catch((error) => {
-          // eslint-disable-next-line
-          console.log(error);
-        });
-    },
-    getTrendingCardData() {
-      // this.isLoading = true;
-      axios
-        .get(`/skillgroups/${this.$appId}`)
-        .then((response) => {
-          const data = response.data.data;
-          // console.log(data);
-          this.trendingCard = data.map((item) => {
-            return {
-              id: item.sgm_id || 1,
-              img: item.image || "",
-              title: item.group_name || "",
-              tag: item.group_name || "",
-              desc: item.description || "",
-            };
-          });
-          this.trendingBtn = data.map((item) => {
-            return {
-              id: item.sgm_id || 1,
-              title: item.group_name || "",
-              tag: item.group_name || "",
-            };
-          });
-        })
-        .catch((error) => {
-          // eslint-disable-next-line
-          console.log(error);
-        });
-      // .finally(() => {
-      //   this.isLoading = false;
-      // });
-    },
-    getLocationDropDownData() {
-      this.isLoading = true;
-      axios
-        .get(`/app-city-list/${this.$appId}`)
-        .then((response) => {
-          const data = response.data.data;
-          // console.log("country: ", data);
-          this.locationDropdown = data.map((country) => {
-            return {
-              country_id: country.country_id,
-              currency_symbol: country.currency_symbol,
-              country: country.country_name,
-              flagUrl: country.flag,
-              cities: [
-                {
-                  city_id: country.city_id,
-                  country_id: country.country_id,
-                  currency_symbol: country.currency_symbol,
-                  name: country.city_name,
-                  imageUrl: country.city_image,
-                  count: country.dish_count,
-                },
-              ],
-            };
-          });
-          const defaultCountry = this.locationDropdown[0];
-          const defaultCity = defaultCountry.cities[0];
-          this.selectLocation(defaultCountry, defaultCity);
-          // console.log("country: ", this.locationDropdown);
-        })
-        .catch((error) => {
-          // eslint-disable-next-line
-          console.log("country", error);
-        })
-        .finally(() => {
-          this.isLoading = false;
-        });
-    },
-
-    selectLocation(country, city) {
-      // console.log(country.currency_symbol);
-      this.selectedLocation = {
-        ...city,
-        currency_symbol: country.currency_symbol ?? "S$",
-        country_id: country.country_id,
-        country: country.country,
-        city: city.name,
-      };
-      this.setSelectedCountry(this.selectedLocation);
-      // this.$store.dispatch(
-      //   "getDeliveryCharges",
-      //   this.selectedLocation.country_id,
-      // );
-      // console.log("selected: ", this.selectedLocation);
-    },
-    goToPath(data) {
-      this.setSelectedTrending(data);
-      this.$router.push(data.to);
-    },
-    filterMalls(value, query, item) {
-      if (!query) return true;
-      const text = query.toLowerCase();
-      return (
-        item.raw.brand_name.toLowerCase().includes(text) ||
-        item.raw.product_name.toLowerCase().includes(text)
-      );
-    },
-  },
-};
-</script>
-
-<script setup>
-// import { useStore } from "vuex";
-// import { useCart } from "@/composables/useCart";
-// import { watch, computed } from "vue";
-
-// Import images
-import homeIcon from "@/assets/images/icons/home.png";
-import shopperIcon from "@/assets/images/icons/menu-shopper.png";
-import shopIcon from "@/assets/images/icons/shop.png";
-import userIcon from "@/assets/images/icons/user_icon.png";
-import facebookIcon from "@/assets/images/icons/facebook.png";
-import instaIcon from "@/assets/images/icons/insta.png";
-import tiktokIcon from "@/assets/images/icons/tiktok.png";
-import whatsappIcon from "@/assets/whatsapp.svg";
-
-// Make images available to template
-const images = {
-  home: homeIcon,
-  shopper: shopperIcon,
-  shop: shopIcon,
-  user: userIcon,
-  facebook: facebookIcon,
-  instagram: instaIcon,
-  tiktok: tiktokIcon,
-  whatsapp: whatsappIcon,
-};
-
-// const store = useStore();
-// const { isInCart, cartQuantity, addToCart, updateQuantity } = useCart();
-
-// const token = computed(() => {
-//   return localStorage.getItem("token");
-// });
-
-// const getDeliveryCharges = () => {
-//   store.dispatch("getDeliveryCharges", 1);
-// };
-
-// const addToCartData = (data, range) => {
-//   // console.log(token.value);
-//   if (token.value == "null") {
-//     store.commit("setIsNotLoggedIn", true);
-//   } else {
-//     addToCart(data, range);
-//   }
-// };
-
-// watch(() => {
-//   getDeliveryCharges();
-// });
-</script>
 
 <style scoped>
 .app-bar-mobile-start {

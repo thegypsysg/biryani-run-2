@@ -30,7 +30,7 @@
         </div>
       </div>
     </v-container>
-    <!-- <Cart :viewCart="viewCart" @update:viewCart="viewCart = $event" /> -->
+    <Cart :viewCart="viewCart" @update:viewCart="viewCart = $event" />
   </div>
 </template>
 
@@ -38,116 +38,116 @@
 import axios from "@/util/axios";
 import { ref, computed, onMounted, watch } from "vue";
 import { useStore } from "vuex";
-// import Cart from "@/components/Cart.vue";
+import Cart from "@/components/Cart.vue";
 
 const store = useStore();
 
-// const platformFee = ref(null);
-// const taxAmount = ref(null);
-// const viewCart = ref(false);
+const platformFee = ref(null);
+const taxAmount = ref(null);
+const viewCart = ref(false);
 
 const userName = computed(() => {
   return store.state.userName;
 });
 
 // Get total quantity of all cart items
-// const cartQuantity = computed(() => {
-//   return store.state.cart.reduce((total, item) => total + item.quantity, 0);
-// });
+const cartQuantity = computed(() => {
+  return store.state.cart.reduce((total, item) => total + item.quantity, 0);
+});
 
 const authToken = computed(() => {
   return localStorage.getItem("token");
 });
 
-// const subTotal = computed(() => {
-//   return store.state.cart.reduce(
-//     (total, item) => total + item.price * item.quantity,
-//     0,
-//   );
-// });
+const subTotal = computed(() => {
+  return store.state.cart.reduce(
+    (total, item) => total + item.price * item.quantity,
+    0,
+  );
+});
 
 const selectedCountry = computed(() => store.state.selectedCountry);
 
-// const selectedDeliveryPrice = computed(() => {
-//   if (store.state.cart) {
-//     // console.log(parseFloat(store.state.cart[0]?.delivery_charges));
-//     return parseFloat(store.state.cart[0]?.delivery_charges);
-//   } else {
-//     return 0;
-//   }
-// });
+const selectedDeliveryPrice = computed(() => {
+  if (store.state.cart) {
+    // console.log(parseFloat(store.state.cart[0]?.delivery_charges));
+    return parseFloat(store.state.cart[0]?.delivery_charges);
+  } else {
+    return 0;
+  }
+});
 
-// const finalCartTotal = computed(() => {
-//   return (
-//     subTotal.value +
-//     selectedDeliveryPrice.value +
-//     (platformFee.value ?? 0) +
-//     ((subTotal.value + selectedDeliveryPrice.value + 0.5) *
-//       (taxAmount.value ?? 0)) /
-//       100
-//   ).toFixed(2);
-// });
+const finalCartTotal = computed(() => {
+  return (
+    subTotal.value +
+    selectedDeliveryPrice.value +
+    (platformFee.value ?? 0) +
+    ((subTotal.value + selectedDeliveryPrice.value + 0.5) *
+      (taxAmount.value ?? 0)) /
+      100
+  ).toFixed(2);
+});
 
-// async function getPlatformFee() {
-//   let data = null;
-//   try {
-//     const appIdResponse = await axios.get(`/get-app-id`, {
-//       headers: {
-//         Authorization: `Bearer ${authToken.value}`,
-//       },
-//       params: {
-//         company_name: "Boozards",
-//       },
-//     });
-//     data = appIdResponse.data.data?.app_id;
+async function getPlatformFee() {
+  let data = null;
+  try {
+    const appIdResponse = await axios.get(`/get-app-id`, {
+      headers: {
+        Authorization: `Bearer ${authToken.value}`,
+      },
+      params: {
+        company_name: "Biryani Run",
+      },
+    });
+    data = appIdResponse.data.data?.app_id;
 
-//     const feeResponse = await axios.get(`/get-platform-fee`, {
-//       headers: {
-//         Authorization: `Bearer ${authToken.value}`,
-//       },
-//       params: {
-//         app_id: data,
-//       },
-//     });
+    const feeResponse = await axios.get(`/get-platform-fee`, {
+      headers: {
+        Authorization: `Bearer ${authToken.value}`,
+      },
+      params: {
+        app_id: data,
+      },
+    });
 
-//     platformFee.value = parseFloat(feeResponse.data.data?.platform_fee);
-//   } catch (error) {
-//     console.error("Error getting platform fee:", error);
-//   }
-// }
+    platformFee.value = parseFloat(feeResponse.data.data?.platform_fee);
+  } catch (error) {
+    console.error("Error getting platform fee:", error);
+  }
+}
 
-// async function getTaxAmount() {
-//   // let countryId = null;
-//   try {
-//     // const userResponse = await axios.get(`/gypsy-user`, {
-//     //   headers: { Authorization: `Bearer ${authToken.value}` },
-//     // });
-//     // countryId = userResponse.data.data?.country_current;
+async function getTaxAmount() {
+  // let countryId = null;
+  try {
+    // const userResponse = await axios.get(`/gypsy-user`, {
+    //   headers: { Authorization: `Bearer ${authToken.value}` },
+    // });
+    // countryId = userResponse.data.data?.country_current;
 
-//     const taxResponse = await axios.get(`/get-tax-amount`, {
-//       headers: {
-//         Authorization: `Bearer ${authToken.value}`,
-//       },
-//       params: {
-//         country_id: selectedCountry.value.country_id,
-//       },
-//     });
+    const taxResponse = await axios.get(`/get-tax-amount`, {
+      headers: {
+        Authorization: `Bearer ${authToken.value}`,
+      },
+      params: {
+        country_id: selectedCountry.value.country_id,
+      },
+    });
 
-//     if (taxResponse?.data?.data?.applicable === "Y") {
-//       taxAmount.value = taxResponse.data.data?.tax_rate;
-//     }
-//   } catch (error) {
-//     console.error("Error getting tax amount:", error);
-//   }
-// }
+    if (taxResponse?.data?.data?.applicable === "Y") {
+      taxAmount.value = taxResponse.data.data?.tax_rate;
+    }
+  } catch (error) {
+    console.error("Error getting tax amount:", error);
+  }
+}
 
-// const viewCartClick = () => {
-//   if (cartQuantity.value > 0) {
-//     viewCart.value = true;
-//   } else {
-//     store.commit("setIsCartEmpty", true);
-//   }
-// };
+const viewCartClick = () => {
+  if (cartQuantity.value > 0) {
+    viewCart.value = true;
+  } else {
+    store.commit("setIsCartEmpty", true);
+  }
+};
 
 // // Get total price of all cart items
 // const cartTotal = computed(() => {
@@ -162,13 +162,13 @@ const selectedCountry = computed(() => store.state.selectedCountry);
 //   );
 // });
 
-// watch(selectedCountry, async () => {
-//   await getTaxAmount();
-// });
+watch(selectedCountry, async () => {
+  await getTaxAmount();
+});
 
-// onMounted(() => {
-//   getPlatformFee();
-// });
+onMounted(() => {
+  getPlatformFee();
+});
 </script>
 
 <style>

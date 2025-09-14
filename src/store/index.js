@@ -21,6 +21,7 @@ export default createStore({
     appDetails: null,
     categoryData: null,
     cart: [],
+    errorAddCart: false,
     selectedDelivery: null,
     detailsCart: [],
     isEmptyCart: true,
@@ -92,6 +93,9 @@ export default createStore({
     setSelectedTrending(state, item) {
       state.selectedTrending = item;
     },
+    setCountry(state, item) {
+      state.country = item;
+    },
     setLongLat(state, item) {
       state.latitude = item.latitude;
       state.longitude = item.longitude;
@@ -111,12 +115,12 @@ export default createStore({
     setCategoryData(state, item) {
       state.categoryData = item;
     },
-    clearCart(state) {
-      state.cart = [];
-      localStorage.removeItem("cart");
-    },
+
     setUserName(state, data) {
       state.userName = data;
+    },
+    setErrorAddCart(state, data) {
+      state.errorAddCart = data;
     },
   },
   actions: {
@@ -124,7 +128,7 @@ export default createStore({
       await axios
         .post(
           `/delivery-charges-list-by-country`,
-          { country_id: countryId, app_id: 3 },
+          { country_id: countryId, app_id: 7 },
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -165,11 +169,15 @@ export default createStore({
 
     async getCartItems({ commit, state }) {
       await axios
-        .get(`/get-cart-items`, null, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+        .get(
+          `/get-cart-items-biryani-run/7/${localStorage.getItem("latitude")}/${localStorage.getItem("longitude")}`,
+          null,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
           },
-        })
+        )
         .then((response) => {
           if (response?.data.length > 0) {
             commit("isEmptyCart", false);
@@ -184,21 +192,53 @@ export default createStore({
         });
     },
 
+    async clearCart({ commit, state }) {
+      await axios
+        .delete(`/clear-cart`, {
+          data: {
+            app_id: 7,
+          },
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        })
+        .then((response) => {
+          console.log("clear cart response", response);
+          // if (response) {
+          commit("cart", []);
+          commit("totalCartItems", 0);
+          localStorage.removeItem("cart");
+          commit("setErrorAddCart", false);
+          // }
+        })
+        .catch((error) => {
+          console.log(error);
+
+          commit("setErrorAddCart", false);
+          // state.errorCart = error?.error;
+          // showSnackbar(error?.response?.data?.error, "error");
+        });
+    },
+
     async addToCart({ commit, state }, data) {
       commit("isLoading", true);
       await axios
-        .post(`/add-to-cart`, data, {
+        .post(`/add-to-cart-biryani-run`, data, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         })
         .then((response) => {
           axios
-            .get(`/get-cart-items`, null, {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            .get(
+              `/get-cart-items-biryani-run/7/${localStorage.getItem("latitude")}/${localStorage.getItem("longitude")}`,
+              null,
+              {
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
               },
-            })
+            )
             .then((response) => {
               if (response?.data.length > 0) {
                 commit("isEmptyCart", false);
@@ -209,15 +249,17 @@ export default createStore({
             })
             .catch((error) => {
               console.log(error);
-              // state.errorCart = error?.error;
-              // showSnackbar(error?.response?.data?.error, "error");
               commit("isLoading", false);
             });
         })
         .catch((error) => {
           console.log(error);
-          // state.errorCart = error?.error;
-          // showSnackbar(error?.response?.data?.error, "error");
+          if (
+            error?.response?.data?.message ==
+            "You cannot add items from different restaurants in the same cart"
+          ) {
+            commit("setErrorAddCart", true);
+          }
           commit("isLoading", false);
         });
     },
@@ -233,11 +275,15 @@ export default createStore({
         })
         .then(() => {
           axios
-            .get(`/get-cart-items`, null, {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            .get(
+              `/get-cart-items-biryani-run/7/${localStorage.getItem("latitude")}/${localStorage.getItem("longitude")}`,
+              null,
+              {
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
               },
-            })
+            )
             .then((response) => {
               if (response?.data.length > 0) {
                 commit("isEmptyCart", false);
@@ -264,7 +310,7 @@ export default createStore({
       await axios
         .post(
           `/remove-cart-item`,
-          { cart_id: product.cart_id, range_id: product.range_id },
+          { brp_id: product.brp_id },
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -275,11 +321,15 @@ export default createStore({
           // this.getCartItems();
 
           axios
-            .get(`/get-cart-items`, null, {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            .get(
+              `/get-cart-items-biryani-run/7/${localStorage.getItem("latitude")}/${localStorage.getItem("longitude")}`,
+              null,
+              {
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
               },
-            })
+            )
             .then((response) => {
               if (response?.data.length > 0) {
                 commit("isEmptyCart", false);
@@ -406,7 +456,7 @@ export default createStore({
     },
 
     async getCityMall({ commit, dispatch, state }) {
-      let link = `/app-city-list/${app.config.globalProperties.$appId}`;
+      let link = `/app-city-list/7`;
 
       try {
         const { data } = await axios.get(link);
@@ -438,7 +488,7 @@ export default createStore({
       } catch (error) {}
     },
     async getCountryMall({ commit, dispatch }) {
-      let link = `/app-country-list/${app.config.globalProperties.$appId}`;
+      let link = `/app-country-list/7`;
 
       try {
         await dispatch("getLongLat");
@@ -468,9 +518,6 @@ export default createStore({
       } catch (error) {
         throw error;
       }
-    },
-    clearCart({ commit }) {
-      commit("clearCart");
     },
   },
   getters: {
