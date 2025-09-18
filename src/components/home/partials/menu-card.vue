@@ -17,6 +17,12 @@ const props = defineProps<{
 }>();
 
 const loading = ref(false);
+const isMobile = ref(false);
+const snackbar = ref(false);
+const message = ref({
+  text: "",
+  color: "success",
+});
 
 const selectedCountry = computed(() => store.state.selectedCountry);
 const errorAddCart = computed(() => store.state.errorAddCart);
@@ -37,13 +43,53 @@ const addToCartData = (data) => {
   }
 };
 
-const goToDetail = (menu: any) => {
-  localStorage.setItem("categoryDetailData", JSON.stringify(menu));
-  router.push(`/category/${props.menu?.dish_id}`);
+const goToDetail = async (menu: any) => {
+  if (props.isDesktop) {
+    isMobile.value = true;
+  } else {
+    try {
+      const response = await axios.post(
+        `/biryani-run-price-increment-views/${menu?.biryaniRunPrice?.brp_id}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token.value}`,
+          },
+        },
+      );
+      // getAddress();
+      const data = response.data?.data;
+      // console.log(data);
+      const menuData = {
+        ...menu,
+        biryaniRunPrice: {
+          ...menu.biryaniRunPrice,
+          views: menu.biryaniRunPrice.views + 1,
+        },
+      };
+      localStorage.setItem("categoryDetailData", JSON.stringify(menuData));
+      router.push(`/category/${menu?.dish_id}`);
+    } catch (error) {
+      console.log(error);
+      const errorMessage =
+        error.response?.data?.message || "Something went wrong!";
+      snackbar.value = true;
+      message.value = {
+        text: errorMessage,
+        color: "error",
+      };
+    }
+  }
 };
 </script>
 
 <template>
+  <v-snackbar v-model="snackbar" :timeout="3000" :color="message.color">
+    {{ message.text }}
+    <template #actions>
+      <v-btn icon="mdi-close-circle" @click="snackbar = false"></v-btn>
+    </template>
+  </v-snackbar>
   <div
     :class="{ 'bg-white': true, 'pa-3': isDesktop, 'pa-1': !isDesktop }"
     elevation="4"
@@ -271,6 +317,16 @@ const goToDetail = (menu: any) => {
           >No</v-btn
         >
       </v-card-actions>
+    </v-card>
+  </v-dialog>
+  <v-dialog v-model="isMobile" persistent width="auto">
+    <v-card width="350">
+      <v-card-text class="">
+        <h4 class="mt-4 mb-8 text-center">Please use mobile only</h4>
+        <v-btn class="mb-4 w-100 bg-primary" @click="isMobile = false">
+          OK
+        </v-btn>
+      </v-card-text>
     </v-card>
   </v-dialog>
 </template>

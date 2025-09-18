@@ -1834,7 +1834,11 @@ const resetForm = () => {
 
 // Remove item from cart
 const handleRemoveFromCart = (product) => {
-  store.dispatch("removeFromCart", product);
+  const data = {
+    cart_id: cart.value[0]?.cart_id,
+    brp_id: product?.brp_id,
+  };
+  store.dispatch("removeFromCart", data);
 };
 
 const onSelectDelivery = (selectedId) => {

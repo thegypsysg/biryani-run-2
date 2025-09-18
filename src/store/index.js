@@ -268,7 +268,7 @@ export default createStore({
       commit("isLoading", true);
       // console.log("updateCart", product);
       await axios
-        .put(`/update-cart`, product, {
+        .put(`/update-cart-biryani-run`, product, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
@@ -304,19 +304,15 @@ export default createStore({
         });
     },
 
-    async removeFromCart({ commit, state }, product) {
+    async removeFromCart({ commit, state }, data) {
       commit("isLoading", true);
       // console.log("removeFromCart", product);
       await axios
-        .post(
-          `/remove-cart-item`,
-          { brp_id: product.brp_id },
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
+        .post(`/remove-cart-item-biryani-run`, data, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        )
+        })
         .then((response) => {
           // this.getCartItems();
 

@@ -123,13 +123,13 @@ export function useCart() {
     store.dispatch("addToCart", cartMasterData);
   };
 
-  const findSimilarItems = (cart, product) => {
+  const findSimilarItems = (cart, brpId) => {
     const similarItems = [];
     cart.forEach((item) => {
       // if (product.product_name.includes(item.name)) {
       //   similarItems.push(item);
       // }
-      if (item.brp_id === product.biryaniRunPrice.brp_id) {
+      if (item.brp_id === brpId) {
         similarItems.push(item);
       }
     });
@@ -138,19 +138,18 @@ export function useCart() {
   };
 
   const updateQuantity = (product, change) => {
-    const cartItems = findSimilarItems(cart.value, product);
+    const brpId = product?.biryaniRunPrice?.brp_id
+      ? product?.biryaniRunPrice?.brp_id
+      : product?.brp_id
+        ? product?.brp_id
+        : null;
+    const cartItems = findSimilarItems(cart.value, brpId);
     const cartMasterData = {
-      app_id: 7,
-      country_id: selectedCountry.value ? selectedCountry.value.country_id : 1,
-      city_id: selectedCountry.value ? selectedCountry.value.city_id : 1,
-      brp_id: product?.biryaniRunPrice?.brp_id,
-      qty:
-        cartItems.length > 0
-          ? cartItems[0].quantity + (change == "increase" ? 1 : -1)
-          : 0,
+      cart_id: cartItems[0]?.cart_id,
+      brp_id: brpId,
+      change: change,
     };
-    // store.dispatch("updateCart", cartMasterData);
-    store.dispatch("addToCart", cartMasterData);
+    store.dispatch("updateCart", cartMasterData);
   };
 
   // const increaseQuantity = (product) => updateQuantity(product, 1);
