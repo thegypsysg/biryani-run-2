@@ -94,24 +94,47 @@ export default {
   },
   methods: {
     changeHeader() {
-      const appId = localStorage.getItem("app_id");
+      // const appId = localStorage.getItem("app_id");
+      // const token = localStorage.getItem("token");
+      // if (appId == "") {
+      //   app.config.globalProperties.$eventBus.$emit(
+      //     "changeHeaderWelcome2",
+      //     "Sign-Up / Sign-in"
+      //   );
+      //   localStorage.setItem("social", "Mobile");
+      //   this.$router.push(`/?token=${token}`);
+      // } else if (appId == "5") {
+      //   localStorage.setItem("social", "Email");
+      //   const externalURL = `https://the-syringe.com?token=${token}`;
+      //   window.location.href = externalURL;
+      // } else if (appId == "3") {
+      //   localStorage.setItem("social", "Email");
+      //   const externalURL = `https://boozards.com?token=${token}`;
+      //   window.location.href = externalURL;
+      // } else if (appId == "2") {
+      //   localStorage.setItem("social", "Email");
+      //   const externalURL = `https://mall-e.in?token=${token}`;
+      //   window.location.href = externalURL;
+      // }
+
+      // const appId = localStorage.getItem("app_id");
       const token = localStorage.getItem("token");
-      if (appId == "") {
-        app.config.globalProperties.$eventBus.$emit(
-          "changeHeaderWelcome2",
-          "Sign-Up / Sign-in"
-        );
-        localStorage.setItem("social", "Mobile");
-        this.$router.push(`/?token=${token}`);
-      } else if (appId == "5") {
-        localStorage.setItem("social", "Email");
-        const externalURL = `https://the-syringe.com?token=${token}`;
-        window.location.href = externalURL;
-      } else if (appId == "2") {
-        localStorage.setItem("social", "Email");
-        const externalURL = `https://mall-e.in?token=${token}`;
-        window.location.href = externalURL;
-      }
+      // if (appId == "") {
+      //   app.config.globalProperties.$eventBus.$emit(
+      //     "changeHeaderWelcome2",
+      //     "Sign-Up / Sign-in"
+      //   );
+      //   localStorage.setItem("social", "Mobile");
+      //   this.$router.push(`/?token=${token}`);
+      // } else if (appId == "5") {
+      localStorage.setItem("social", "Email");
+      const externalURL = `https://biryani-run.com?token=${token}`;
+      window.location.href = externalURL;
+      // } else if (appId == "2") {
+      //   localStorage.setItem("social", "Email");
+      //   const externalURL = `https://mall-e.in?token=${token}`;
+      //   window.location.href = externalURL;
+      // }
     },
     nextStep() {
       this.$emit("nextStep");

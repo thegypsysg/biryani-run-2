@@ -94,21 +94,37 @@ export default {
   },
   methods: {
     changeHeader() {
-      const appId = localStorage.getItem("app_id");
+      // const appId = localStorage.getItem("app_id");
+      // const token = localStorage.getItem("token");
+      // if (appId == "") {
+      //   app.config.globalProperties.$eventBus.$emit(
+      //     "changeHeaderWelcome2",
+      //     "Sign-Up / Sign-in"
+      //   );
+      //   this.$router.push(`/?token=${token}`);
+      // } else if (appId == "5") {
+      //   const externalURL = `https://the-syringe.com?token=${token}`;
+      //   window.location.href = externalURL;
+      // } else if (appId == "2") {
+      //   const externalURL = `https://mall-e.in?token=${token}`;
+      //   window.location.href = externalURL;
+      // }
+
+      // const appId = localStorage.getItem('app_id');
       const token = localStorage.getItem("token");
-      if (appId == "") {
-        app.config.globalProperties.$eventBus.$emit(
-          "changeHeaderWelcome2",
-          "Sign-Up / Sign-in"
-        );
-        this.$router.push(`/?token=${token}`);
-      } else if (appId == "5") {
-        const externalURL = `https://the-syringe.com?token=${token}`;
-        window.location.href = externalURL;
-      } else if (appId == "2") {
-        const externalURL = `https://mall-e.in?token=${token}`;
-        window.location.href = externalURL;
-      }
+      // if (appId == "") {
+      //   app.config.globalProperties.$eventBus.$emit(
+      //     "changeHeaderWelcome2",
+      //     "Sign-Up / Sign-in"
+      //   );
+      //   this.$router.push(`/?token=${token}`);
+      // } else if (appId == "5") {
+      const externalURL = `https://biryani-run.com?token=${token}`;
+      window.location.href = externalURL;
+      // } else if (appId == "2") {
+      //   const externalURL = `https://mall-e.in?token=${token}`;
+      //   window.location.href = externalURL;
+      // }
     },
     nextStep() {
       this.$emit("nextStep");
