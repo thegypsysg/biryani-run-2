@@ -10,12 +10,19 @@
     "
   >
     <!-- Gambar background -->
-    <v-img
+    <!-- <v-img
       src="https://www.myprotein.com/images?url=https://blogscdn.thehut.net/app/uploads/sites/478/2019/03/intermittent-fasting-ft_1661177868.jpg"
       aspect-ratio="16/9"
       cover
       :class="['zoom-effect', { zoomed: isZoomed }]"
       style="height: 100%; z-index: 0; position: relative"
+    ></v-img> -->
+
+    <v-img
+      :src="fileURL + appDetails?.app_main_image"
+      :class="['zoom-effect', { zoomed: isZoomed }]"
+      class="hero-background"
+      cover
     ></v-img>
 
     <!-- Overlay abu-abu dengan opacity -->
@@ -116,6 +123,8 @@ const store = useStore();
 
 const isZoomed = ref(false);
 const listData = ref([]);
+
+const appDetails = ref(null);
 const listDataCommercial = ref([]);
 const listMainCategories = ref([]);
 const isLoading = ref(true);
@@ -141,6 +150,24 @@ const handleIntersection = (entries, observer) => {
     }
   });
 };
+
+function getAppDetails() {
+  isLoading.value = true;
+  axios
+    .get(`/app/details/${appId}`)
+    .then((response) => {
+      const data = response.data.data;
+      // console.log(data);
+      appDetails.value = data[0];
+    })
+    .catch((error) => {
+      // eslint-disable-next-line
+      console.log(error);
+    })
+    .finally(() => {
+      isLoading.value = false;
+    });
+}
 
 async function getMenuList(cityId) {
   try {
@@ -238,6 +265,8 @@ onMounted(() => {
   get4WallsPropertyData();
   getListMainCategories();
   get4WallsPropertyDataCommercial();
+
+  getAppDetails();
 });
 const props = defineProps({
   isSmall: {

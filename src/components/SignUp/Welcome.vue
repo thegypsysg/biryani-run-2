@@ -629,9 +629,11 @@ export default {
     loginSocial(social_name) {
       if (social_name == "facebook") {
         this.isFacebook = true;
-      } else if (social_name == "google") {
-        this.isFacebook = true;
-      } else {
+      }
+      // else if (social_name == "google") {
+      //   this.isFacebook = true;
+      // }
+      else {
         axios
           .post(`/gypsy-login/${social_name}`, {
             app_id: this.appId == "" ? this.$appId : this.appId,
@@ -647,7 +649,7 @@ export default {
           })
           .catch((error) => {
             console.log(error);
-            // window.location.href = "/sign-in";
+            window.location.href = "/sign-in";
           });
       }
     },
