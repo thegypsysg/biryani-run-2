@@ -31,17 +31,7 @@
                     <span class="text-red">{{ cartQuantity }}</span> Items |
                     <span class="text-blue" v-if="subTotal">
                       {{ selectedCountry.currency_symbol }}
-                      {{
-                        (
-                          subTotal +
-                          selectedDeliveryPrice +
-                          platformFee +
-                          parseFloat(cart[0]?.service_fee) +
-                          ((subTotal + selectedDeliveryPrice + 0.5) *
-                            taxAmount) /
-                            100
-                        ).toFixed(2)
-                      }}
+                      {{ finalCartTotal }}
                     </span>
                   </div>
                   <div v-if="!isRestaurant">
@@ -239,12 +229,12 @@
                   class="pt-5"
                   @update:model-value="onSelectDelivery"
                 >
+                  <span class="text-blue-accent-4 font-weight-bold ml-2"
+                    >{{ selectedCountry.currency_symbol }}
+                    {{ option?.price ? option.price.toFixed(2) : "" }}</span
+                  >
                   <div class="d-flex justify-space-between ma-2">
                     <strong>{{ option.label }}</strong>
-                    <span class="price"
-                      >{{ selectedCountry.currency_symbol }}
-                      {{ option?.price ? option.price.toFixed(2) : "" }}</span
-                    >
                   </div>
                   <div class="d-flex justify-space-between ma-2">
                     <strong
@@ -254,9 +244,9 @@
                     >
                   </div>
                 </MazRadioButtons>
-                <p class="font-weight-black mb-2 mt-6 text-center">
+                <!-- <p class="font-weight-black mb-2 mt-6 text-center">
                   === Advance Delivery Options ===
-                </p>
+                </p> -->
                 <MazRadioButtons
                   v-slot="{ option, selected }"
                   v-model="selectedDelivery"
@@ -883,17 +873,7 @@
                           <strong>{{ selectedCountry.currency_symbol }}</strong>
                         </td>
                         <td colspan="2" class="text-end border-none">
-                          <strong>{{
-                            (
-                              subTotal +
-                              selectedDeliveryPrice +
-                              platformFee +
-                              parseFloat(cart[0]?.service_fee) +
-                              ((subTotal + selectedDeliveryPrice + 0.5) *
-                                taxAmount) /
-                                100
-                            ).toFixed(2)
-                          }}</strong>
+                          <strong>{{ finalCartTotal }}</strong>
                         </td>
                       </tr>
                     </tbody>
@@ -1089,7 +1069,7 @@
             >
               <div v-if="step == 1" class="d-flex align-center ga-4">
                 <v-btn
-                  @click="nextStep(2)"
+                  @click="onlyDeliveryDialog = true"
                   variant="outlined"
                   size="md"
                   class="text-caption font-weight-black px-2 py-1"
@@ -1235,17 +1215,7 @@
                             }}</strong>
                           </td>
                           <td class="text-end">
-                            <strong>{{
-                              (
-                                subTotal +
-                                selectedDeliveryPrice +
-                                platformFee +
-                                parseFloat(cart[0]?.service_fee) +
-                                ((subTotal + selectedDeliveryPrice + 0.5) *
-                                  taxAmount) /
-                                  100
-                              ).toFixed(2)
-                            }}</strong>
+                            <strong>{{ finalCartTotal }}</strong>
                           </td>
                         </tr>
                       </tbody>
@@ -1366,6 +1336,19 @@
       <v-card-text class="">
         <h4 class="mt-4 mb-8 text-center">Please add at least one address</h4>
         <v-btn class="mb-4 w-100 bg-primary" @click="isEmptyAddress = false">
+          OK
+        </v-btn>
+      </v-card-text>
+    </v-card>
+  </v-dialog>
+  <v-dialog v-model="onlyDeliveryDialog" persistent width="auto">
+    <v-card width="350">
+      <v-card-text class="">
+        <h4 class="mt-4 mb-8 text-center">Only Delivery Option</h4>
+        <v-btn
+          class="mb-4 w-100 bg-primary"
+          @click="onlyDeliveryDialog = false"
+        >
           OK
         </v-btn>
       </v-card-text>
@@ -1521,6 +1504,7 @@ const isEditAddressForm = ref(false);
 const addressID = ref("");
 const step = ref(1);
 const snackbar = ref(false);
+const onlyDeliveryDialog = ref(false);
 const message = ref({
   text: "",
   color: "success",
@@ -1659,6 +1643,24 @@ const subTotal = computed(() =>
     0,
   ),
 );
+
+const finalCartTotal = computed(() => {
+  const sub = Number(subTotal.value) || 0;
+  const delivery = Number(selectedDeliveryPrice.value) || 0;
+  const platform = Number(platformFee.value) || 0;
+  const tax = Number(taxAmount.value) || 0;
+  let serviceFee = 0;
+  if (cart.value && cart.value.length > 0) {
+    serviceFee = Number(cart.value[0]?.service_fee) || 0;
+  }
+  return (
+    sub +
+    delivery +
+    platform +
+    serviceFee +
+    ((sub + delivery + 0.5) * tax) / 100
+  ).toFixed(2);
+});
 
 // Get cart items
 const cart = computed(() => {

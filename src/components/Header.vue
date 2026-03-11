@@ -127,18 +127,27 @@ export default {
       );
     },
     finalCartTotal() {
+      const subTotal = Number(this.subTotal) || 0;
+      const deliveryPrice = Number(this.selectedDeliveryPrice) || 0;
+      const platformFee = Number(this.platformFee) || 0;
+      const taxAmount = Number(this.taxAmount) || 0;
+      let serviceFee = 0;
+
+      if (this.$store.state.cart && this.$store.state.cart.length > 0) {
+        serviceFee = Number(this.$store.state.cart[0].service_fee) || 0;
+      }
+
       return (
-        this.subTotal +
-        this.selectedDeliveryPrice +
-        this.platformFee +
-        ((this.subTotal + this.selectedDeliveryPrice + 0.5) * this.taxAmount) /
-          100
+        subTotal +
+        deliveryPrice +
+        platformFee +
+        serviceFee +
+        ((subTotal + deliveryPrice + 0.5) * taxAmount) / 100
       ).toFixed(2);
     },
     selectedDeliveryPrice() {
-      if (this.$store.state.cart) {
-        // console.log(parseFloat(this.$store.state.cart[0].delivery_charges));
-        return parseFloat(this.$store.state.cart[0].delivery_charges);
+      if (this.$store.state.cart && this.$store.state.cart.length > 0) {
+        return Number(this.$store.state.cart[0].delivery_charges) || 0;
       } else {
         return 0;
       }
