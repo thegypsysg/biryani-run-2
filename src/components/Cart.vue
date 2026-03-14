@@ -808,7 +808,7 @@
                           {{ selectedCountry.currency_symbol }}
                         </td>
                         <td colspan="2" class="text-end">
-                          {{ cart[0]?.amount }}
+                          {{ subTotal }}
                         </td>
                       </tr>
                       <tr>
@@ -828,7 +828,7 @@
                           {{ selectedCountry.currency_symbol }}
                         </td>
                         <td colspan="2" class="text-end">
-                          {{ platformFee?.toFixed(2) }}
+                          {{ cart[0]?.platform_fee }}
                         </td>
                       </tr>
                       <tr>
@@ -1136,7 +1136,15 @@
                 >CONFIRM ORDER</v-btn
               >
               <div>
-                <v-icon @click="summaryDialog = true" size="40">
+                <v-icon
+                  @click="
+                    () => {
+                      summaryDialog = true;
+                      console.log(cart);
+                    }
+                  "
+                  size="40"
+                >
                   <v-img
                     src="@/assets/images/billing.png"
                     alt="Billing Summary"
@@ -1159,7 +1167,9 @@
                         <tr>
                           <td>Sub Total</td>
                           <td>{{ selectedCountry.currency_symbol }}</td>
-                          <td class="text-end">{{ cart[0]?.amount }}</td>
+                          <td class="text-end">
+                            {{ subTotal }}
+                          </td>
                         </tr>
                         <tr>
                           <td>
@@ -1174,7 +1184,7 @@
                           <td>Platform Fee</td>
                           <td>{{ selectedCountry.currency_symbol }}</td>
                           <td class="text-end">
-                            {{ platformFee?.toFixed(2) }}
+                            {{ cart[0]?.platform_fee }}
                           </td>
                         </tr>
                         <tr>
@@ -1542,7 +1552,7 @@ const selectedAddress = ref(null);
 const savingAddress = ref(false);
 const addressExpanded = ref({});
 const taxAmount = ref(null);
-const platformFee = ref(null);
+// const platformFee = ref(null);
 const timeSlots = ref([]);
 const isRestaurant = ref(false);
 const restaurantDish = ref([]);
@@ -1647,7 +1657,7 @@ const subTotal = computed(() =>
 const finalCartTotal = computed(() => {
   const sub = Number(subTotal.value) || 0;
   const delivery = Number(selectedDeliveryPrice.value) || 0;
-  const platform = Number(platformFee.value) || 0;
+  const platform = Number(cart.value[0]?.platform_fee) || 0;
   const tax = Number(taxAmount.value) || 0;
   let serviceFee = 0;
   if (cart.value && cart.value.length > 0) {
@@ -1733,87 +1743,87 @@ const openAddressDialog = () => {
   addressDialog.value = true;
 };
 
-// const initAutocomplete = async () => {
-//   // const googleMapsApiKey = 'AIzaSyDepjJJsj2zb9pi5j-9G0beqBTtTtfYhno';
-//   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-//   const loader = new Loader({
-//     apiKey: googleMapsApiKey, // Replace with your actual API key
-//     libraries: ["places"],
-//   });
+const initAutocomplete = async () => {
+  // const googleMapsApiKey = 'AIzaSyDepjJJsj2zb9pi5j-9G0beqBTtTtfYhno';
+  const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  const loader = new Loader({
+    apiKey: googleMapsApiKey, // Replace with your actual API key
+    libraries: ["places"],
+  });
 
-//   await loader.load();
+  await loader.load();
 
-//   nextTick(() => {
-//     if (streetRef.value) {
-//       const nativeInput = streetRef.value.$el.querySelector("input");
-//       if (!nativeInput) {
-//         console.error("❌ Could not find the actual input inside MazInput!");
-//         return;
-//       }
+  nextTick(() => {
+    if (streetRef.value) {
+      const nativeInput = streetRef.value.$el.querySelector("input");
+      if (!nativeInput) {
+        console.error("❌ Could not find the actual input inside MazInput!");
+        return;
+      }
 
-//       autocomplete = new google.maps.places.Autocomplete(nativeInput, {
-//         componentRestrictions: { country: "SG" }, // Singapore only
-//         types: ["address"],
-//         types: ["geocode"],
-//         types: ["establishment"],
-//       });
+      autocomplete = new google.maps.places.Autocomplete(nativeInput, {
+        componentRestrictions: { country: "SG" }, // Singapore only
+        types: ["address"],
+        types: ["geocode"],
+        types: ["establishment"],
+      });
 
-//       autocomplete.addListener("place_changed", () => {
-//         const place = autocomplete.getPlace();
-//         if (place.geometry) {
-//           // var placeName = place.name;
-//           var streetName = "";
-//           var route = "";
-//           for (let i = 0; i < place.address_components.length; i++) {
-//             const component = place.address_components[i];
+      autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
+        if (place.geometry) {
+          // var placeName = place.name;
+          var streetName = "";
+          var route = "";
+          for (let i = 0; i < place.address_components.length; i++) {
+            const component = place.address_components[i];
 
-//             // Check the types to determine what kind of address component it is
-//             if (component.types.includes("street_number")) {
-//               streetName = component.long_name;
-//             }
-//             if (component.types.includes("route")) {
-//               route = component.long_name;
-//             }
+            // Check the types to determine what kind of address component it is
+            if (component.types.includes("street_number")) {
+              streetName = component.long_name;
+            }
+            if (component.types.includes("route")) {
+              route = component.long_name;
+            }
 
-//             // if (component.types.includes("locality")) {
-//             //   addressForm.city = component.long_name; // City
-//             // }
-//             // if (component.types.includes("neighborhood")) {
-//             //   addressForm.town = component.long_name; // Town
-//             // }
-//             // if (component.types.includes("country")) {
-//             //   addressForm.country = component.long_name; // Country
-//             // }
-//             // if (component.types.includes("postal_code")) {
-//             //   addressForm.postal_code = component.long_name; // Postal Code
-//             // }
-//             // else {
-//             //   addressForm.postal_code = "";
-//             // }
-//           }
+            // if (component.types.includes("locality")) {
+            //   addressForm.city = component.long_name; // City
+            // }
+            // if (component.types.includes("neighborhood")) {
+            //   addressForm.town = component.long_name; // Town
+            // }
+            // if (component.types.includes("country")) {
+            //   addressForm.country = component.long_name; // Country
+            // }
+            // if (component.types.includes("postal_code")) {
+            //   addressForm.postal_code = component.long_name; // Postal Code
+            // }
+            // else {
+            //   addressForm.postal_code = "";
+            // }
+          }
 
-//           // var wrappedAddress = addressForm.city + " " + addressForm.postal_code;
-//           // var mainAddress = [placeName, streetName, route]
-//           //   .filter(Boolean)
-//           //   .join(" ");
-//           var fullSingleLine = streetName + " " + route;
-//           var fullAddress = fullSingleLine;
-//           // var fullAddress = [fullSingleLine]
-//           //   .filter(Boolean)
-//           //   .join("\n");
+          // var wrappedAddress = addressForm.city + " " + addressForm.postal_code;
+          // var mainAddress = [placeName, streetName, route]
+          //   .filter(Boolean)
+          //   .join(" ");
+          var fullSingleLine = streetName + " " + route;
+          var fullAddress = fullSingleLine;
+          // var fullAddress = [fullSingleLine]
+          //   .filter(Boolean)
+          //   .join("\n");
 
-//           // addressForm.main_address = mainAddress;
-//           addressForm.full_address = fullAddress;
-//           // addressForm.condo_name = placeName;
-//           // addressForm.latitude = place.geometry.location.lat();
-//           // addressForm.longitude = place.geometry.location.lng();
-//         }
-//       });
-//     } else {
-//       console.error("Invalid input element:", streetRef.value);
-//     }
-//   });
-// };
+          // addressForm.main_address = mainAddress;
+          addressForm.full_address = fullAddress;
+          // addressForm.condo_name = placeName;
+          // addressForm.latitude = place.geometry.location.lat();
+          // addressForm.longitude = place.geometry.location.lng();
+        }
+      });
+    } else {
+      console.error("Invalid input element:", streetRef.value);
+    }
+  });
+};
 
 const resetForm = () => {
   // addressForm.main_address = "";
@@ -2218,6 +2228,11 @@ const nextStep = (value) => {
     }
 
     if (selectedDelivery.value == null) {
+      // snackbar.value = true;
+      // message.value = {
+      //   text: "Please select a delivery option first.",
+      //   color: "error",
+      // };
       store.commit("setIsEmptyDelivery", true);
       return;
     }
@@ -2414,49 +2429,49 @@ const getCartData = async () => {
   await store.dispatch("getCartItems");
 };
 
-const getPlatformFee = async () => {
-  let data = null;
+// const getPlatformFee = async () => {
+//   let data = null;
 
-  try {
-    await axios
-      .get(`/get-app-id`, {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-        params: {
-          company_name: "Biryani Run",
-        },
-      })
-      .then((response) => {
-        data = response.data.data?.app_id;
-      })
-      .catch((error) => {
-        // eslint-disable-next-line
-        console.log(error);
-      });
+//   try {
+//     await axios
+//       .get(`/get-app-id`, {
+//         headers: {
+//           Authorization: `Bearer ${authToken}`,
+//         },
+//         params: {
+//           company_name: "Biryani Run",
+//         },
+//       })
+//       .then((response) => {
+//         data = response.data.data?.app_id;
+//       })
+//       .catch((error) => {
+//         // eslint-disable-next-line
+//         console.log(error);
+//       });
 
-    const response = await axios.get(`/get-platform-fee`, {
-      headers: {
-        Authorization: `Bearer ${authToken}`,
-      },
-      params: {
-        app_id: data,
-      },
-    });
+//     const response = await axios.get(`/get-platform-fee`, {
+//       headers: {
+//         Authorization: `Bearer ${authToken}`,
+//       },
+//       params: {
+//         app_id: data,
+//       },
+//     });
 
-    platformFee.value = parseFloat(response.data.data?.platform_fee);
-  } catch (error) {
-    console.error("Error getting tax rate:", error);
-    // const message = error.response?.data?.message || "Something went wrong!";
-    // snackbar.value = true;
-    // message.value = {
-    //     text: message,
-    //     color: "error"
-    // };
-  } finally {
-    // savingAddress.value = false;
-  }
-};
+//     platformFee.value = parseFloat(response.data.data?.platform_fee);
+//   } catch (error) {
+//     console.error("Error getting tax rate:", error);
+//     // const message = error.response?.data?.message || "Something went wrong!";
+//     // snackbar.value = true;
+//     // message.value = {
+//     //     text: message,
+//     //     color: "error"
+//     // };
+//   } finally {
+//     // savingAddress.value = false;
+//   }
+// };
 
 const getTimeSlots = async () => {
   try {
@@ -2518,13 +2533,21 @@ watch(selectedCountry, async () => {
   await getTaxAmount();
   await getPaymentTypes();
   getDeliveryCharges();
+  if (
+    authToken &&
+    authToken != null &&
+    authToken != "" &&
+    authToken != "null"
+  ) {
+    getCartData();
+  }
 });
 
-// watch(addressDialog, (isOpen) => {
-//   if (isOpen) {
-//     initAutocomplete();
-//   }
-// });
+watch(addressDialog, (isOpen) => {
+  if (isOpen) {
+    initAutocomplete();
+  }
+});
 
 watch(cart, async (newCart) => {
   // console.log(newCart);
@@ -2591,8 +2614,8 @@ onMounted(() => {
     getAddress();
     // getPaymentTypes();
     getTimeSlots();
-    getPlatformFee();
-    getCartData();
+    // getPlatformFee();
+    // getCartData();
   }
 
   updateTime();

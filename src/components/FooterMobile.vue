@@ -42,7 +42,7 @@ import Cart from "@/components/Cart.vue";
 
 const store = useStore();
 
-const platformFee = ref(null);
+// const platformFee = ref(null);
 const taxAmount = ref(null);
 const viewCart = ref(false);
 
@@ -78,43 +78,61 @@ const selectedDeliveryPrice = computed(() => {
 });
 
 const finalCartTotal = computed(() => {
+  const sub = Number(subTotal.value) || 0;
+  const delivery = Number(selectedDeliveryPrice.value) || 0;
+  const platform = Number(store.state.cart[0]?.platform_fee) || 0;
+  const tax = Number(taxAmount.value) || 0;
+  let serviceFee = 0;
+  if (store.state.cart && store.state.cart.length > 0) {
+    serviceFee = Number(store.state.cart[0]?.service_fee) || 0;
+  }
   return (
-    subTotal.value +
-    selectedDeliveryPrice.value +
-    (platformFee.value ?? 0) +
-    ((subTotal.value + selectedDeliveryPrice.value + 0.5) *
-      (taxAmount.value ?? 0)) /
-      100
+    sub +
+    delivery +
+    platform +
+    serviceFee +
+    ((sub + delivery + 0.5) * tax) / 100
   ).toFixed(2);
 });
 
-async function getPlatformFee() {
-  let data = null;
-  try {
-    const appIdResponse = await axios.get(`/get-app-id`, {
-      headers: {
-        Authorization: `Bearer ${authToken.value}`,
-      },
-      params: {
-        company_name: "Biryani Run",
-      },
-    });
-    data = appIdResponse.data.data?.app_id;
+// const finalCartTotal = computed(() => {
+//   return (
+//     subTotal.value +
+//     selectedDeliveryPrice.value +
+//     (platformFee.value ?? 0) +
+//     ((subTotal.value + selectedDeliveryPrice.value + 0.5) *
+//       (taxAmount.value ?? 0)) /
+//       100
+//   ).toFixed(2);
+// });
 
-    const feeResponse = await axios.get(`/get-platform-fee`, {
-      headers: {
-        Authorization: `Bearer ${authToken.value}`,
-      },
-      params: {
-        app_id: data,
-      },
-    });
+// async function getPlatformFee() {
+//   let data = null;
+//   try {
+//     const appIdResponse = await axios.get(`/get-app-id`, {
+//       headers: {
+//         Authorization: `Bearer ${authToken.value}`,
+//       },
+//       params: {
+//         company_name: "Biryani Run",
+//       },
+//     });
+//     data = appIdResponse.data.data?.app_id;
 
-    platformFee.value = parseFloat(feeResponse.data.data?.platform_fee);
-  } catch (error) {
-    console.error("Error getting platform fee:", error);
-  }
-}
+//     const feeResponse = await axios.get(`/get-platform-fee`, {
+//       headers: {
+//         Authorization: `Bearer ${authToken.value}`,
+//       },
+//       params: {
+//         app_id: data,
+//       },
+//     });
+
+//     platformFee.value = parseFloat(feeResponse.data.data?.platform_fee);
+//   } catch (error) {
+//     console.error("Error getting platform fee:", error);
+//   }
+// }
 
 async function getTaxAmount() {
   // let countryId = null;
@@ -166,9 +184,9 @@ watch(selectedCountry, async () => {
   await getTaxAmount();
 });
 
-onMounted(() => {
-  getPlatformFee();
-});
+// onMounted(() => {
+//   getPlatformFee();
+// });
 </script>
 
 <style>

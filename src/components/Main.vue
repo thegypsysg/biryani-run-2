@@ -23,6 +23,8 @@
       :class="['zoom-effect', { zoomed: isZoomed }]"
       class="hero-background"
       cover
+      aspect-ratio="16/9"
+      style="height: 100%; z-index: 0; position: relative"
     ></v-img>
 
     <!-- Overlay abu-abu dengan opacity -->
