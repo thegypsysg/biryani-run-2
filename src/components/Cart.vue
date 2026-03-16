@@ -224,26 +224,27 @@
                   :options="
                     deliveryOptions.filter((item) => item.same_day == 'S')
                   "
-                  orientation="col | row"
-                  selector
+                  class="pt-5 d-flex flex-row"
                   color="secondary"
+                  selector
                   block
-                  class="pt-5"
                   @update:model-value="onSelectDelivery"
                 >
-                  <span class="text-blue-accent-4 font-weight-bold ml-2"
-                    >{{ selectedCountry.currency_symbol }}
-                    {{ option?.price ? option.price.toFixed(2) : "" }}</span
-                  >
-                  <div class="d-flex justify-space-between ma-2">
-                    <strong>{{ option.label }}</strong>
-                  </div>
-                  <div class="d-flex justify-space-between ma-2">
-                    <strong
-                      v-if="option.cut_off"
-                      class="text-red font-bold font-sm"
-                      >Cut off Time ({{ option.cut_off }})</strong
+                  <div style="display: flex; flex-direction: column">
+                    <span class="text-blue-accent-4 font-weight-bold ml-2"
+                      >{{ selectedCountry.currency_symbol }}
+                      {{ option?.price ? option.price.toFixed(2) : "" }}</span
                     >
+                    <div class="d-flex justify-space-between ma-2">
+                      <strong>{{ option.label }}</strong>
+                    </div>
+                    <div class="d-flex justify-space-between ma-2">
+                      <span
+                        v-if="option.cut_off"
+                        class="text-red font-weight-bold font-sm"
+                        >Cut off Time ({{ option.cut_off }})</span
+                      >
+                    </div>
                   </div>
                 </MazRadioButtons>
                 <p class="font-weight-black mb-2 mt-6">Tomorrow Onwards</p>
@@ -294,7 +295,7 @@
                 </p>
                 <!-- <p class="font-weight-bold text-red-darken-4 mb-6">
                 You Selected
-              </p> -->
+                </p> -->
                 <div style="border: 1.5px solid #daf4fd" class="px-4 py-3 my-4">
                   <div class="d-flex justify-space-between mb-3">
                     <strong>{{ selectedDeliveryObject?.label }}</strong>
@@ -304,28 +305,29 @@
                     >
                   </div>
 
-                  <div class="d-flex justify-space-between">
+                  <div class="">
                     <strong
-                      v-if="selectedDeliveryObject?.same_day == 'Y'"
-                      class="text-red font-bold font-sm"
+                      v-if="selectedDeliveryObject?.same_day == 'S'"
+                      class="text-red font-weight-bold font-sm"
                       >Cut off Time ({{
                         selectedDeliveryObject?.cut_off
                       }})</strong
                     >
                     <template v-else>
-                      <strong class="text-red font-bold font-sm">{{
+                      <span class="text-red font-weight-bold font-sm">{{
                         selectedDeliveryObject?.description_1
-                      }}</strong>
-                      <strong class="text-red font-bold font-sm">{{
+                      }}</span>
+                      <span class="text-red font-weight-bold font-sm">{{
                         selectedDeliveryObject?.description_2
-                      }}</strong>
+                      }}</span>
                     </template>
                   </div>
                 </div>
                 <div
                   class="w-75 mt-4"
-                  v-if="selectedDelivery == 5 || selectedDelivery == 6"
+                  v-if="selectedDeliveryObject?.same_day == 'A'"
                 >
+                  <!-- v-if="selectedDelivery == 5 || selectedDelivery == 6" -->
                   <!-- <VueDatePicker
                   style="font-size: 12px !important"
                   class="text-caption mb-4"
@@ -336,7 +338,7 @@
                     new Date(new Date().setDate(new Date().getDate() + 1))
                   "
                   placeholder="Select Advance Delivery"
-                /> -->
+                  /> -->
                   <v-dialog v-model="dialog" width="300">
                     <template #activator="{ props }">
                       <v-btn
@@ -388,7 +390,7 @@
                 <template v-else>
                   <!-- <p class="font-weight-bold text-red-darken-4 mt-10 mb-6">
                   This is your Delivery Schedule
-                </p> -->
+                  </p> -->
                   <div class="d-flex justify-start align-center ga-8">
                     <div>
                       <label class="font-weight-bold text-caption"
@@ -419,6 +421,7 @@
                   <label class="text-red-darken-4 font-weight-bold"
                     >Delivery Order Instructions</label
                   >
+                  <p class="text-caption">(Do not type address here)</p>
                   <MazTextarea
                     class="mt-1"
                     rows="4"
@@ -1489,6 +1492,8 @@ import { fileURL } from "@/util/variables";
 import qris from "@/assets/images/payment/qris-example.png";
 import pickup from "@/assets/images/logo/pick-up.png";
 import delivery from "@/assets/images/logo/delivery.png";
+import { VueDatePicker } from "@vuepic/vue-datepicker";
+import "@vuepic/vue-datepicker/dist/main.css";
 
 const { snackbarVisible, snackbarMessage, snackbarColor } = useGlobalSnackbar();
 const { addToCart, updateQuantity } = useCart();
@@ -2559,7 +2564,7 @@ watch(addressDialog, (isOpen) => {
 watch(cart, async (newCart) => {
   // console.log(newCart);
   if (newCart.length > 0) {
-    // selectedAddress.value = newCart[0]?.ga_id;
+    selectedAddress.value = newCart[0]?.ga_id;
     selectedPaymentMethod.value = newCart[0]?.payment_type_id;
     deliveryScheduleInstruction.value = newCart[0]?.order_instructions;
     selectedDate.value = newCart[0]?.delivery_date
