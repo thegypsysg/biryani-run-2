@@ -213,9 +213,11 @@
                     >Back</v-btn
                   >
                 </div>
+                <p class="font-weight-black mb-2 mt-6">Today</p>
                 <p class="text-red-darken-4 font-weight-bold">
                   {{ currentTime }}
                 </p>
+
                 <MazRadioButtons
                   v-slot="{ option, selected }"
                   v-model="selectedDelivery"
@@ -223,8 +225,8 @@
                     deliveryOptions.filter((item) => item.same_day == 'S')
                   "
                   orientation="col | row"
-                  :selector="true"
-                  color="info"
+                  selector
+                  color="secondary"
                   block
                   class="pt-5"
                   @update:model-value="onSelectDelivery"
@@ -244,33 +246,33 @@
                     >
                   </div>
                 </MazRadioButtons>
-                <!-- <p class="font-weight-black mb-2 mt-6 text-center">
-                  === Advance Delivery Options ===
-                </p> -->
+                <p class="font-weight-black mb-2 mt-6">Tomorrow Onwards</p>
                 <MazRadioButtons
                   v-slot="{ option, selected }"
                   v-model="selectedDelivery"
                   :options="
                     deliveryOptions.filter((item) => item.same_day == 'A')
                   "
-                  orientation="col | row"
-                  :selector="true"
-                  color="info"
+                  class="pt-5 d-flex flex-row"
+                  color="secondary"
+                  selector
                   block
-                  class="pt-5"
                   @update:model-value="onSelectDelivery"
                 >
-                  <div class="d-flex justify-space-between ma-2">
-                    <strong>{{ option.label }}</strong>
-                    <span class="price"
+                  <div style="display: flex; flex-direction: column">
+                    <span class="text-blue-accent-4 font-weight-bold ml-2"
                       >{{ selectedCountry.currency_symbol }}
                       {{ option?.price ? option.price.toFixed(2) : "" }}</span
                     >
-                  </div>
-                  <div class="d-flex justify-space-between ma-2">
-                    <strong class="text-red font-bold font-sm">{{
+                    <div class="d-flex justify-space-between ma-2">
+                      <strong>{{ option.label }}</strong>
+                    </div>
+                    <span class="text-red font-weight-bold font-sm ml-2">{{
+                      option.description_1
+                    }}</span>
+                    <span class="text-red font-weight-bold font-sm ml-2">{{
                       option.description_2
-                    }}</strong>
+                    }}</span>
                   </div>
                 </MazRadioButtons>
               </v-col>
@@ -310,9 +312,14 @@
                         selectedDeliveryObject?.cut_off
                       }})</strong
                     >
-                    <strong v-else class="text-red font-bold font-sm">{{
-                      selectedDeliveryObject?.description_2
-                    }}</strong>
+                    <template v-else>
+                      <strong class="text-red font-bold font-sm">{{
+                        selectedDeliveryObject?.description_1
+                      }}</strong>
+                      <strong class="text-red font-bold font-sm">{{
+                        selectedDeliveryObject?.description_2
+                      }}</strong>
+                    </template>
                   </div>
                 </div>
                 <div
@@ -1470,6 +1477,7 @@ import {
 import moment from "moment-timezone";
 import axios from "@/util/axios";
 import { useStore } from "vuex";
+import "maz-ui/styles";
 import MazDrawer from "maz-ui/components/MazDrawer";
 import MazInput from "maz-ui/components/MazInput";
 import MazTextarea from "maz-ui/components/MazTextarea";
@@ -2104,7 +2112,7 @@ const whereToDeliver = async () => {
         cart_id: cart.value[0].cart_id,
         dc_id: selectedDeliveryObject.value.dc_id,
         delivery_date:
-          selectedDeliveryObject.value.same_day == "A"
+          selectedDeliveryObject.value.same_day == "A" && selectedDate.value
             ? format(selectedDate.value)
             : selectedDeliveryObject.value.today_date,
         // delivery_day: selectedDeliveryObject.value.today_day,
@@ -2219,13 +2227,7 @@ const nextStep = (value) => {
       text: "",
       color: "success",
     };
-    console.log(localStorage.getItem("selectedDelivery"), cart.value[0]?.dc_id);
-    if (localStorage.getItem("selectedDelivery") != cart.value[0]?.dc_id) {
-      console.log("execute");
-      selectedDate.value = null;
-      selectedTimeSlot.value = null;
-      deliveryScheduleInstruction.value = null;
-    }
+    console.log(selectedDelivery.value, cart.value[0]?.dc_id);
 
     if (selectedDelivery.value == null) {
       // snackbar.value = true;
@@ -2235,6 +2237,11 @@ const nextStep = (value) => {
       // };
       store.commit("setIsEmptyDelivery", true);
       return;
+    } else if (selectedDelivery.value != cart.value[0]?.dc_id) {
+      console.log("execute");
+      selectedDate.value = null;
+      selectedTimeSlot.value = null;
+      deliveryScheduleInstruction.value = null;
     }
 
     if (authToken == "null") {
@@ -2552,7 +2559,7 @@ watch(addressDialog, (isOpen) => {
 watch(cart, async (newCart) => {
   // console.log(newCart);
   if (newCart.length > 0) {
-    selectedAddress.value = newCart[0]?.ga_id;
+    // selectedAddress.value = newCart[0]?.ga_id;
     selectedPaymentMethod.value = newCart[0]?.payment_type_id;
     deliveryScheduleInstruction.value = newCart[0]?.order_instructions;
     selectedDate.value = newCart[0]?.delivery_date
@@ -2581,14 +2588,13 @@ watch(
       selectedTimeSlot.value = cart.value[0]?.time_slot;
       deliveryScheduleInstruction.value = cart.value[0]?.order_instructions;
       if (cart.value[0]?.delivery_charges != "0.00") {
-        selectedDelivery.value =
-          store.state.selectedDelivery ??
-          (localStorage.getItem("selectedDelivery") !== null
-            ? Number(localStorage.getItem("selectedDelivery"))
-            : null);
+        selectedDelivery.value = cart.value[0]?.dc_id
+          ? Number(cart.value[0]?.dc_id)
+          : null;
       } else {
         selectedDelivery.value = null;
       }
+      // selectedDelivery.value = null;
     }
   },
 );
@@ -2677,9 +2683,9 @@ onMounted(() => {
   z-index: 10; /* Ensures it stays above other content */
 }
 
-.maz-elevation {
+/* .maz-elevation {
   border: 1px solid #00aaff !important;
-}
+} */
 
 .custom-table {
   width: 100%;
