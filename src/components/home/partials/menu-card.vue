@@ -93,11 +93,12 @@ const goToDetail = async (menu: any) => {
   <div
     :class="{ 'bg-white': true, 'pa-3': isDesktop, 'pa-1': !isDesktop }"
     elevation="4"
-    style="width: 100%; height: 320px"
+    style="width: 100%"
+    :style="{ height: isDesktop ? '385px' : '360px' }"
   >
     <div
       class="align-center text-start ga-3"
-      :style="{ height: isDesktop ? '50px' : '70px' }"
+      :style="{ height: isDesktop ? '60px' : '60px' }"
     >
       <v-img
         :src="
@@ -105,7 +106,7 @@ const goToDetail = async (menu: any) => {
         "
         aspect-ratio="1"
         class="float-left mr-2"
-        style="width: 35px; height: 35px; max-width: 35px; max-height: 35px"
+        style="width: 50px; height: 50px; max-width: 50px; max-height: 50px"
       ></v-img>
       <div class="d-flex justify-space-between">
         <div>
@@ -128,30 +129,7 @@ const goToDetail = async (menu: any) => {
                 ? props.menu?.biryaniRunPrice?.restaurant?.town
                 : ""
             }}
-            <div
-              v-if="!isDesktop"
-              class="text-red text-start text-caption font-weight-bold"
-            >
-              {{
-                props.menu?.biryaniRunPrice?.restaurant?.distance
-                  ? props.menu?.biryaniRunPrice?.restaurant?.distance
-                  : ""
-              }}
-              kms
-            </div>
           </div>
-        </div>
-
-        <div
-          v-if="isDesktop"
-          class="text-red d-flex justify-end align-end text-caption font-weight-bold"
-        >
-          {{
-            props.menu?.biryaniRunPrice?.restaurant?.distance
-              ? props.menu?.biryaniRunPrice?.restaurant?.distance
-              : ""
-          }}
-          kms
         </div>
       </div>
     </div>
@@ -209,55 +187,90 @@ const goToDetail = async (menu: any) => {
         height="160px"
       ></v-img>
     </div>
-    <!-- <div class="card-btn-container d-flex justify-space-between">
+    <div
+      class="d-flex justify-space-between"
+      style="
+        position: absolute;
+        gap: 10px;
+        bottom: 120px;
+        right: 30px;
+        z-index: 100;
+      "
+    >
       <v-btn
         color="white"
         class="card-btn"
-        :width="!isDesktop ? 35 : 32"
-        :height="!isDesktop ? 35 : 32"
+        :width="!isDesktop ? 30 : 35"
+        :height="!isDesktop ? 30 : 35"
         icon="mdi-share-variant-outline"
       >
-        <v-icon size="20" color="red">
+        <v-icon size="18" color="red">
           mdi-share-variant-outline
         </v-icon></v-btn
+      >
+      <v-btn
+        color="white"
+        class="card-btn"
+        :width="!isDesktop ? 30 : 35"
+        :height="!isDesktop ? 30 : 35"
+        icon="mdi-thumb-up-outline"
+      >
+        <v-icon size="18" color="red"> mdi-thumb-up-outline </v-icon></v-btn
       >
       <v-btn
         class="card-btn"
         color="white"
         icon="mdi-heart-outline"
-        :width="!isDesktop ? 35 : 32"
-        :height="!isDesktop ? 35 : 32"
+        :width="!isDesktop ? 30 : 35"
+        :height="!isDesktop ? 30 : 35"
       >
-        <v-icon size="20" color="red"> mdi-heart-outline </v-icon>
+        <v-icon size="18" color="red"> mdi-heart-outline </v-icon>
       </v-btn>
-    </div> -->
-    <p
-      class="font-weight-bold text-white"
-      style="position: absolute; bottom: 90px; left: 30px"
-    >
-      {{ props.menu?.biryaniRunPrice?.views }} views
-    </p>
-    <div class="pa-0">
-      <div class="d-flex justify-space-between align-center pa-2">
-        <div class="">
-          <p class="font-weight-black text-subtitle-2 text-start">
-            {{
-              props.menu?.biryaniRunPrice?.actual_dish_name ||
-              props.menu?.dish_name
-            }}
+    </div>
+
+    <div class="pa-2">
+      <p class="font-weight-black text-subtitle-2 text-start mt-4">
+        {{
+          props.menu?.biryaniRunPrice?.actual_dish_name || props.menu?.dish_name
+        }}
+        <span class="text-blue-lighten-1 ml-2">2 Pax</span>
+      </p>
+      <div
+        class="d-flex justify-start ga-2 w-100 align-center my-2 font-weight-bold text-caption"
+      >
+        <p style="text-align: right">
+          <span class="text-red">{{
+            props.menu?.biryaniRunPrice?.restaurant?.distance
+              ? props.menu?.biryaniRunPrice?.restaurant?.distance
+              : ""
+          }}</span>
+          kms
+        </p>
+        <span>|</span>
+        <div class="d-flex" style="gap: 10px">
+          <p>
+            <span class="text-blue-lighten-1">{{
+              props.menu?.biryaniRunPrice?.views || 0
+            }}</span>
+            Views
           </p>
-          <div class="text-red text-start mt-2">
-            {{ selectedCountry?.currency_symbol }}
-            {{
-              props.menu?.biryaniRunPrice?.rate
-                ? parseFloat(props.menu?.biryaniRunPrice?.rate).toFixed(2)
-                : ""
-            }}
-          </div>
         </div>
-        <!-- <v-btn elevation="0" class="bg-black text-white mt-6 mt-md-4">
-          Add
-        </v-btn> -->
+        <span>|</span>
+
+        <div class="d-flex" style="gap: 10px">
+          <v-icon color="green"> mdi-thumb-up </v-icon>
+          <p>{{ props.menu?.biryaniRunPrice?.likes || 0 }}</p>
+        </div>
+      </div>
+      <div class="d-flex justify-space-between align-center">
+        <p class="text-start font-weight-bold mt-2">
+          {{ selectedCountry?.currency_symbol }}
+          {{
+            props.menu?.biryaniRunPrice?.rate
+              ? parseFloat(props.menu?.biryaniRunPrice?.rate).toFixed(2)
+              : ""
+          }}
+        </p>
         <span>
           <v-btn
             v-if="!isInCart(props.menu)"
@@ -380,14 +393,6 @@ const goToDetail = async (menu: any) => {
   width: 100%;
   z-index: 666;
   left: 0px;
-}
-
-.card-btn-container {
-  position: absolute;
-  gap: 10px;
-  bottom: 63px;
-  right: 30px;
-  z-index: 100;
 }
 
 .card-btn {

@@ -7,7 +7,7 @@ import cartMixin from "@/mixins/cartMixin";
 import app from "@/util/eventBus";
 import { appId } from "@/util/variables";
 import Cart from "@/components/Cart.vue";
-// import ExploreOurMenuList from "@/components/home/ExploreOurMenuList.vue";
+import ExploreOurMenuList from "@/components/home/explore-our-menu-list.vue";
 // import app from "@/util/eventBus";
 
 export default {
@@ -762,7 +762,7 @@ export default {
       );
     },
   },
-  // components: { ExploreOurMenuList },
+  components: { ExploreOurMenuList },
 };
 </script>
 
@@ -1599,7 +1599,7 @@ watch(() => {
               <v-icon color="white"> mdi-magnify </v-icon>
             </button>
           </form>
-          <!-- <ExploreOurMenuList :desktop="false" v-if="!isProduct" /> -->
+          <ExploreOurMenuList :desktop="false" v-if="!isProduct" />
         </div>
 
         <div id="trending-container" class="d-sm-none"></div>
