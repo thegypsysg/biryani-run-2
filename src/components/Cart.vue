@@ -238,12 +238,18 @@
                     <div class="d-flex justify-space-between ma-2">
                       <strong>{{ option.label }}</strong>
                     </div>
-                    <div class="d-flex justify-space-between ma-2">
-                      <span
+                    <div class="ma-2">
+                      <p
+                        class="text-red-darken-4 font-weight-bold font-sm mb-2"
+                      >
+                        {{ option.description_2 }}
+                      </p>
+                      <p
                         v-if="option.cut_off"
                         class="text-red font-weight-bold font-sm"
-                        >Cut off Time ({{ option.cut_off }})</span
                       >
+                        Cut off Time ({{ option.cut_off }})
+                      </p>
                     </div>
                   </div>
                 </MazRadioButtons>
@@ -385,7 +391,20 @@
                     :items="timeSlots"
                     class="border-sm text-blue-darken-2 mt-4"
                     variant="outlined"
-                  ></v-select>
+                    item-title="slot_from_to"
+                    item-value="slot_from_to"
+                  >
+                    <template #item="{ props, item }">
+                      <p class="mb-2 text-sm cursor-pointer" v-bind="props">
+                        {{ item.raw.slot_from_to }}
+                        <span
+                          v-if="item.raw.description"
+                          class="font-weight-bold"
+                          >({{ item.raw.description }})</span
+                        >
+                      </p>
+                    </template>
+                  </v-select>
                 </div>
                 <template v-else>
                   <!-- <p class="font-weight-bold text-red-darken-4 mt-10 mb-6">
@@ -818,7 +837,7 @@
                           {{ selectedCountry.currency_symbol }}
                         </td>
                         <td colspan="2" class="text-end">
-                          {{ subTotal }}
+                          {{ Number(subTotal).toFixed(2) }}
                         </td>
                       </tr>
                       <tr>
@@ -1178,7 +1197,7 @@
                           <td>Sub Total</td>
                           <td>{{ selectedCountry.currency_symbol }}</td>
                           <td class="text-end">
-                            {{ subTotal }}
+                            {{ Number(subTotal).toFixed(2) }}
                           </td>
                         </tr>
                         <tr>
@@ -2487,7 +2506,8 @@ const getCartData = async () => {
 
 const getTimeSlots = async () => {
   try {
-    const response = await axios.get(`/list-time-slots`, {
+    // const response = await axios.get(`/list-time-slots`, {
+    const response = await axios.get(`/get-time-slots`, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
 
