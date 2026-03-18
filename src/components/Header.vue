@@ -1345,7 +1345,7 @@ watch(() => {
 
     <template v-if="!isProfile" #extension>
       <div class="mobile__app text-center w-100">
-        <template v-if="activeLocationButton && isSmall">
+        <!-- <template v-if="isSmall">
           <v-menu v-if="locationPlaceholder" v-model="userLocation">
             <template v-slot:activator="{ props }">
               <v-btn
@@ -1378,7 +1378,6 @@ watch(() => {
                   v-for="(location, index) in locationDropdown"
                   :key="index"
                 >
-                  <!-- Country Header -->
                   <v-list-subheader>
                     <div class="d-flex align-center gap-2">
                       <v-avatar size="24">
@@ -1391,7 +1390,6 @@ watch(() => {
                     </div>
                   </v-list-subheader>
 
-                  <!-- Cities -->
                   <v-list-item
                     v-for="(city, cityIndex) in location.cities"
                     :key="`${index}-${cityIndex}`"
@@ -1419,7 +1417,7 @@ watch(() => {
             v-else
             type="list-item-two-line"
           ></v-skeleton-loader>
-        </template>
+        </template> -->
 
         <!-- if NOT mobile view -->
         <div

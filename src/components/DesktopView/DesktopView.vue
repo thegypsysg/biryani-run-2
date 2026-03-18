@@ -41,6 +41,7 @@ export default {
       otherPromotionDataFinal: [],
       mallMerchants: [],
       mallPromotions: [],
+      screenWidth: window.innerWidth,
     };
   },
   computed: {

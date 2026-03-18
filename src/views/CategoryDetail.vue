@@ -5,23 +5,35 @@
     </div> -->
     <!-- <div v-if="!isLoading"> -->
     <div>
-      <div style="z-index: 100000" class="position-fixed w-100">
+      <div class="position-fixed w-100">
         <div
           class="app-bar w-100 bg-transparent position-absolute d-flex justify-space-between align-center px-2"
           style="height: 50px; top: 0"
         >
-          <v-btn
-            variant="flat"
-            color="black"
-            class="card-btn"
-            style="opacity: 0.8"
-            width="35"
-            height="35"
-            icon="mdi-chevron-left"
-            @click="goBack()"
-          >
-            <v-icon color="white" size="20"> mdi-chevron-left </v-icon>
-          </v-btn>
+          <div class="d-flex align-center" style="gap: 15px">
+            <v-btn
+              variant="flat"
+              color="black"
+              class="card-btn"
+              style="opacity: 0.8"
+              width="35"
+              height="35"
+              icon="mdi-chevron-left"
+              @click="goBack()"
+            >
+              <v-icon color="white" size="20"> mdi-chevron-left </v-icon>
+            </v-btn>
+            <div
+              class="bg-success text-white font-weight-bold text-caption px-3 py-1 rounded-lg"
+            >
+              <p>Veg</p>
+            </div>
+            <div
+              class="bg-white text-success font-weight-bold text-caption px-3 py-1 rounded-lg"
+            >
+              <p>Halal</p>
+            </div>
+          </div>
           <!-- v-if="userName != 'null'" -->
           <div class="d-flex align-center" style="gap: 15px">
             <v-btn
@@ -82,6 +94,71 @@
           class="main-image"
         />
 
+        <div class="px-2 w-100" style="position: absolute; top: 150px">
+          <div class="w-100 d-flex justify-space-between bg-white pa-1">
+            <div
+              class="d-flex justify-space-between align-center ga-4"
+              style="width: 60%"
+            >
+              <div class="w-33">
+                <v-img
+                  :src="
+                    $fileURL +
+                    categoryData?.biryaniRunPrice?.restaurant?.partner?.logo
+                  "
+                  height="70"
+                  width="70"
+                  cover
+                  class="rounded-lg"
+                />
+              </div>
+              <div class="w-66 d-flex align-center justify-space-between">
+                <div class="d-flex flex-column font-weight-black">
+                  <h4 class="text-blue-lighten-1">
+                    {{
+                      categoryData?.biryaniRunPrice?.restaurant?.partner
+                        ?.partner_name || "-"
+                    }}
+                  </h4>
+                  <p class="text-grey-darken-1 text-caption font-weight-bold">
+                    {{ categoryData?.biryaniRunPrice?.restaurant?.town || "-" }}
+                  </p>
+                  <p class="text-caption font-weight-bold">
+                    <span class="text-red">{{
+                      categoryData?.biryaniRunPrice?.restaurant?.distance
+                        ? categoryData?.biryaniRunPrice?.restaurant?.distance
+                        : ""
+                    }}</span>
+                    kms away
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div
+              class="d-flex justify-space-between align-center py-2"
+              style="width: 40%"
+            >
+              <v-icon :size="!isSmall ? '35' : '40'">
+                <v-img
+                  src="@/assets/images/icons/google.png"
+                  alt="Google Logo"
+                />
+              </v-icon>
+              <v-divider vertical></v-divider>
+              <div class="d-flex flex-column justify-center align-center">
+                <div style="font-size: 11px">
+                  <v-icon color="#F6B702"> mdi-star </v-icon>
+                  <v-icon color="#F6B702"> mdi-star </v-icon>
+                  <v-icon color="#F6B702"> mdi-star </v-icon>
+                  <v-icon color="#F6B702"> mdi-star </v-icon>
+                  <v-icon color="#F6B702"> mdi-star-outline </v-icon>
+                </div>
+                <span class="font-weight-bold text-body-2"> 234 </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <v-container
           class="d-flex bg-white justify-space-between w-100 py-4 align-content-center mt-n2 font-weight-bold text-caption"
         >
@@ -121,52 +198,202 @@
         </v-container>
       </div>
 
-      <v-container style="padding-top: 320px; padding-bottom: 100px">
-        <h1 class="text-blue-lighten-1">{{ categoryData?.dish_name }}</h1>
-        <!-- style="height: 100px; position: absolute; bottom: 50px; left: 0" -->
-        <div class="d-flex justify-space-between align-center w-100 mt-14 ga-4">
-          <div class="w-33">
-            <v-img
-              :src="
-                $fileURL +
-                categoryData?.biryaniRunPrice?.restaurant?.partner?.logo
-              "
-              height="100"
-            />
+      <v-container style="padding-top: 340px; padding-bottom: 100px">
+        <h2 class="">{{ categoryData?.dish_name }}</h2>
+
+        <div
+          class="my-4"
+          style="font-size: 14px; color: #333; line-height: 1.5"
+        >
+          <p>
+            {{
+              isDescriptionExpanded ? dummyDescription : truncatedDescription
+            }}
+          </p>
+          <div
+            v-if="dummyDescription.length > 153"
+            class="mt-3 font-weight-bold"
+            style="color: #4169e1; cursor: pointer"
+            @click="isDescriptionExpanded = !isDescriptionExpanded"
+          >
+            {{ isDescriptionExpanded ? "less ...." : "more ...." }}
           </div>
-          <div class="w-66 d-flex align-center justify-space-between">
-            <div class="d-flex flex-column ga-2 font-weight-black">
-              <h4>
-                {{
-                  categoryData?.biryaniRunPrice?.restaurant?.partner
-                    ?.partner_name || "-"
-                }}
-              </h4>
-              <p class="text-grey-darken-1 text-caption">
-                {{ categoryData?.biryaniRunPrice?.restaurant?.town || "-" }}
-              </p>
-              <p class="text-grey-darken-1 text-caption">
-                <span class="text-red">{{
-                  categoryData?.biryaniRunPrice?.restaurant?.distance
-                    ? categoryData?.biryaniRunPrice?.restaurant?.distance
-                    : ""
-                }}</span>
-                kms away
-              </p>
+        </div>
+
+        <div class="d-flex align-center py-1 my-2">
+          <div class="flex-grow-0 flex-shrink-0">
+            <v-img
+              class="rounded bg-white"
+              :src="$fileURL + categoryData?.biryaniRunPrice?.dish_image"
+              width="65"
+              height="65"
+              cover
+            >
+              <template v-slot:placeholder>
+                <div class="d-flex align-center justify-center fill-height">
+                  <v-progress-circular
+                    color="grey-lighten-4"
+                    indeterminate
+                  ></v-progress-circular>
+                </div>
+              </template>
+            </v-img>
+          </div>
+          <div class="flex-grow-1 flex-shrink-0 ml-1 pa-2">
+            <div
+              class="text-wrap font-weight-black product-name text-body-2 mb-2"
+            >
+              <span class="text-blue-darken-3">2 Pax</span>
+            </div>
+            <div class="d-flex align-center justify-space-between">
+              <div class="d-flex align-center ga-3 border">
+                <v-btn
+                  v-if="!isInCart(categoryData, selectedRange)"
+                  @click="addToCartData(categoryData, selectedRange)"
+                  rounded=""
+                  color="black"
+                  class="py-1 px-3 text-caption"
+                  variant="flat"
+                  >Add To Cart</v-btn
+                >
+                <div
+                  v-else="isInCart(categoryData, selectedRange)"
+                  class="d-flex align-center ga-3"
+                >
+                  <v-btn
+                    size="lg"
+                    color="black"
+                    class="rounded-0"
+                    variant="flat"
+                    icon
+                    @click="updateQuantity(categoryData, 'decrease')"
+                  >
+                    <v-icon>mdi-minus</v-icon>
+                  </v-btn>
+
+                  <span>
+                    {{ cartQuantity(categoryData, selectedRange) }}
+                  </span>
+
+                  <v-btn
+                    size="lg"
+                    color="black"
+                    class="rounded-0"
+                    variant="flat"
+                    icon
+                    @click="updateQuantity(categoryData, 'increase')"
+                  >
+                    <v-icon>mdi-plus</v-icon>
+                  </v-btn>
+                </div>
+              </div>
+              <div class="text-body-2 text-end">
+                <strong
+                  >{{ selectedCountry?.currency_symbol }}
+                  {{ categoryData?.biryaniRunPrice?.rate }}
+                </strong>
+              </div>
+              <div class="text-body-2 text-red">
+                <strong
+                  >{{ selectedCountry?.currency_symbol }}
+                  {{
+                    (
+                      categoryData?.biryaniRunPrice?.rate *
+                      cartQuantity(categoryData, selectedRange)
+                    ).toFixed(2)
+                  }}
+                </strong>
+              </div>
             </div>
           </div>
         </div>
-        <v-divider class="mt-14 mb-8"></v-divider>
-        <div class="d-flex justify-space-between align-center">
-          <h2 class="text-blue-lighten-1">
-            {{ selectedCountry?.currency_symbol }}
-            {{ categoryData?.biryaniRunPrice?.rate }}
-          </h2>
-          <!-- v-if="!isInCart(product, selectedRange)"
-          @click="addToCartData(product, selectedRange)" -->
-          <v-btn rounded="" color="black" class="py-2 px-12" variant="flat"
-            >Add To Cart</v-btn
-          >
+
+        <div class="d-flex align-center py-1 my-2">
+          <div class="flex-grow-0 flex-shrink-0">
+            <v-img
+              class="rounded bg-white"
+              :src="$fileURL + categoryData?.biryaniRunPrice?.dish_image"
+              width="65"
+              height="65"
+              cover
+            >
+              <template v-slot:placeholder>
+                <div class="d-flex align-center justify-center fill-height">
+                  <v-progress-circular
+                    color="grey-lighten-4"
+                    indeterminate
+                  ></v-progress-circular>
+                </div>
+              </template>
+            </v-img>
+          </div>
+          <div class="flex-grow-1 flex-shrink-0 ml-1 pa-2">
+            <div
+              class="text-wrap font-weight-black product-name text-body-2 mb-2"
+            >
+              <span class="text-blue-darken-3">Tray Biryani (6 to 7 Pax)</span>
+            </div>
+            <div class="d-flex align-center justify-space-between">
+              <div class="d-flex align-center ga-3 border">
+                <v-btn
+                  v-if="!isInCart(categoryData, selectedRange)"
+                  @click="addToCartData(categoryData, selectedRange)"
+                  rounded=""
+                  color="black"
+                  class="py-1 px-3 text-caption"
+                  variant="flat"
+                  >Add To Cart</v-btn
+                >
+                <div
+                  v-else="isInCart(categoryData, selectedRange)"
+                  class="d-flex align-center ga-3"
+                >
+                  <v-btn
+                    size="lg"
+                    color="black"
+                    class="rounded-0"
+                    variant="flat"
+                    icon
+                    @click="updateQuantity(categoryData, 'decrease')"
+                  >
+                    <v-icon>mdi-minus</v-icon>
+                  </v-btn>
+
+                  <span>
+                    {{ cartQuantity(categoryData, selectedRange) }}
+                  </span>
+
+                  <v-btn
+                    size="lg"
+                    color="black"
+                    class="rounded-0"
+                    variant="flat"
+                    icon
+                    @click="updateQuantity(categoryData, 'increase')"
+                  >
+                    <v-icon>mdi-plus</v-icon>
+                  </v-btn>
+                </div>
+              </div>
+              <div class="text-body-2 text-end">
+                <strong
+                  >{{ selectedCountry?.currency_symbol }}
+                  {{ categoryData?.biryaniRunPrice?.rate }}
+                </strong>
+              </div>
+              <div class="text-body-2 text-red">
+                <strong
+                  >{{ selectedCountry?.currency_symbol }}
+                  {{
+                    (
+                      categoryData?.biryaniRunPrice?.rate *
+                      cartQuantity(categoryData, selectedRange)
+                    ).toFixed(2)
+                  }}
+                </strong>
+              </div>
+            </div>
+          </div>
         </div>
       </v-container>
 
@@ -189,6 +416,27 @@
       </div>
     </div>
   </div>
+
+  <v-dialog v-model="errorAddCart" max-width="400">
+    <v-card>
+      <v-card-text>
+        Cannot add other restaurants at this time , we are still working on a
+        multi-restaurant order system - Should we delete the existing restaurant
+        items ?
+      </v-card-text>
+      <v-card-actions>
+        <v-btn color="success" text @click="store.dispatch('clearCart')"
+          >Yes</v-btn
+        >
+        <v-btn
+          color="error"
+          text
+          @click="store.commit('setErrorAddCart', false)"
+          >No</v-btn
+        >
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script>
@@ -205,11 +453,22 @@ export default {
       currentDate: moment().format("DD/MM/YYYY"),
       categoryData: null,
       isFavorite: false,
+      isDescriptionExpanded: false,
+      dummyDescription:
+        'Chicken Dum Biryani is a classic, aromatic dish where marinated chicken and partially cooked basmati rice are layered and slow-cooked in a sealed pot ("dum"). This traditional method ensures that the flavors are sealed in, allowing the meat to become incredibly tender while the rice absorbs the rich, fragrant spices.',
     };
   },
 
   computed: {
     ...mapState(["itemSelectedComplete", "itemSelected2Complete"]),
+    truncatedDescription() {
+      if (!this.dummyDescription) return "";
+      const limit = 153;
+      if (this.dummyDescription.length > limit) {
+        return this.dummyDescription.substring(0, limit);
+      }
+      return this.dummyDescription;
+    },
     latitude() {
       return localStorage.getItem("latitude");
     },
@@ -361,10 +620,24 @@ export default {
 <script setup>
 import { computed } from "vue";
 import { useStore } from "vuex";
+import { useCart } from "@/composables/useCart";
 
 const store = useStore();
+const { isInCart, cartQuantity, addToCart, updateQuantity } = useCart();
 
+const errorAddCart = computed(() => store.state.errorAddCart);
 const selectedCountry = computed(() => store.state.selectedCountry);
+const token = computed(() => {
+  return localStorage.getItem("token");
+});
+
+const addToCartData = (data, range) => {
+  if (token.value == "null") {
+    store.commit("setIsNotLoggedIn", true);
+  } else {
+    addToCart(data, range);
+  }
+};
 </script>
 
 <style>
@@ -372,7 +645,7 @@ const selectedCountry = computed(() => store.state.selectedCountry);
   object-fit: cover;
   object-position: center;
   width: 100%;
-  height: 260px;
+  height: 280px;
 }
 
 .card-tag {

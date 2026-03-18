@@ -90,13 +90,13 @@ export function useCart() {
 
   const isInCart = (product) => {
     return cart.value.some(
-      (item) => item.brp_id === product.biryaniRunPrice.brp_id,
+      (item) => item.brp_id === product?.biryaniRunPrice?.brp_id,
     );
   };
 
   const cartQuantity = (product) => {
     const item = cart.value.find(
-      (item) => item.brp_id === product.biryaniRunPrice.brp_id,
+      (item) => item.brp_id === product?.biryaniRunPrice?.brp_id,
     );
     return item ? item.quantity : 0;
   };
