@@ -445,6 +445,7 @@
                     class="mt-1"
                     rows="4"
                     v-model="deliveryScheduleInstruction"
+                    @update:model-value="changeDeliveryScheduleInstruction"
                   />
                 </div>
               </v-col>
@@ -2426,6 +2427,44 @@ const selectAddress = async (item) => {
   // finally {
   //   savingAddress.value = false;
   // }
+};
+
+let instructionTimeout = null;
+
+const changeDeliveryScheduleInstruction = async () => {
+  if (instructionTimeout) clearTimeout(instructionTimeout);
+  instructionTimeout = setTimeout(async () => {
+    if (cart.value && cart.value.length > 0) {
+      try {
+        const response = await axios.put(
+          `/update-delivery-order-instructions`,
+          {
+            cart_id: cart.value[0].cart_id,
+            dc_id: selectedDelivery.value || cart.value[0].dc_id,
+            order_instructions: deliveryScheduleInstruction.value,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          },
+        );
+        snackbar.value = true;
+        message.value = {
+          text: response.data.message,
+          color: "success",
+        };
+      } catch (error) {
+        const errorMessage =
+          error.response?.data?.message || "Something went wrong!";
+        snackbar.value = true;
+        message.value = {
+          text: errorMessage,
+          color: "error",
+        };
+      }
+    }
+  }, 1000);
 };
 
 const getTaxAmount = async () => {

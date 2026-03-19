@@ -11,17 +11,30 @@ const store = useStore();
 const { isInCart, cartQuantity, addToCart, updateQuantity } = useCart();
 
 const props = defineProps<{
-  menu: [];
+  menu: any;
   fileURL: string;
   isDesktop: boolean;
 }>();
 
 const loading = ref(false);
-const isMobile = ref(false);
+const showDesktopDetail = ref(false);
 const snackbar = ref(false);
 const message = ref({
   text: "",
   color: "success",
+});
+
+const isDescriptionExpanded = ref(false);
+const dummyDescription = ref(
+  'Chicken Dum Biryani is a classic, aromatic dish where marinated chicken and partially cooked basmati rice are layered and slow-cooked in a sealed pot ("dum"). This traditional method ensures that the flavors are sealed in, allowing the meat to become incredibly tender while the rice absorbs the rich, fragrant spices.',
+);
+
+const truncatedDescription = computed(() => {
+  const limit = 153;
+  if (dummyDescription.value.length > limit) {
+    return dummyDescription.value.substring(0, limit);
+  }
+  return dummyDescription.value;
 });
 
 const selectedCountry = computed(() => store.state.selectedCountry);
@@ -45,7 +58,7 @@ const addToCartData = (data) => {
 
 const goToDetail = async (menu: any) => {
   if (props.isDesktop) {
-    isMobile.value = true;
+    showDesktopDetail.value = true;
   } else {
     try {
       const response = await axios.post(
@@ -332,13 +345,302 @@ const goToDetail = async (menu: any) => {
       </v-card-actions>
     </v-card>
   </v-dialog>
-  <v-dialog v-model="isMobile" persistent width="auto">
-    <v-card width="350">
-      <v-card-text class="">
-        <h4 class="mt-4 mb-8 text-center">Please use mobile only</h4>
-        <v-btn class="mb-4 w-100 bg-primary" @click="isMobile = false">
-          OK
-        </v-btn>
+  <v-dialog v-model="showDesktopDetail" max-width="850">
+    <v-card class="position-relative overflow-hidden" rounded="xl">
+      <v-btn
+        icon="mdi-close"
+        size="small"
+        color="grey-darken-1"
+        class="position-absolute"
+        style="top: 15px; right: 15px; z-index: 100; color: white"
+        variant="flat"
+        @click="showDesktopDetail = false"
+      ></v-btn>
+      <v-card-text class="pa-0 bg-white">
+        <v-row no-gutters>
+          <!-- Left Content -->
+          <v-col cols="12" md="6" class="pa-6">
+            <!-- Left Info -->
+            <div class="d-flex justify-space-between align-center mb-4 pr-4">
+              <div class="d-flex align-center ga-3">
+                <v-img
+                  :src="
+                    props.fileURL +
+                    props.menu?.biryaniRunPrice?.restaurant?.partner?.logo
+                  "
+                  height="45"
+                  width="45"
+                  cover
+                  class="rounded-circle"
+                />
+                <div class="d-flex flex-column font-weight-black">
+                  <h4 class="text-blue-lighten-1 text-caption">
+                    {{
+                      props.menu?.biryaniRunPrice?.restaurant?.partner
+                        ?.partner_name || "-"
+                    }}
+                  </h4>
+                  <p
+                    class="text-grey-darken-1 font-weight-bold"
+                    style="font-size: 10px"
+                  >
+                    {{ props.menu?.biryaniRunPrice?.restaurant?.town || "-" }}
+                  </p>
+                  <p class="font-weight-bold" style="font-size: 10px">
+                    <span class="text-red">{{
+                      props.menu?.biryaniRunPrice?.restaurant?.distance || ""
+                    }}</span>
+                    kms away
+                  </p>
+                </div>
+              </div>
+              <div class="d-flex align-center ga-2">
+                <v-icon size="24">
+                  <v-img
+                    src="@/assets/images/icons/google.png"
+                    alt="Google Logo"
+                  />
+                </v-icon>
+                <div class="d-flex flex-column justify-center align-center">
+                  <div class="d-flex align-center">
+                    <v-icon color="#F6B702" size="12"> mdi-star </v-icon>
+                    <v-icon color="#F6B702" size="12"> mdi-star </v-icon>
+                    <v-icon color="#F6B702" size="12"> mdi-star </v-icon>
+                    <v-icon color="#F6B702" size="12"> mdi-star </v-icon>
+                    <v-icon color="#F6B702" size="12">
+                      mdi-star-outline
+                    </v-icon>
+                  </div>
+                  <span class="font-weight-bold" style="font-size: 10px">
+                    234
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Main Dish Image -->
+            <div class="position-relative mb-2 w-100 bg-black">
+              <v-img
+                :src="
+                  props.menu?.biryaniRunPrice?.dish_image
+                    ? props.fileURL + props.menu?.biryaniRunPrice?.dish_image
+                    : props.menu?.main_image
+                      ? props.fileURL + props.menu?.main_image
+                      : ''
+                "
+                alt="dish image"
+                cover
+                height="220"
+                class="w-100"
+              ></v-img>
+              <div
+                class="position-absolute d-flex align-center ga-3"
+                style="bottom: 15px; left: 15px"
+              >
+                <div
+                  class="bg-success text-white font-weight-bold text-caption px-3 py-1 rounded-lg"
+                >
+                  <p>Veg</p>
+                </div>
+                <div
+                  class="bg-white text-success font-weight-bold text-caption px-3 py-1 rounded-lg"
+                >
+                  <p>Halal</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stats -->
+            <div
+              class="d-flex justify-space-between w-100 py-2 align-center font-weight-bold text-caption border-b pb-3"
+            >
+              <p class="text-grey-darken-2">
+                <span class="text-red-darken-4"> 0 </span>
+                Have Purchased
+              </p>
+              <span class="text-grey-darken-1">|</span>
+              <p class="text-grey-darken-2">
+                <span class="text-blue-lighten-1">{{
+                  props.menu?.biryaniRunPrice?.views || 0
+                }}</span>
+                Views
+              </p>
+              <span class="text-grey-darken-1">|</span>
+              <div class="d-flex align-center ga-1 text-grey-darken-2">
+                <v-icon color="green" size="18"> mdi-thumb-up </v-icon>
+                <span>{{ props.menu?.biryaniRunPrice?.likes || 0 }}</span>
+              </div>
+            </div>
+
+            <!-- Title & Desc -->
+            <h2 class="mt-3 text-h5 font-weight-black">
+              {{
+                props.menu?.biryaniRunPrice?.actual_dish_name ||
+                props.menu?.dish_name
+              }}
+            </h2>
+
+            <div
+              class="my-3"
+              style="font-size: 14px; color: #333; line-height: 1.5"
+            >
+              <p>
+                {{
+                  isDescriptionExpanded
+                    ? dummyDescription
+                    : truncatedDescription
+                }}
+              </p>
+              <div
+                v-if="dummyDescription.length > 153"
+                class="mt-1 font-weight-bold"
+                style="color: #4169e1; cursor: pointer"
+                @click="isDescriptionExpanded = !isDescriptionExpanded"
+              >
+                {{ isDescriptionExpanded ? "less ...." : "more ...." }}
+              </div>
+            </div>
+          </v-col>
+
+          <!-- Right Content -->
+          <v-col cols="12" md="6" class="pa-4">
+            <div class="d-flex flex-column ga-6 mt-16 pr-6">
+              <!-- Item 1: 2 Pax -->
+              <div class="d-flex align-start ga-4">
+                <div class="flex-grow-0 flex-shrink-0">
+                  <v-img
+                    class="rounded"
+                    :src="
+                      props.menu?.biryaniRunPrice?.dish_image
+                        ? props.fileURL +
+                          props.menu?.biryaniRunPrice?.dish_image
+                        : props.fileURL + props.menu?.main_image
+                    "
+                    width="70"
+                    height="70"
+                    cover
+                  ></v-img>
+                </div>
+                <div class="flex-grow-1 pt-1">
+                  <div class="font-weight-black text-body-1 mb-3">
+                    <span class="text-blue-darken-3">2 Pax</span>
+                  </div>
+                  <div class="d-flex align-center justify-space-between">
+                    <div class="d-flex align-center">
+                      <v-btn
+                        v-if="!isInCart(props.menu)"
+                        @click="addToCartData(props.menu)"
+                        color="black"
+                        class="text-caption px-6 text-none font-weight-bold rounded-lg"
+                        height="30"
+                        variant="flat"
+                        >Add</v-btn
+                      >
+                      <div
+                        v-else
+                        class="d-flex align-center bg-black rounded"
+                        style="height: 30px"
+                      >
+                        <v-btn
+                          size="small"
+                          color="black"
+                          class="rounded-s px-1"
+                          variant="flat"
+                          height="30"
+                          min-width="30"
+                          @click="updateQuantity(props.menu, 'decrease')"
+                        >
+                          <v-icon size="16">mdi-minus</v-icon>
+                        </v-btn>
+                        <span
+                          class="px-3 bg-white text-black font-weight-bold d-flex align-center justify-center"
+                          style="height: 30px; min-width: 30px"
+                        >
+                          {{ cartQuantity(props.menu) }}
+                        </span>
+                        <v-btn
+                          size="small"
+                          color="black"
+                          class="rounded-e px-1"
+                          variant="flat"
+                          height="30"
+                          min-width="30"
+                          @click="updateQuantity(props.menu, 'increase')"
+                        >
+                          <v-icon size="16">mdi-plus</v-icon>
+                        </v-btn>
+                      </div>
+                    </div>
+                    <div class="text-body-2 font-weight-black">
+                      {{ selectedCountry?.currency_symbol || "S$" }}
+                      {{
+                        parseFloat(
+                          props.menu?.biryaniRunPrice?.rate || 0,
+                        ).toFixed(2)
+                      }}
+                    </div>
+                    <div class="text-body-2 font-weight-black text-red">
+                      {{ selectedCountry?.currency_symbol || "S$" }}
+                      {{
+                        isInCart(props.menu)
+                          ? (
+                              parseFloat(
+                                props.menu?.biryaniRunPrice?.rate || 0,
+                              ) * cartQuantity(props.menu)
+                            ).toFixed(2)
+                          : parseFloat(
+                              props.menu?.biryaniRunPrice?.rate || 0,
+                            ).toFixed(2)
+                      }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Item 2: Tray Biryani (Dummy/Static UI for demonstration based on screenshot) -->
+              <div class="d-flex align-start ga-4">
+                <div class="flex-grow-0 flex-shrink-0">
+                  <v-img
+                    class="rounded"
+                    :src="
+                      props.menu?.biryaniRunPrice?.dish_image
+                        ? props.fileURL +
+                          props.menu?.biryaniRunPrice?.dish_image
+                        : props.fileURL + props.menu?.main_image
+                    "
+                    width="70"
+                    height="70"
+                    cover
+                  ></v-img>
+                </div>
+                <div class="flex-grow-1 pt-1">
+                  <div class="font-weight-black text-body-1 mb-3">
+                    <span class="text-blue-darken-3"
+                      >Tray Biryani (6 to 7 Pax)</span
+                    >
+                  </div>
+                  <div class="d-flex align-center justify-space-between">
+                    <div class="d-flex align-center">
+                      <v-btn
+                        color="black"
+                        class="text-caption px-6 text-none font-weight-bold rounded-lg"
+                        height="30"
+                        variant="flat"
+                        >Add</v-btn
+                      >
+                    </div>
+                    <div class="text-body-2 font-weight-black">
+                      {{ selectedCountry?.currency_symbol || "S$" }} 80.00
+                    </div>
+                    <div class="text-body-2 font-weight-black text-red">
+                      {{ selectedCountry?.currency_symbol || "S$" }} 80.00
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </v-col>
+        </v-row>
       </v-card-text>
     </v-card>
   </v-dialog>
