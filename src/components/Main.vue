@@ -93,7 +93,7 @@
     "
   >
     <ExploreOurMenu class="d-none d-md-block" />
-
+    <YourOrder v-if="userName" class="mb-4" />
     <!-- <DeliveryBiryani /> -->
     <div class="mt-10" v-if="!isLoading">
       <RestaurantServing :servingLists="servingLists" :fileURL="fileURL" />
@@ -132,6 +132,9 @@ const listMainCategories = ref([]);
 const isLoading = ref(true);
 const menuLists = ref([]);
 const servingLists = ref([]);
+const userName = computed(() => {
+  return store.state.userName;
+});
 const selectedCountry = computed(() => store.state.selectedCountry);
 const latitude = computed(() => localStorage.getItem("latitude"));
 const longitude = computed(() => localStorage.getItem("longitude"));
@@ -193,7 +196,7 @@ async function getServingList(cityId) {
     const res = await axios.get(
       `/list-biryani-run-price-restaurant/${cityId}/${latitude.value}/${longitude.value}`,
     );
-    servingLists.value = res.data.data;
+    servingLists.value = res.data.data.sort((a, b) => a.distance - b.distance);
   } catch (error) {
     console.error("Error fetching serving list:", error);
   } finally {

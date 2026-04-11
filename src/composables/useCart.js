@@ -77,6 +77,7 @@ export function useCart() {
         },
         params: {
           country_id: data,
+          app_id: 7,
         },
       });
       if (response.data.data?.applicable === "Y") {

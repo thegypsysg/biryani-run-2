@@ -50,12 +50,12 @@
         </div>
 
         <template v-if="!isRestaurant">
-          <div class="cart-items flex-grow-1 overflow-y-auto">
-            <v-row no-gutters class="h-100">
-              <v-col
-                v-if="step == 1"
-                class="d-flex flex-column justify-space-between align-content-space-between pb-4"
-              >
+          <div
+            class="cart-items flex-grow-1"
+            style="min-height: 0; overflow-y: auto"
+          >
+            <v-row no-gutters>
+              <v-col v-if="step == 1" class="pb-4">
                 <div class="">
                   <div class="d-flex align-center px-3 py-1">
                     <div class="flex-grow-0 flex-shrink-0">
@@ -136,11 +136,15 @@
                       </div>
                       <div class="flex-grow-1 flex-shrink-0 ml-1 pa-2">
                         <div class="d-flex align-center justify-space-between">
-                          <div
-                            class="text-wrap font-weight-black product-name text-body-2"
-                          >
-                            {{ product.dish_name }}
-                            <!-- <span class="text-blue">{{ product.quantity_name }}</span> -->
+                          <div class="">
+                            <div
+                              class="text-wrap font-weight-bold product-name text-body-"
+                            >
+                              {{ product.actual_dish_name }}
+                            </div>
+                            <span class="text-blue text-body-2">{{
+                              product.quantity_name
+                            }}</span>
                           </div>
                           <div class="text-body-2 text-end">
                             <strong
@@ -748,7 +752,7 @@
                     <div class="flex-grow-0 flex-shrink-0">
                       <v-img
                         class="rounded bg-white"
-                        :src="fileURL + product.image"
+                        :src="fileURL + product.dish_image"
                         width="65"
                         height="65"
                         cover
@@ -766,19 +770,21 @@
                       </v-img>
                     </div>
                     <div class="flex-grow-1 flex-shrink-0 ml-1 pa-2">
-                      <div class="d-flex align-center justify-space-between">
+                      <div class="">
                         <div class="text-wrap product-name text-body-2">
-                          {{ product.name }}
-                          <span class="text-blue">{{
-                            product.quantity_name
-                          }}</span>
+                          {{ product.actual_dish_name }}
                         </div>
-                        <div class="text-body-2 text-end">
-                          <!-- <strong
-                        >{{ selectedCountry?.currency_symbol }}
-                      </strong> -->
-                          <!-- S{{ formatCurrency(product.price * product.quantity) }} -->
-                        </div>
+                        <span class="text-blue text-body-2">{{
+                          product.quantity_name
+                        }}</span>
+                        <!-- <div class="text-body-2 text-end">
+                          <strong
+                            >{{ selectedCountry?.currency_symbol }}
+                          </strong>
+                          S{{
+                            formatCurrency(product.price * product.quantity)
+                          }}
+                        </div> -->
                       </div>
                       <div class="d-flex align-center justify-space-between">
                         <div class="d-flex align-center ga-3 border">
@@ -2484,6 +2490,7 @@ const getTaxAmount = async () => {
       },
       params: {
         country_id: selectedCountry.value.country_id,
+        app_id: 7,
       },
     });
     if (response.data.data?.applicable === "Y") {
@@ -2702,6 +2709,7 @@ onMounted(() => {
   display: flex; /* Helps manage layout */
   flex-direction: column; /* Ensures proper stacking of elements */
   overflow-x: hidden; /* Prevents horizontal scrolling */
+  max-height: 100dvh;
 }
 
 .cart-items {
@@ -2710,6 +2718,9 @@ onMounted(() => {
   white-space: normal; /* Allows text to wrap instead of overflowing */
   word-break: break-word; /* Breaks long words if needed */
   overflow-wrap: break-word; /* Prevents text overflow */
+  overflow-y: auto;
+  background: #ffff;
+  min-height: 0;
 }
 
 .product-name {
@@ -2726,6 +2737,9 @@ onMounted(() => {
 
 .no-header .m-drawer-content-wrap {
   min-height: 100dvh !important;
+  max-height: 100dvh !important;
+  display: flex;
+  flex-direction: column;
 }
 
 .no-header .m-drawer-header {
@@ -2734,10 +2748,6 @@ onMounted(() => {
 
 .fill-height {
   height: 100%;
-}
-.cart-items {
-  overflow-y: auto;
-  background: #ffff;
 }
 .checkout-container {
   position: sticky;

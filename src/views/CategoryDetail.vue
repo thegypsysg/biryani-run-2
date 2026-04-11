@@ -24,11 +24,19 @@
               <v-icon color="white" size="20"> mdi-chevron-left </v-icon>
             </v-btn>
             <div
+              v-if="categoryData?.biryaniRunPrice?.veg == 'Y'"
               class="bg-success text-white font-weight-bold text-caption px-3 py-1 rounded-lg"
             >
               <p>Veg</p>
             </div>
             <div
+              v-if="categoryData?.biryaniRunPrice?.['non-veg'] == 'Y'"
+              class="bg-red text-white font-weight-bold text-caption px-3 py-1 rounded-lg"
+            >
+              <p>Non-Veg</p>
+            </div>
+            <div
+              v-if="categoryData?.biryaniRunPrice?.halal == 'Y'"
               class="bg-white text-success font-weight-bold text-caption px-3 py-1 rounded-lg"
             >
               <p>Halal</p>
@@ -243,7 +251,9 @@
             <div
               class="text-wrap font-weight-black product-name text-body-2 mb-2"
             >
-              <span class="text-blue-darken-3">2 Pax</span>
+              <span class="text-blue-darken-3">{{
+                categoryData?.biryaniRunPrice?.quantity_name
+              }}</span>
             </div>
             <div class="d-flex align-center justify-space-between">
               <div class="d-flex align-center ga-3 border">
@@ -308,7 +318,7 @@
           </div>
         </div>
 
-        <div class="d-flex align-center py-1 my-2">
+        <!-- <div class="d-flex align-center py-1 my-2">
           <div class="flex-grow-0 flex-shrink-0">
             <v-img
               class="rounded bg-white"
@@ -394,7 +404,7 @@
               </div>
             </div>
           </div>
-        </div>
+        </div> -->
       </v-container>
 
       <div

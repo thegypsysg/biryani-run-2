@@ -1,12 +1,12 @@
 <template>
-  <div v-if="!desktop" class="d-flex ga-6 overflow-x-auto flex-row scroll-menu">
+  <!-- <div v-if="!desktop" class="d-flex ga-6 overflow-x-auto flex-row scroll-menu">
     <div
       v-for="menu in menuLists"
       :key="menu.id"
       class="d-flex align-center ga-4 flex-column"
       @click="scrollToSection(formatName(menu.title), true)"
     >
-      <div class="d-flex border-black pa-2 rounded-lg">
+      <div class="d-flex border-black pa-2 rounded-lg mt-2">
         <v-avatar :size="40">
           <v-img aspect-ratio="1" cover :src="$fileURL + menu.img"></v-img>
         </v-avatar>
@@ -26,9 +26,40 @@
         </div>
       </div>
     </div>
+  </div> -->
+
+  <div
+    v-if="!desktop"
+    class="d-flex ga-6 overflow-x-auto flex-row scroll-menu scroll-cont"
+  >
+    <div
+      v-for="menu in menuLists"
+      :key="menu.id"
+      class="d-flex align-center ga-4 flex-column"
+      @click="scrollToSection(formatName(menu.title), true)"
+    >
+      <a class="d-flex flex-column align-center border-none pa-2 rounded-lg">
+        <v-avatar :size="70">
+          <v-img aspect-ratio="1" cover :src="$fileURL + menu?.img"></v-img>
+        </v-avatar>
+        <p class="text-no-wrap d-flex align-center mt-2 text-caption">
+          {{ menu.title }}
+        </p>
+        <div
+          class="text-no-wrap d-flex align-center font-weight-bold text-caption"
+        >
+          <span class="text-red-darken-1">
+            {{ menu?.onBoardDishes?.length }}
+          </span>
+          &nbsp;
+          <span> Restaurants</span>
+        </div>
+      </a>
+    </div>
   </div>
 
   <div v-if="desktop" class="explore-section d-none d-md-block">
+    <!-- <div class="explore-section"> -->
     <!-- <v-container> -->
     <div class="position-relative pt-14">
       <!-- <v-btn
@@ -40,7 +71,7 @@
         <span class="arrow-icon">←</span>
       </v-btn> -->
 
-      <Splide class="px-16" ref="splideRef" :options="splideOptions">
+      <Splide class="px-md-16" ref="splideRef" :options="splideOptions">
         <SplideSlide v-for="menu in menuLists" :key="menu.id">
           <v-card
             @click="scrollToSection(formatName(menu.title), false)"
@@ -153,7 +184,7 @@ function scrollToSection(sectionId, mobile) {
     const cardRect = cardSection.getBoundingClientRect();
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
     const offset = mobile
-      ? cardRect.top + scrollTop - 220
+      ? cardRect.top + scrollTop - 280
       : cardRect.top + scrollTop - 100; // Nilai offset yang diinginkan, dalam piksel
 
     window.scrollTo({

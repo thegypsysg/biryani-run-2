@@ -129,7 +129,7 @@ export default {
     finalCartTotal() {
       const subTotal = Number(this.subTotal) || 0;
       const deliveryPrice = Number(this.selectedDeliveryPrice) || 0;
-      const platformFee = Number(this.platformFee) || 0;
+      const platformFee = Number(this.$store.state.cart[0].platform_fee) || 0;
       const taxAmount = Number(this.taxAmount) || 0;
       let serviceFee = 0;
 
@@ -348,6 +348,7 @@ export default {
           },
           params: {
             country_id: this.selectedCountry.country_id,
+            app_id: 7,
           },
         });
         if (response?.data?.data?.applicable === "Y") {
@@ -1075,7 +1076,7 @@ watch(() => {
       </button>
     </form>
 
-    <div
+    <!-- <div
       v-if="!isDesktop && !isProfile && !isProduct"
       @click="toggleMobileSearchBar()"
     >
@@ -1091,7 +1092,7 @@ watch(() => {
           d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"
         />
       </svg>
-    </div>
+    </div> -->
 
     <div
       v-if="isHeader || isProfile"
@@ -1118,7 +1119,7 @@ watch(() => {
         :items="activeMalls"
         :custom-filter="filterMalls"
         style="font-style: italic"
-        placeholder="Chicken, Mutton , Prawn"
+        placeholder="Restaurant Name or Biryani (Chicken , Mutton, Fish etc)"
         density="compact"
         color="blue-grey-lighten-2"
       >
@@ -1444,7 +1445,7 @@ watch(() => {
         </v-btn>
 
         <div v-if="isSmall && !isProduct" class="ma-4">
-          <form v-if="openMobileSearchBar" class="navbar__search mx-auto">
+          <form class="navbar__search mx-auto">
             <v-autocomplete
               id="product_name"
               v-model="search"
@@ -1454,7 +1455,7 @@ watch(() => {
               :items="activeMalls"
               :custom-filter="filterMalls"
               style="font-style: italic"
-              placeholder="Chicken, Mutton , Prawn"
+              placeholder="Restaurant Name or Biryani (Chicken , Mutton, Fish etc)"
               density="compact"
               color="blue-grey-lighten-2"
             >

@@ -49,5 +49,6 @@ declare module 'vue' {
     ServingCard: typeof import('./src/components/home/partials/serving-card.vue')['default']
     VegBiryani: typeof import('./src/components/home/veg-biryani.vue')['default']
     Welcome: typeof import('./src/components/SignUp/Welcome.vue')['default']
+    YourOrder: typeof import('./src/components/YourOrder.vue')['default']
   }
 }

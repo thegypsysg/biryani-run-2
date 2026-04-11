@@ -16,6 +16,8 @@ const props = defineProps<{
   isDesktop: boolean;
 }>();
 
+const selectedVariant = ref(props.menu?.biryaniRunPrice?.quantity_name);
+
 const loading = ref(false);
 const showDesktopDetail = ref(false);
 const snackbar = ref(false);
@@ -107,11 +109,11 @@ const goToDetail = async (menu: any) => {
     :class="{ 'bg-white': true, 'pa-3': isDesktop, 'pa-1': !isDesktop }"
     elevation="4"
     style="width: 100%"
-    :style="{ height: isDesktop ? '385px' : '360px' }"
+    :style="{ height: isDesktop ? '420px' : '390px' }"
   >
     <div
       class="align-center text-start ga-3"
-      :style="{ height: isDesktop ? '60px' : '60px' }"
+      :style="{ height: isDesktop ? '70px' : '70px' }"
     >
       <v-img
         :src="
@@ -143,6 +145,14 @@ const goToDetail = async (menu: any) => {
                 : ""
             }}
           </div>
+          <p class="text-caption font-weight-bold">
+            <span class="text-red">{{
+              props.menu?.biryaniRunPrice?.restaurant?.distance
+                ? props.menu?.biryaniRunPrice?.restaurant?.distance
+                : ""
+            }}</span>
+            kms
+          </p>
         </div>
       </div>
     </div>
@@ -199,13 +209,42 @@ const goToDetail = async (menu: any) => {
         aspect-ratio="1"
         height="160px"
       ></v-img>
+      <div
+        class="position-absolute d-flex align-center ga-3"
+        style="bottom: 20px; left: 15px"
+      >
+        <div
+          v-if="props.menu?.biryaniRunPrice?.veg == 'Y'"
+          class="bg-success text-white font-weight-bold text-caption px-3 py-1 rounded-lg"
+        >
+          <p>Veg</p>
+        </div>
+        <div
+          v-if="props.menu?.biryaniRunPrice?.['non-veg'] == 'Y'"
+          class="bg-red text-white font-weight-bold text-caption px-3 py-1 rounded-lg"
+        >
+          <p>Non-Veg</p>
+        </div>
+        <div
+          v-if="props.menu?.biryaniRunPrice?.halal == 'Y'"
+          class="bg-white text-success font-weight-bold text-caption px-3 py-1 rounded-lg"
+        >
+          <p>Halal</p>
+        </div>
+      </div>
+    </div>
+    <div
+      class="position-absolute bg-white font-weight-bold px-2 py-1 text-caption"
+      style="top: 90px; left: 20px"
+    >
+      In-App Reviews : <span class="text-blue-accent-4">35</span>
     </div>
     <div
       class="d-flex justify-space-between"
       style="
         position: absolute;
         gap: 10px;
-        bottom: 120px;
+        bottom: 140px;
         right: 30px;
         z-index: 100;
       "
@@ -213,8 +252,8 @@ const goToDetail = async (menu: any) => {
       <v-btn
         color="white"
         class="card-btn"
-        :width="!isDesktop ? 30 : 35"
-        :height="!isDesktop ? 30 : 35"
+        :width="!isDesktop ? 20 : 30"
+        :height="!isDesktop ? 20 : 30"
         icon="mdi-share-variant-outline"
       >
         <v-icon size="18" color="red">
@@ -224,8 +263,8 @@ const goToDetail = async (menu: any) => {
       <v-btn
         color="white"
         class="card-btn"
-        :width="!isDesktop ? 30 : 35"
-        :height="!isDesktop ? 30 : 35"
+        :width="!isDesktop ? 20 : 30"
+        :height="!isDesktop ? 20 : 30"
         icon="mdi-thumb-up-outline"
       >
         <v-icon size="18" color="red"> mdi-thumb-up-outline </v-icon></v-btn
@@ -234,32 +273,17 @@ const goToDetail = async (menu: any) => {
         class="card-btn"
         color="white"
         icon="mdi-heart-outline"
-        :width="!isDesktop ? 30 : 35"
-        :height="!isDesktop ? 30 : 35"
+        :width="!isDesktop ? 20 : 30"
+        :height="!isDesktop ? 20 : 30"
       >
         <v-icon size="18" color="red"> mdi-heart-outline </v-icon>
       </v-btn>
     </div>
 
     <div class="pa-2">
-      <p class="font-weight-black text-subtitle-2 text-start mt-4">
-        {{
-          props.menu?.biryaniRunPrice?.actual_dish_name || props.menu?.dish_name
-        }}
-        <span class="text-blue-lighten-1 ml-2">2 Pax</span>
-      </p>
       <div
-        class="d-flex justify-start ga-2 w-100 align-center my-2 font-weight-bold text-caption"
+        class="d-flex justify-start ga-2 w-100 align-center font-weight-bold text-caption mt-2"
       >
-        <p style="text-align: right">
-          <span class="text-red">{{
-            props.menu?.biryaniRunPrice?.restaurant?.distance
-              ? props.menu?.biryaniRunPrice?.restaurant?.distance
-              : ""
-          }}</span>
-          kms
-        </p>
-        <span>|</span>
         <div class="d-flex" style="gap: 10px">
           <p>
             <span class="text-blue-lighten-1">{{
@@ -275,6 +299,23 @@ const goToDetail = async (menu: any) => {
           <p>{{ props.menu?.biryaniRunPrice?.likes || 0 }}</p>
         </div>
       </div>
+      <p class="font-weight-black text-subtitle-2 text-start mt-2">
+        {{
+          props.menu?.biryaniRunPrice?.actual_dish_name || props.menu?.dish_name
+        }}
+        <!-- <span class="text-blue-lighten-1 ml-2">{{
+          props.menu?.biryaniRunPrice?.quantity_name
+        }}</span> -->
+      </p>
+      <v-select
+        :items="[props.menu?.biryaniRunPrice?.quantity_name]"
+        v-model="selectedVariant"
+        density="compact"
+        variant="plain"
+        class="text-blue-darken-4 font-weight-bold"
+        hide-details
+      ></v-select>
+      <!-- @change="onVariantChange" -->
       <div class="d-flex justify-space-between align-center">
         <p class="text-start font-weight-bold mt-2">
           {{ selectedCountry?.currency_symbol }}
@@ -438,11 +479,19 @@ const goToDetail = async (menu: any) => {
                 style="bottom: 15px; left: 15px"
               >
                 <div
+                  v-if="props.menu?.biryaniRunPrice?.veg == 'Y'"
                   class="bg-success text-white font-weight-bold text-caption px-3 py-1 rounded-lg"
                 >
                   <p>Veg</p>
                 </div>
                 <div
+                  v-if="props.menu?.biryaniRunPrice?.['non-veg'] == 'Y'"
+                  class="bg-red text-white font-weight-bold text-caption px-3 py-1 rounded-lg"
+                >
+                  <p>Non-Veg</p>
+                </div>
+                <div
+                  v-if="props.menu?.biryaniRunPrice?.halal == 'Y'"
                   class="bg-white text-success font-weight-bold text-caption px-3 py-1 rounded-lg"
                 >
                   <p>Halal</p>
@@ -523,7 +572,9 @@ const goToDetail = async (menu: any) => {
                 </div>
                 <div class="flex-grow-1 pt-1">
                   <div class="font-weight-black text-body-1 mb-3">
-                    <span class="text-blue-darken-3">2 Pax</span>
+                    <span class="text-blue-darken-3">{{
+                      props.menu?.biryaniRunPrice?.quantity_name
+                    }}</span>
                   </div>
                   <div class="d-flex align-center justify-space-between">
                     <div class="d-flex align-center">
@@ -598,7 +649,7 @@ const goToDetail = async (menu: any) => {
               </div>
 
               <!-- Item 2: Tray Biryani (Dummy/Static UI for demonstration based on screenshot) -->
-              <div class="d-flex align-start ga-4">
+              <!-- <div class="d-flex align-start ga-4">
                 <div class="flex-grow-0 flex-shrink-0">
                   <v-img
                     class="rounded"
@@ -637,7 +688,7 @@ const goToDetail = async (menu: any) => {
                     </div>
                   </div>
                 </div>
-              </div>
+              </div> -->
             </div>
           </v-col>
         </v-row>

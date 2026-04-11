@@ -42,9 +42,18 @@ import Cart from "@/components/Cart.vue";
 
 const store = useStore();
 
+const allDays = [0, 1, 2, 3, 4, 5, 6];
+
 // const platformFee = ref(null);
 const taxAmount = ref(null);
 const viewCart = ref(false);
+const selectedDelivery = ref(
+  // store.state.selectedDelivery ??
+  //   (localStorage.getItem("selectedDelivery") !== null
+  //     ? Number(localStorage.getItem("selectedDelivery"))
+  //     : null),
+  null,
+);
 
 const userName = computed(() => {
   return store.state.userName;
@@ -67,6 +76,22 @@ const subTotal = computed(() => {
 });
 
 const selectedCountry = computed(() => store.state.selectedCountry);
+
+const deliveryOptions = computed(() => {
+  return store.state.deliveryCharges.map((item) => {
+    return {
+      ...item,
+      allowedDays: allDays.filter((day) => !item.allowed_days.includes(day)),
+    };
+  });
+});
+
+// const selectedDeliveryPrice = computed(() => {
+//   const option = deliveryOptions.value.find(
+//     (opt) => opt.value === selectedDelivery.value,
+//   );
+//   return option ? option.price : 0;
+// });
 
 const selectedDeliveryPrice = computed(() => {
   if (store.state.cart) {
@@ -148,6 +173,7 @@ async function getTaxAmount() {
       },
       params: {
         country_id: selectedCountry.value.country_id,
+        app_id: 7,
       },
     });
 
@@ -184,9 +210,15 @@ watch(selectedCountry, async () => {
   await getTaxAmount();
 });
 
-// onMounted(() => {
-//   getPlatformFee();
-// });
+onMounted(() => {
+  if (store.state.cart[0]?.delivery_charges != "0.00") {
+    selectedDelivery.value = store.state.cart[0]?.dc_id
+      ? Number(store.state.cart[0]?.dc_id)
+      : null;
+  } else {
+    selectedDelivery.value = null;
+  }
+});
 </script>
 
 <style>

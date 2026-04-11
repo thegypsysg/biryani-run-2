@@ -32,7 +32,11 @@
       <transition-group name="card-transition" mode="out-in">
         <Splide ref="splideRef" class="px-2 px-md-16" :options="splideOptions">
           <SplideSlide
-            v-for="item in menuLists.onBoardDishes"
+            v-for="item in menuLists.onBoardDishes.sort(
+              (a, b) =>
+                a.biryaniRunPrice.restaurant.distance -
+                b.biryaniRunPrice.restaurant.distance,
+            )"
             :key="item.dish_id"
           >
             <MenuCard :menu="item" :fileURL="$fileURL" :isDesktop="isDesktop" />
