@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onMounted, ref, computed } from "vue";
+import { onMounted, ref, computed, watch } from "vue";
 import { useCart } from "@/composables/useCart";
 import axios from "@/util/axios";
 import { fileURL, appId } from "@/main";
@@ -16,7 +16,25 @@ const props = defineProps<{
   isDesktop: boolean;
 }>();
 
-const selectedVariant = ref(props.menu?.biryaniRunPrice?.quantity_name);
+const selectedVariant = ref(props.menu?.biryaniRunPrice);
+
+watch(
+  () => props.menu,
+  (newMenu) => {
+    selectedVariant.value = newMenu?.biryaniRunPrice;
+  },
+  { deep: true, immediate: true },
+);
+
+const menuVariants = computed(() => {
+  const main = props.menu?.biryaniRunPrice;
+  if (!main) return [];
+  const variants = [main];
+  if (main.biryaniRunPrice2 && main.biryaniRunPrice2.length > 0) {
+    variants.push(...main.biryaniRunPrice2);
+  }
+  return variants;
+});
 
 const loading = ref(false);
 const showDesktopDetail = ref(false);
@@ -32,7 +50,7 @@ const dummyDescription = ref(
 );
 
 const truncatedDescription = computed(() => {
-  const limit = 153;
+  const limit = 183;
   if (dummyDescription.value.length > limit) {
     return dummyDescription.value.substring(0, limit);
   }
@@ -49,32 +67,32 @@ const userName = computed(() => {
   return store.state.userName;
 });
 
-const addToCartData = (data) => {
+const addToCartData = (data, brpId2 = null) => {
   // console.log(token.value);
   if (token.value == "null") {
     store.commit("setIsNotLoggedIn", true);
   } else {
-    addToCart(data);
+    addToCart(data, brpId2);
   }
 };
 
 const goToDetail = async (menu: any) => {
-  if (props.isDesktop) {
-    showDesktopDetail.value = true;
-  } else {
-    try {
-      const response = await axios.post(
-        `/biryani-run-price-increment-views/${menu?.biryaniRunPrice?.brp_id}`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token.value}`,
-          },
+  try {
+    const response = await axios.post(
+      `/biryani-run-price-increment-views/${menu?.biryaniRunPrice?.brp_id}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token.value}`,
         },
-      );
-      // getAddress();
-      const data = response.data?.data;
-      // console.log(data);
+      },
+    );
+    // getAddress();
+    const data = response.data?.data;
+    // console.log(data);
+    if (props.isDesktop) {
+      showDesktopDetail.value = true;
+    } else {
       const menuData = {
         ...menu,
         biryaniRunPrice: {
@@ -84,16 +102,16 @@ const goToDetail = async (menu: any) => {
       };
       localStorage.setItem("categoryDetailData", JSON.stringify(menuData));
       router.push(`/category/${menu?.dish_id}`);
-    } catch (error) {
-      console.log(error);
-      const errorMessage =
-        error.response?.data?.message || "Something went wrong!";
-      snackbar.value = true;
-      message.value = {
-        text: errorMessage,
-        color: "error",
-      };
     }
+  } catch (error) {
+    console.log(error);
+    const errorMessage =
+      error.response?.data?.message || "Something went wrong!";
+    snackbar.value = true;
+    message.value = {
+      text: errorMessage,
+      color: "error",
+    };
   }
 };
 </script>
@@ -186,8 +204,8 @@ const goToDetail = async (menu: any) => {
       <v-img
         v-if="isDesktop"
         :src="
-          props.menu?.biryaniRunPrice?.dish_image
-            ? props.fileURL + props.menu?.biryaniRunPrice?.dish_image
+          selectedVariant?.dish_image
+            ? props.fileURL + selectedVariant?.dish_image
             : props.menu?.main_image
               ? props.fileURL + props.menu?.main_image
               : ''
@@ -199,8 +217,8 @@ const goToDetail = async (menu: any) => {
       <v-img
         v-if="!isDesktop"
         :src="
-          props.menu?.biryaniRunPrice?.dish_image
-            ? props.fileURL + props.menu?.biryaniRunPrice?.dish_image
+          selectedVariant?.dish_image
+            ? props.fileURL + selectedVariant?.dish_image
             : props.menu?.main_image
               ? props.fileURL + props.menu?.main_image
               : ''
@@ -233,6 +251,7 @@ const goToDetail = async (menu: any) => {
         </div>
       </div>
     </div>
+
     <div
       class="position-absolute bg-white font-weight-bold px-2 py-1 text-caption"
       style="top: 90px; left: 20px"
@@ -303,52 +322,98 @@ const goToDetail = async (menu: any) => {
         {{
           props.menu?.biryaniRunPrice?.actual_dish_name || props.menu?.dish_name
         }}
-        <!-- <span class="text-blue-lighten-1 ml-2">{{
-          props.menu?.biryaniRunPrice?.quantity_name
-        }}</span> -->
       </p>
-      <v-select
-        :items="[props.menu?.biryaniRunPrice?.quantity_name]"
-        v-model="selectedVariant"
-        density="compact"
-        variant="plain"
-        class="text-blue-darken-4 font-weight-bold"
-        hide-details
-      ></v-select>
-      <!-- @change="onVariantChange" -->
+      <p
+        v-if="props.menu?.biryaniRunPrice?.biryaniRunPrice2.length == 0"
+        class="text-blue-darken-4 font-weight-bold ml-2 my-3"
+        :style="
+          !isDesktop
+            ? 'font-size: 12px; white-space: normal; line-height: 1.2;'
+            : ''
+        "
+      >
+        {{ props.menu?.biryaniRunPrice?.quantity_name }}
+      </p>
+      <div
+        class="d-flex align-center"
+        v-if="props.menu?.biryaniRunPrice?.biryaniRunPrice2.length > 0"
+      >
+        <v-select
+          :items="menuVariants"
+          v-model="selectedVariant"
+          item-title="quantity_name"
+          return-object
+          density="compact"
+          variant="plain"
+          class="text-blue-darken-4 font-weight-bold"
+          hide-details
+        >
+          <template v-slot:selection="{ item }">
+            <span
+              :style="
+                !isDesktop
+                  ? 'font-size: 12px; white-space: normal; line-height: 1.2;'
+                  : ''
+              "
+            >
+              {{ item.title }}
+            </span>
+          </template>
+        </v-select>
+        <!-- @change="onVariantChange" -->
+        <p
+          class="text-red-darken-1 ml-2 font-weight-bold"
+          :style="
+            !isDesktop
+              ? 'font-size: 10px; white-space: normal; line-height: 1.2;'
+              : ''
+          "
+        >
+          More Options
+        </p>
+      </div>
       <div class="d-flex justify-space-between align-center">
         <p class="text-start font-weight-bold mt-2">
           {{ selectedCountry?.currency_symbol }}
           {{
-            props.menu?.biryaniRunPrice?.rate
-              ? parseFloat(props.menu?.biryaniRunPrice?.rate).toFixed(2)
+            selectedVariant?.rate
+              ? parseFloat(selectedVariant?.rate).toFixed(2)
               : ""
           }}
         </p>
         <span>
           <v-btn
-            v-if="!isInCart(props.menu)"
-            @click="addToCartData(props.menu)"
+            v-if="!isInCart(props.menu, selectedVariant?.brp_id_2)"
+            @click="addToCartData(props.menu, selectedVariant?.brp_id_2)"
             size="xs"
             color="black"
             class="text-caption py-1 px-8"
             variant="flat"
             >Add</v-btn
           >
-          <div v-else="isInCart(props.menu)" class="d-flex align-center ga-2">
+          <div
+            v-else-if="isInCart(props.menu, selectedVariant?.brp_id_2)"
+            class="d-flex align-center ga-2"
+          >
             <v-btn
               size="xs"
               color="black"
               class="text-caption pa-1 rounded-0"
               variant="flat"
               icon
-              @click="updateQuantity(props.menu, 'decrease')"
+              @click="
+                updateQuantity(
+                  props.menu,
+                  'decrease',
+                  selectedVariant?.brp_id_2,
+                )
+              "
             >
               <v-icon>mdi-minus</v-icon>
             </v-btn>
 
             <span>
-              {{ cartQuantity(props.menu) }}
+              {{ cartQuantity(props.menu, selectedVariant?.brp_id_2) }}
             </span>
 
             <v-btn
@@ -357,7 +422,13 @@ const goToDetail = async (menu: any) => {
               class="text-caption pa-1 rounded-0"
               variant="flat"
               icon
-              @click="updateQuantity(props.menu, 'increase')"
+              @click="
+                updateQuantity(
+                  props.menu,
+                  'increase',
+                  selectedVariant?.brp_id_2,
+                )
+              "
             >
               <v-icon>mdi-plus</v-icon>
             </v-btn>
@@ -510,7 +581,7 @@ const goToDetail = async (menu: any) => {
               <span class="text-grey-darken-1">|</span>
               <p class="text-grey-darken-2">
                 <span class="text-blue-lighten-1">{{
-                  props.menu?.biryaniRunPrice?.views || 0
+                  props.menu?.biryaniRunPrice?.views + 1 || 0
                 }}</span>
                 Views
               </p>
@@ -541,7 +612,7 @@ const goToDetail = async (menu: any) => {
                 }}
               </p>
               <div
-                v-if="dummyDescription.length > 153"
+                v-if="dummyDescription.length > 183"
                 class="mt-1 font-weight-bold"
                 style="color: #4169e1; cursor: pointer"
                 @click="isDescriptionExpanded = !isDescriptionExpanded"
@@ -554,7 +625,6 @@ const goToDetail = async (menu: any) => {
           <!-- Right Content -->
           <v-col cols="12" md="6" class="pa-4">
             <div class="d-flex flex-column ga-6 mt-16 pr-6">
-              <!-- Item 1: 2 Pax -->
               <div class="d-flex align-start ga-4">
                 <div class="flex-grow-0 flex-shrink-0">
                   <v-img
@@ -635,28 +705,26 @@ const goToDetail = async (menu: any) => {
                       {{
                         isInCart(props.menu)
                           ? (
-                              parseFloat(
-                                props.menu?.biryaniRunPrice?.rate || 0,
-                              ) * cartQuantity(props.menu)
+                              parseFloat(selectedVariant?.rate || 0) *
+                              cartQuantity(props.menu)
                             ).toFixed(2)
-                          : parseFloat(
-                              props.menu?.biryaniRunPrice?.rate || 0,
-                            ).toFixed(2)
+                          : parseFloat(selectedVariant?.rate || 0).toFixed(2)
                       }}
                     </div>
                   </div>
                 </div>
               </div>
-
-              <!-- Item 2: Tray Biryani (Dummy/Static UI for demonstration based on screenshot) -->
-              <!-- <div class="d-flex align-start ga-4">
+              <div
+                v-for="item in props.menu?.biryaniRunPrice?.biryaniRunPrice2"
+                :key="item.brp_id_2"
+                class="d-flex align-start ga-4"
+              >
                 <div class="flex-grow-0 flex-shrink-0">
                   <v-img
                     class="rounded"
                     :src="
-                      props.menu?.biryaniRunPrice?.dish_image
-                        ? props.fileURL +
-                          props.menu?.biryaniRunPrice?.dish_image
+                      item?.dish_image
+                        ? props.fileURL + item?.dish_image
                         : props.fileURL + props.menu?.main_image
                     "
                     width="70"
@@ -666,29 +734,86 @@ const goToDetail = async (menu: any) => {
                 </div>
                 <div class="flex-grow-1 pt-1">
                   <div class="font-weight-black text-body-1 mb-3">
-                    <span class="text-blue-darken-3"
-                      >Tray Biryani (6 to 7 Pax)</span
-                    >
+                    <span class="text-blue-darken-3">{{
+                      item?.quantity_name
+                    }}</span>
                   </div>
                   <div class="d-flex align-center justify-space-between">
                     <div class="d-flex align-center">
                       <v-btn
+                        v-if="!isInCart(props.menu, item?.brp_id_2)"
+                        @click="addToCartData(props.menu, item?.brp_id_2)"
                         color="black"
                         class="text-caption px-6 text-none font-weight-bold rounded-lg"
                         height="30"
                         variant="flat"
                         >Add</v-btn
                       >
+                      <div
+                        v-else
+                        class="d-flex align-center bg-black rounded"
+                        style="height: 30px"
+                      >
+                        <v-btn
+                          size="small"
+                          color="black"
+                          class="rounded-s px-1"
+                          variant="flat"
+                          height="30"
+                          min-width="30"
+                          @click="
+                            updateQuantity(
+                              props.menu,
+                              'decrease',
+                              item?.brp_id_2,
+                            )
+                          "
+                        >
+                          <v-icon size="16">mdi-minus</v-icon>
+                        </v-btn>
+                        <span
+                          class="px-3 bg-white text-black font-weight-bold d-flex align-center justify-center"
+                          style="height: 30px; min-width: 30px"
+                        >
+                          {{ cartQuantity(props.menu, item?.brp_id_2) }}
+                        </span>
+                        <v-btn
+                          size="small"
+                          color="black"
+                          class="rounded-e px-1"
+                          variant="flat"
+                          height="30"
+                          min-width="30"
+                          @click="
+                            updateQuantity(
+                              props.menu,
+                              'increase',
+                              item?.brp_id_2,
+                            )
+                          "
+                        >
+                          <v-icon size="16">mdi-plus</v-icon>
+                        </v-btn>
+                      </div>
                     </div>
                     <div class="text-body-2 font-weight-black">
-                      {{ selectedCountry?.currency_symbol || "S$" }} 80.00
+                      {{ selectedCountry?.currency_symbol || "S$" }}
+                      {{ parseFloat(item?.rate || 0).toFixed(2) }}
                     </div>
                     <div class="text-body-2 font-weight-black text-red">
-                      {{ selectedCountry?.currency_symbol || "S$" }} 80.00
+                      {{ selectedCountry?.currency_symbol || "S$" }}
+                      {{
+                        isInCart(props.menu, item?.brp_id_2)
+                          ? (
+                              parseFloat(item?.rate || 0) *
+                              cartQuantity(props.menu, item?.brp_id_2)
+                            ).toFixed(2)
+                          : parseFloat(item?.rate || 0).toFixed(2)
+                      }}
                     </div>
                   </div>
                 </div>
-              </div> -->
+              </div>
             </div>
           </v-col>
         </v-row>

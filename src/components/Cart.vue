@@ -140,7 +140,13 @@
                             <div
                               class="text-wrap font-weight-bold product-name text-body-"
                             >
-                              {{ product.actual_dish_name }}
+                              {{
+                                product?.actual_dish_name
+                                  ? product.actual_dish_name
+                                  : product?.dish_name
+                                    ? product.dish_name
+                                    : ""
+                              }}
                             </div>
                             <span class="text-blue text-body-2">{{
                               product.quantity_name
@@ -772,7 +778,13 @@
                     <div class="flex-grow-1 flex-shrink-0 ml-1 pa-2">
                       <div class="">
                         <div class="text-wrap product-name text-body-2">
-                          {{ product.actual_dish_name }}
+                          {{
+                            product?.actual_dish_name
+                              ? product.actual_dish_name
+                              : product?.dish_name
+                                ? product.dish_name
+                                : ""
+                          }}
                         </div>
                         <span class="text-blue text-body-2">{{
                           product.quantity_name

@@ -89,20 +89,24 @@ export function useCart() {
     }
   };
 
-  const isInCart = (product) => {
-    return cart.value.some(
-      (item) => item.brp_id === product?.biryaniRunPrice?.brp_id,
-    );
+  const isInCart = (product, brpId2 = null) => {
+    return cart.value.some((item) => {
+      const matchBrp = item.brp_id === product?.biryaniRunPrice?.brp_id || item.brp_id === product?.brp_id;
+      const matchBrp2 = brpId2 ? item.brp_id_2 === brpId2 : !item.brp_id_2;
+      return matchBrp && matchBrp2;
+    });
   };
 
-  const cartQuantity = (product) => {
-    const item = cart.value.find(
-      (item) => item.brp_id === product?.biryaniRunPrice?.brp_id,
-    );
+  const cartQuantity = (product, brpId2 = null) => {
+    const item = cart.value.find((item) => {
+      const matchBrp = item.brp_id === product?.biryaniRunPrice?.brp_id || item.brp_id === product?.brp_id;
+      const matchBrp2 = brpId2 ? item.brp_id_2 === brpId2 : !item.brp_id_2;
+      return matchBrp && matchBrp2;
+    });
     return item ? item.quantity : 0;
   };
 
-  const addToCart = (product) => {
+  const addToCart = (product, brpId2 = null) => {
     console.log(product);
     getPlatformFee();
     getTaxAmount();
@@ -118,38 +122,42 @@ export function useCart() {
           : null,
       qty: 1,
     };
-    console.log(selectedCountry.value);
 
-    6; // console.log({ cartMasterData });
+    if (brpId2) {
+      cartMasterData.brp_id_2 = brpId2;
+    }
+
+    // console.log(selectedCountry.value);
+
+    // console.log({ cartMasterData });
     store.dispatch("addToCart", cartMasterData);
   };
 
-  const findSimilarItems = (cart, brpId) => {
-    const similarItems = [];
-    cart.forEach((item) => {
-      // if (product.product_name.includes(item.name)) {
-      //   similarItems.push(item);
-      // }
-      if (item.brp_id === brpId) {
-        similarItems.push(item);
-      }
-    });
-
-    return similarItems;
-  };
-
-  const updateQuantity = (product, change) => {
+  const updateQuantity = (product, change, brpId2 = null) => {
     const brpId = product?.biryaniRunPrice?.brp_id
       ? product?.biryaniRunPrice?.brp_id
       : product?.brp_id
         ? product?.brp_id
         : null;
-    const cartItems = findSimilarItems(cart.value, brpId);
+
+    const cartItem = cart.value.find((item) => {
+      const matchBrp = item.brp_id === brpId;
+      const matchBrp2 = brpId2 ? item.brp_id_2 === brpId2 : !item.brp_id_2;
+      return matchBrp && matchBrp2;
+    });
+
+    if (!cartItem) return;
+
     const cartMasterData = {
-      cart_id: cartItems[0]?.cart_id,
+      cart_id: cartItem.cart_id,
       brp_id: brpId,
       change: change,
     };
+
+    if (brpId2) {
+      cartMasterData.brp_id_2 = brpId2;
+    }
+
     store.dispatch("updateCart", cartMasterData);
   };
 

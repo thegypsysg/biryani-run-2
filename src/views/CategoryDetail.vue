@@ -258,18 +258,15 @@
             <div class="d-flex align-center justify-space-between">
               <div class="d-flex align-center ga-3 border">
                 <v-btn
-                  v-if="!isInCart(categoryData, selectedRange)"
-                  @click="addToCartData(categoryData, selectedRange)"
+                  v-if="!isInCart(categoryData)"
+                  @click="addToCartData(categoryData)"
                   rounded=""
                   color="black"
                   class="py-1 px-3 text-caption"
                   variant="flat"
                   >Add To Cart</v-btn
                 >
-                <div
-                  v-else="isInCart(categoryData, selectedRange)"
-                  class="d-flex align-center ga-3"
-                >
+                <div v-else class="d-flex align-center ga-3">
                   <v-btn
                     size="lg"
                     color="black"
@@ -282,7 +279,7 @@
                   </v-btn>
 
                   <span>
-                    {{ cartQuantity(categoryData, selectedRange) }}
+                    {{ cartQuantity(categoryData) }}
                   </span>
 
                   <v-btn
@@ -299,7 +296,7 @@
               </div>
               <div class="text-body-2 text-end">
                 <strong
-                  >{{ selectedCountry?.currency_symbol }}
+                  >{{ selectedCountry?.currency_symbol || "$" }}
                   {{ categoryData?.biryaniRunPrice?.rate }}
                 </strong>
               </div>
@@ -309,7 +306,7 @@
                   {{
                     (
                       categoryData?.biryaniRunPrice?.rate *
-                      cartQuantity(categoryData, selectedRange)
+                      cartQuantity(categoryData)
                     ).toFixed(2)
                   }}
                 </strong>
@@ -318,93 +315,104 @@
           </div>
         </div>
 
-        <!-- <div class="d-flex align-center py-1 my-2">
-          <div class="flex-grow-0 flex-shrink-0">
-            <v-img
-              class="rounded bg-white"
-              :src="$fileURL + categoryData?.biryaniRunPrice?.dish_image"
-              width="65"
-              height="65"
-              cover
-            >
-              <template v-slot:placeholder>
-                <div class="d-flex align-center justify-center fill-height">
-                  <v-progress-circular
-                    color="grey-lighten-4"
-                    indeterminate
-                  ></v-progress-circular>
-                </div>
-              </template>
-            </v-img>
-          </div>
-          <div class="flex-grow-1 flex-shrink-0 ml-1 pa-2">
-            <div
-              class="text-wrap font-weight-black product-name text-body-2 mb-2"
-            >
-              <span class="text-blue-darken-3">Tray Biryani (6 to 7 Pax)</span>
+        <template
+          v-for="item in categoryData?.biryaniRunPrice?.biryaniRunPrice2"
+          :key="item.brp_id_2"
+        >
+          <div class="d-flex align-center py-1 my-2">
+            <div class="flex-grow-0 flex-shrink-0">
+              <v-img
+                class="rounded bg-white"
+                :src="
+                  $fileURL +
+                  (item?.dish_image ||
+                    categoryData?.biryaniRunPrice?.dish_image)
+                "
+                width="65"
+                height="65"
+                cover
+              >
+                <template v-slot:placeholder>
+                  <div class="d-flex align-center justify-center fill-height">
+                    <v-progress-circular
+                      color="grey-lighten-4"
+                      indeterminate
+                    ></v-progress-circular>
+                  </div>
+                </template>
+              </v-img>
             </div>
-            <div class="d-flex align-center justify-space-between">
-              <div class="d-flex align-center ga-3 border">
-                <v-btn
-                  v-if="!isInCart(categoryData, selectedRange)"
-                  @click="addToCartData(categoryData, selectedRange)"
-                  rounded=""
-                  color="black"
-                  class="py-1 px-3 text-caption"
-                  variant="flat"
-                  >Add To Cart</v-btn
-                >
-                <div
-                  v-else="isInCart(categoryData, selectedRange)"
-                  class="d-flex align-center ga-3"
-                >
+            <div class="flex-grow-1 flex-shrink-0 ml-1 pa-2">
+              <div
+                class="text-wrap font-weight-black product-name text-body-2 mb-2"
+              >
+                <span class="text-blue-darken-3">{{
+                  item?.quantity_name
+                }}</span>
+              </div>
+              <div class="d-flex align-center justify-space-between">
+                <div class="d-flex align-center ga-3 border">
                   <v-btn
-                    size="lg"
+                    v-if="!isInCart(categoryData, item.brp_id_2)"
+                    @click="addToCartData(categoryData, item.brp_id_2)"
+                    rounded=""
                     color="black"
-                    class="rounded-0"
+                    class="py-1 px-3 text-caption"
                     variant="flat"
-                    icon
-                    @click="updateQuantity(categoryData, 'decrease')"
+                    >Add To Cart</v-btn
                   >
-                    <v-icon>mdi-minus</v-icon>
-                  </v-btn>
+                  <div v-else class="d-flex align-center ga-3">
+                    <v-btn
+                      size="lg"
+                      color="black"
+                      class="rounded-0"
+                      variant="flat"
+                      icon
+                      @click="
+                        updateQuantity(categoryData, 'decrease', item.brp_id_2)
+                      "
+                    >
+                      <v-icon>mdi-minus</v-icon>
+                    </v-btn>
 
-                  <span>
-                    {{ cartQuantity(categoryData, selectedRange) }}
-                  </span>
+                    <span>
+                      {{ cartQuantity(categoryData, item.brp_id_2) }}
+                    </span>
 
-                  <v-btn
-                    size="lg"
-                    color="black"
-                    class="rounded-0"
-                    variant="flat"
-                    icon
-                    @click="updateQuantity(categoryData, 'increase')"
-                  >
-                    <v-icon>mdi-plus</v-icon>
-                  </v-btn>
+                    <v-btn
+                      size="lg"
+                      color="black"
+                      class="rounded-0"
+                      variant="flat"
+                      icon
+                      @click="
+                        updateQuantity(categoryData, 'increase', item.brp_id_2)
+                      "
+                    >
+                      <v-icon>mdi-plus</v-icon>
+                    </v-btn>
+                  </div>
                 </div>
-              </div>
-              <div class="text-body-2 text-end">
-                <strong
-                  >{{ selectedCountry?.currency_symbol }}
-                  {{ categoryData?.biryaniRunPrice?.rate }}
-                </strong>
-              </div>
-              <div class="text-body-2 text-red">
-                <strong
-                  >{{ selectedCountry?.currency_symbol }}
-                  {{
-                    (
-                      categoryData?.biryaniRunPrice?.rate *
-                      cartQuantity(categoryData, selectedRange)
-                    ).toFixed(2)
-                  }}
-                </strong>
+                <div class="text-body-2 text-end">
+                  <strong
+                    >{{ selectedCountry?.currency_symbol }}
+                    {{ item?.rate }}
+                  </strong>
+                </div>
+                <div class="text-body-2 text-red">
+                  <strong
+                    >{{ selectedCountry?.currency_symbol }}
+                    {{
+                      (
+                        item?.rate * cartQuantity(categoryData, item.brp_id_2)
+                      ).toFixed(2)
+                    }}
+                  </strong>
+                </div>
               </div>
             </div>
           </div>
-        </div> -->
+        </template>
       </v-container>
 
       <div
