@@ -169,7 +169,13 @@
                               class="text-caption pa-1 rounded-0"
                               variant="flat"
                               icon
-                              @click="updateQuantity(product, 'decrease')"
+                              @click="
+                                updateQuantity(
+                                  product,
+                                  'decrease',
+                                  product?.brp_id_2,
+                                )
+                              "
                             >
                               <v-icon>mdi-minus</v-icon>
                             </v-btn>
@@ -182,7 +188,13 @@
                               class="text-caption pa-1 rounded-0"
                               variant="flat"
                               icon
-                              @click="updateQuantity(product, 'increase')"
+                              @click="
+                                updateQuantity(
+                                  product,
+                                  'increase',
+                                  product?.brp_id_2,
+                                )
+                              "
                             >
                               <v-icon>mdi-plus</v-icon>
                             </v-btn>
@@ -806,7 +818,13 @@
                             class="text-caption pa-1 rounded-0"
                             variant="flat"
                             icon
-                            @click="updateQuantity(product, 'decrease')"
+                            @click="
+                              updateQuantity(
+                                product,
+                                'decrease',
+                                product?.brp_id_2,
+                              )
+                            "
                           >
                             <v-icon>mdi-minus</v-icon>
                           </v-btn>
@@ -819,7 +837,13 @@
                             class="text-caption pa-1 rounded-0"
                             variant="flat"
                             icon
-                            @click="updateQuantity(product, 'increase')"
+                            @click="
+                              updateQuantity(
+                                product,
+                                'increase',
+                                product?.brp_id_2,
+                              )
+                            "
                           >
                             <v-icon>mdi-plus</v-icon>
                           </v-btn>
