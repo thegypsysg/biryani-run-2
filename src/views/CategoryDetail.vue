@@ -207,7 +207,12 @@
       </div>
 
       <v-container style="padding-top: 340px; padding-bottom: 100px">
-        <h2 class="">{{ categoryData?.dish_name }}</h2>
+        <h2 class="">
+          {{
+            categoryData?.biryaniRunPrice?.actual_dish_name ||
+            categoryData?.dish_name
+          }}
+        </h2>
 
         <div
           class="my-4"

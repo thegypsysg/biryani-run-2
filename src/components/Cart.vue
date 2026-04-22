@@ -1925,6 +1925,9 @@ const handleRemoveFromCart = (product) => {
     cart_id: cart.value[0]?.cart_id,
     brp_id: product?.brp_id,
   };
+  if (product?.brp_id_2) {
+    data.brp_id_2 = product?.brp_id_2;
+  }
   store.dispatch("removeFromCart", data);
 };
 
