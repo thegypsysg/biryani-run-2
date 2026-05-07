@@ -23,24 +23,6 @@
             >
               <v-icon color="white" size="20"> mdi-chevron-left </v-icon>
             </v-btn>
-            <div
-              v-if="categoryData?.biryaniRunPrice?.veg == 'Y'"
-              class="bg-success text-white font-weight-bold text-caption px-3 py-1 rounded-lg"
-            >
-              <p>Veg</p>
-            </div>
-            <div
-              v-if="categoryData?.biryaniRunPrice?.['non-veg'] == 'Y'"
-              class="bg-red text-white font-weight-bold text-caption px-3 py-1 rounded-lg"
-            >
-              <p>Non-Veg</p>
-            </div>
-            <div
-              v-if="categoryData?.biryaniRunPrice?.halal == 'Y'"
-              class="bg-white text-success font-weight-bold text-caption px-3 py-1 rounded-lg"
-            >
-              <p>Halal</p>
-            </div>
           </div>
           <!-- v-if="userName != 'null'" -->
           <div class="d-flex align-center" style="gap: 15px">
@@ -143,6 +125,10 @@
               </div>
             </div>
             <div
+              v-if="
+                categoryData?.biryaniRunPrice?.restaurant?.google_reviews_on ==
+                'Y'
+              "
               class="d-flex justify-space-between align-center py-2"
               style="width: 40%"
             >
@@ -213,18 +199,36 @@
             categoryData?.dish_name
           }}
         </h2>
+        <div class="d-flex align-center ga-3 mt-2">
+          <div
+            v-if="categoryData?.biryaniRunPrice?.veg == 'Y'"
+            class="bg-success text-white font-weight-bold text-caption px-3 py-1 rounded-lg"
+          >
+            <p>Veg</p>
+          </div>
+          <div
+            v-if="categoryData?.biryaniRunPrice?.['non-veg'] == 'Y'"
+            class="bg-red text-white font-weight-bold text-caption px-3 py-1 rounded-lg"
+          >
+            <p>Non-Veg</p>
+          </div>
+          <div
+            v-if="categoryData?.biryaniRunPrice?.halal == 'Y'"
+            class="bg-white text-success font-weight-bold text-caption px-3 py-1 rounded-lg"
+          >
+            <p>Halal</p>
+          </div>
+        </div>
 
         <div
           class="my-4"
           style="font-size: 14px; color: #333; line-height: 1.5"
         >
           <p>
-            {{
-              isDescriptionExpanded ? dummyDescription : truncatedDescription
-            }}
+            {{ isDescriptionExpanded ? dishDescription : truncatedDishDescription }}
           </p>
           <div
-            v-if="dummyDescription.length > 153"
+            v-if="dishDescription.length > 183"
             class="mt-3 font-weight-bold"
             style="color: #4169e1; cursor: pointer"
             @click="isDescriptionExpanded = !isDescriptionExpanded"
@@ -316,6 +320,39 @@
                   }}
                 </strong>
               </div>
+            </div>
+            <div
+              v-if="categoryData?.biryaniRunPrice?.pq_description"
+              class="mt-2"
+              style="
+                font-size: 13px;
+                color: #000;
+                font-weight: 600;
+                line-height: 1.4;
+                white-space: normal;
+                word-break: break-word;
+              "
+            >
+              {{
+                expandedPqDescriptions["main"]
+                  ? categoryData.biryaniRunPrice.pq_description
+                  : categoryData.biryaniRunPrice.pq_description.length > 80
+                    ? categoryData.biryaniRunPrice.pq_description.substring(
+                        0,
+                        80,
+                      )
+                    : categoryData.biryaniRunPrice.pq_description
+              }}
+              <span
+                v-if="categoryData.biryaniRunPrice.pq_description.length > 80"
+                style="color: #4169e1; cursor: pointer"
+                @click="
+                  expandedPqDescriptions['main'] =
+                    !expandedPqDescriptions['main']
+                "
+              >
+                {{ expandedPqDescriptions["main"] ? "less ...." : "more ...." }}
+              </span>
             </div>
           </div>
         </div>
@@ -415,6 +452,40 @@
                   </strong>
                 </div>
               </div>
+              <div
+                v-if="item?.pq_description"
+                class="mt-2"
+                style="
+                  font-size: 13px;
+                  color: #000;
+                  font-weight: 600;
+                  line-height: 1.4;
+                  white-space: normal;
+                  word-break: break-word;
+                "
+              >
+                {{
+                  expandedPqDescriptions[item.brp_id_2]
+                    ? item.pq_description
+                    : item.pq_description.length > 80
+                      ? item.pq_description.substring(0, 80)
+                      : item.pq_description
+                }}
+                <span
+                  v-if="item.pq_description.length > 80"
+                  style="color: #4169e1; cursor: pointer"
+                  @click="
+                    expandedPqDescriptions[item.brp_id_2] =
+                      !expandedPqDescriptions[item.brp_id_2]
+                  "
+                >
+                  {{
+                    expandedPqDescriptions[item.brp_id_2]
+                      ? "less ...."
+                      : "more ...."
+                  }}
+                </span>
+              </div>
             </div>
           </div>
         </template>
@@ -477,8 +548,7 @@ export default {
       categoryData: null,
       isFavorite: false,
       isDescriptionExpanded: false,
-      dummyDescription:
-        'Chicken Dum Biryani is a classic, aromatic dish where marinated chicken and partially cooked basmati rice are layered and slow-cooked in a sealed pot ("dum"). This traditional method ensures that the flavors are sealed in, allowing the meat to become incredibly tender while the rice absorbs the rich, fragrant spices.',
+      expandedPqDescriptions: {},
     };
   },
 
@@ -503,6 +573,17 @@ export default {
     },
     token() {
       return localStorage.getItem("token");
+    },
+    dishDescription() {
+      return this.categoryData?.biryaniRunPrice?.dish_description || "";
+    },
+    truncatedDishDescription() {
+      if (!this.dishDescription) return "";
+      const limit = 183;
+      if (this.dishDescription.length > limit) {
+        return this.dishDescription.substring(0, limit);
+      }
+      return this.dishDescription;
     },
   },
 
