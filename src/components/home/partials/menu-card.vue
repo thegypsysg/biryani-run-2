@@ -45,16 +45,17 @@ const message = ref({
 });
 
 const isDescriptionExpanded = ref(false);
-const dummyDescription = ref(
-  'Chicken Dum Biryani is a classic, aromatic dish where marinated chicken and partially cooked basmati rice are layered and slow-cooked in a sealed pot ("dum"). This traditional method ensures that the flavors are sealed in, allowing the meat to become incredibly tender while the rice absorbs the rich, fragrant spices.',
+const expandedPqDescriptions = ref({});
+const dishDescription = computed(
+  () => props.menu?.biryaniRunPrice?.dish_description || "",
 );
 
 const truncatedDescription = computed(() => {
   const limit = 183;
-  if (dummyDescription.value.length > limit) {
-    return dummyDescription.value.substring(0, limit);
+  if (dishDescription.value.length > limit) {
+    return dishDescription.value.substring(0, limit);
   }
-  return dummyDescription.value;
+  return dishDescription.value;
 });
 
 const selectedCountry = computed(() => store.state.selectedCountry);
@@ -253,10 +254,14 @@ const goToDetail = async (menu: any) => {
     </div>
 
     <div
+      v-if="props.menu?.biryaniRunPrice?.in_app_reviews"
       class="position-absolute bg-white font-weight-bold px-2 py-1 text-caption"
       style="top: 90px; left: 20px"
     >
-      In-App Reviews : <span class="text-blue-accent-4">35</span>
+      In-App Reviews :
+      <span class="text-blue-accent-4">{{
+        props.menu?.biryaniRunPrice?.in_app_reviews
+      }}</span>
     </div>
     <div
       class="d-flex justify-space-between"
@@ -506,7 +511,13 @@ const goToDetail = async (menu: any) => {
                   </p>
                 </div>
               </div>
-              <div class="d-flex align-center ga-2">
+              <div
+                v-if="
+                  props.menu?.biryaniRunPrice?.restaurant?.google_reviews_on ==
+                  'Y'
+                "
+                class="d-flex align-center ga-2"
+              >
                 <v-icon size="24">
                   <v-img
                     src="@/assets/images/icons/google.png"
@@ -545,29 +556,6 @@ const goToDetail = async (menu: any) => {
                 height="220"
                 class="w-100"
               ></v-img>
-              <div
-                class="position-absolute d-flex align-center ga-3"
-                style="bottom: 15px; left: 15px"
-              >
-                <div
-                  v-if="props.menu?.biryaniRunPrice?.veg == 'Y'"
-                  class="bg-success text-white font-weight-bold text-caption px-3 py-1 rounded-lg"
-                >
-                  <p>Veg</p>
-                </div>
-                <div
-                  v-if="props.menu?.biryaniRunPrice?.['non-veg'] == 'Y'"
-                  class="bg-red text-white font-weight-bold text-caption px-3 py-1 rounded-lg"
-                >
-                  <p>Non-Veg</p>
-                </div>
-                <div
-                  v-if="props.menu?.biryaniRunPrice?.halal == 'Y'"
-                  class="bg-white text-success font-weight-bold text-caption px-3 py-1 rounded-lg"
-                >
-                  <p>Halal</p>
-                </div>
-              </div>
             </div>
 
             <!-- Stats -->
@@ -599,20 +587,37 @@ const goToDetail = async (menu: any) => {
                 props.menu?.dish_name
               }}
             </h2>
-
+            <div class="d-flex align-center ga-3 mt-2">
+              <div
+                v-if="props.menu?.biryaniRunPrice?.veg == 'Y'"
+                class="bg-success text-white font-weight-bold text-caption px-3 py-1 rounded-lg"
+              >
+                <p>Veg</p>
+              </div>
+              <div
+                v-if="props.menu?.biryaniRunPrice?.['non-veg'] == 'Y'"
+                class="bg-red text-white font-weight-bold text-caption px-3 py-1 rounded-lg"
+              >
+                <p>Non-Veg</p>
+              </div>
+              <div
+                v-if="props.menu?.biryaniRunPrice?.halal == 'Y'"
+                class="bg-white text-success font-weight-bold text-caption px-3 py-1 rounded-lg"
+              >
+                <p>Halal</p>
+              </div>
+            </div>
             <div
               class="my-3"
               style="font-size: 14px; color: #333; line-height: 1.5"
             >
               <p>
                 {{
-                  isDescriptionExpanded
-                    ? dummyDescription
-                    : truncatedDescription
+                  isDescriptionExpanded ? dishDescription : truncatedDescription
                 }}
               </p>
               <div
-                v-if="dummyDescription.length > 183"
+                v-if="dishDescription.length > 183"
                 class="mt-1 font-weight-bold"
                 style="color: #4169e1; cursor: pointer"
                 @click="isDescriptionExpanded = !isDescriptionExpanded"
@@ -711,6 +716,43 @@ const goToDetail = async (menu: any) => {
                           : parseFloat(selectedVariant?.rate || 0).toFixed(2)
                       }}
                     </div>
+                  </div>
+                  <div
+                    v-if="props.menu?.biryaniRunPrice?.pq_description"
+                    class="mt-2"
+                    style="
+                      font-size: 13px;
+                      color: #000;
+                      font-weight: 600;
+                      line-height: 1.4;
+                    "
+                  >
+                    {{
+                      expandedPqDescriptions["main"]
+                        ? props.menu.biryaniRunPrice.pq_description
+                        : props.menu.biryaniRunPrice.pq_description.length > 80
+                          ? props.menu.biryaniRunPrice.pq_description.substring(
+                              0,
+                              80,
+                            )
+                          : props.menu.biryaniRunPrice.pq_description
+                    }}
+                    <span
+                      v-if="
+                        props.menu.biryaniRunPrice.pq_description.length > 80
+                      "
+                      style="color: #4169e1; cursor: pointer"
+                      @click="
+                        expandedPqDescriptions['main'] =
+                          !expandedPqDescriptions['main']
+                      "
+                    >
+                      {{
+                        expandedPqDescriptions["main"]
+                          ? "less ...."
+                          : "more ...."
+                      }}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -811,6 +853,38 @@ const goToDetail = async (menu: any) => {
                           : parseFloat(item?.rate || 0).toFixed(2)
                       }}
                     </div>
+                  </div>
+                  <div
+                    v-if="item?.pq_description"
+                    class="mt-2"
+                    style="
+                      font-size: 13px;
+                      color: #000;
+                      font-weight: 600;
+                      line-height: 1.4;
+                    "
+                  >
+                    {{
+                      expandedPqDescriptions[item.brp_id_2]
+                        ? item.pq_description
+                        : item.pq_description.length > 80
+                          ? item.pq_description.substring(0, 80)
+                          : item.pq_description
+                    }}
+                    <span
+                      v-if="item.pq_description.length > 80"
+                      style="color: #4169e1; cursor: pointer"
+                      @click="
+                        expandedPqDescriptions[item.brp_id_2] =
+                          !expandedPqDescriptions[item.brp_id_2]
+                      "
+                    >
+                      {{
+                        expandedPqDescriptions[item.brp_id_2]
+                          ? "less ...."
+                          : "more ...."
+                      }}
+                    </span>
                   </div>
                 </div>
               </div>
