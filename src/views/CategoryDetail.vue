@@ -5,7 +5,7 @@
     </div> -->
     <!-- <div v-if="!isLoading"> -->
     <div>
-      <div class="position-fixed w-100">
+      <div class="position-fixed w-100" style="z-index: 999">
         <div
           class="app-bar w-100 bg-transparent position-absolute d-flex justify-space-between align-center px-2"
           style="height: 50px; top: 0"
@@ -84,11 +84,13 @@
           class="main-image"
         />
 
-        <div class="px-2 w-100" style="position: absolute; top: 150px">
-          <div class="w-100 d-flex justify-space-between bg-white pa-1">
+        <div class="image-overlay"></div>
+
+        <div class="px-2 w-100" style="position: absolute; top: 180px">
+          <div class="w-100 d-flex justify-space-between pa-1">
             <div
-              class="d-flex justify-space-between align-center ga-4"
-              style="width: 60%"
+              class="d-flex justify-space-between align-center ga-1"
+              style="width: 65%"
             >
               <div class="w-33">
                 <v-img
@@ -99,22 +101,22 @@
                   height="70"
                   width="70"
                   cover
-                  class="rounded-lg"
+                  class="rounded-circle"
                 />
               </div>
               <div class="w-66 d-flex align-center justify-space-between">
-                <div class="d-flex flex-column font-weight-black">
-                  <h4 class="text-blue-lighten-1">
+                <div class="d-flex flex-column font-weight-black text-white">
+                  <h4>
                     {{
                       categoryData?.biryaniRunPrice?.restaurant?.partner
                         ?.partner_name || "-"
                     }}
                   </h4>
-                  <p class="text-grey-darken-1 text-caption font-weight-bold">
+                  <p class="text-caption font-weight-bold">
                     {{ categoryData?.biryaniRunPrice?.restaurant?.town || "-" }}
                   </p>
                   <p class="text-caption font-weight-bold">
-                    <span class="text-red">{{
+                    <span>{{
                       categoryData?.biryaniRunPrice?.restaurant?.distance
                         ? categoryData?.biryaniRunPrice?.restaurant?.distance
                         : ""
@@ -130,12 +132,13 @@
                 'Y'
               "
               class="d-flex justify-space-between align-center py-2"
-              style="width: 40%"
+              style="width: 35%"
             >
               <v-icon :size="!isSmall ? '35' : '40'">
                 <v-img
                   src="@/assets/images/icons/google.png"
                   alt="Google Logo"
+                  class="rounded-circle"
                 />
               </v-icon>
               <v-divider vertical></v-divider>
@@ -147,7 +150,9 @@
                   <v-icon color="#F6B702"> mdi-star </v-icon>
                   <v-icon color="#F6B702"> mdi-star-outline </v-icon>
                 </div>
-                <span class="font-weight-bold text-body-2"> 234 </span>
+                <span class="font-weight-bold text-body-2 text-white">
+                  234
+                </span>
               </div>
             </div>
           </div>
@@ -225,7 +230,9 @@
           style="font-size: 14px; color: #333; line-height: 1.5"
         >
           <p>
-            {{ isDescriptionExpanded ? dishDescription : truncatedDishDescription }}
+            {{
+              isDescriptionExpanded ? dishDescription : truncatedDishDescription
+            }}
           </p>
           <div
             v-if="dishDescription.length > 183"
@@ -750,6 +757,20 @@ const addToCartData = (data, range) => {
   object-position: center;
   width: 100%;
   height: 280px;
+}
+
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 280px;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.8) 100%
+  );
+  pointer-events: none;
 }
 
 .card-tag {

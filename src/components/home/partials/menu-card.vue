@@ -476,7 +476,7 @@ const goToDetail = async (menu: any) => {
       <v-card-text class="pa-0 bg-white">
         <v-row no-gutters>
           <!-- Left Content -->
-          <v-col cols="12" md="6" class="pa-6">
+          <v-col cols="12" md="6" class="pa-6" style="max-height: 85vh; overflow-y: auto;">
             <!-- Left Info -->
             <div class="d-flex justify-space-between align-center mb-4 pr-4">
               <div class="d-flex align-center ga-3">
@@ -628,7 +628,7 @@ const goToDetail = async (menu: any) => {
           </v-col>
 
           <!-- Right Content -->
-          <v-col cols="12" md="6" class="pa-4">
+          <v-col cols="12" md="6" class="pa-4" style="max-height: 85vh; overflow-y: auto;">
             <div class="d-flex flex-column ga-6 mt-16 pr-6">
               <div class="d-flex align-start ga-4">
                 <div class="flex-grow-0 flex-shrink-0">
