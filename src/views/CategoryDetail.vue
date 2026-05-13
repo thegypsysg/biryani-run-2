@@ -236,7 +236,7 @@
           </p>
           <div
             v-if="dishDescription.length > 183"
-            class="mt-3 font-weight-bold"
+            class="mt-1 font-weight-bold"
             style="color: #4169e1; cursor: pointer"
             @click="isDescriptionExpanded = !isDescriptionExpanded"
           >
@@ -263,7 +263,7 @@
               </template>
             </v-img>
           </div>
-          <div class="flex-grow-1 flex-shrink-0 ml-1 pa-2">
+          <div class="flex-grow-1 ml-1 pa-2" style="min-width: 0">
             <div
               class="text-wrap font-weight-black product-name text-body-2 mb-2"
             >
@@ -350,7 +350,8 @@
                       )
                     : categoryData.biryaniRunPrice.pq_description
               }}
-              <span
+              <div
+                class="mt-1 font-weight-bold"
                 v-if="categoryData.biryaniRunPrice.pq_description.length > 80"
                 style="color: #4169e1; cursor: pointer"
                 @click="
@@ -359,7 +360,7 @@
                 "
               >
                 {{ expandedPqDescriptions["main"] ? "less ...." : "more ...." }}
-              </span>
+              </div>
             </div>
           </div>
         </div>
@@ -391,7 +392,7 @@
                 </template>
               </v-img>
             </div>
-            <div class="flex-grow-1 flex-shrink-0 ml-1 pa-2">
+            <div class="flex-grow-1 ml-1 pa-2" style="min-width: 0">
               <div
                 class="text-wrap font-weight-black product-name text-body-2 mb-2"
               >
@@ -478,9 +479,10 @@
                       ? item.pq_description.substring(0, 80)
                       : item.pq_description
                 }}
-                <span
+                <div
                   v-if="item.pq_description.length > 80"
                   style="color: #4169e1; cursor: pointer"
+                  class="mt-1 font-weight-bold"
                   @click="
                     expandedPqDescriptions[item.brp_id_2] =
                       !expandedPqDescriptions[item.brp_id_2]
@@ -491,7 +493,7 @@
                       ? "less ...."
                       : "more ...."
                   }}
-                </span>
+                </div>
               </div>
             </div>
           </div>

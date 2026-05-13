@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onMounted, ref, computed, watch } from "vue";
+import { onMounted, ref, computed, watch, onDeactivated } from "vue";
 import { useCart } from "@/composables/useCart";
 import axios from "@/util/axios";
 import { fileURL, appId } from "@/main";
@@ -476,7 +476,12 @@ const goToDetail = async (menu: any) => {
       <v-card-text class="pa-0 bg-white">
         <v-row no-gutters>
           <!-- Left Content -->
-          <v-col cols="12" md="6" class="pa-6" style="max-height: 85vh; overflow-y: auto;">
+          <v-col
+            cols="12"
+            md="6"
+            class="pa-6"
+            style="max-height: 85vh; overflow-y: auto"
+          >
             <!-- Left Info -->
             <div class="d-flex justify-space-between align-center mb-4 pr-4">
               <div class="d-flex align-center ga-3">
@@ -628,7 +633,12 @@ const goToDetail = async (menu: any) => {
           </v-col>
 
           <!-- Right Content -->
-          <v-col cols="12" md="6" class="pa-4" style="max-height: 85vh; overflow-y: auto;">
+          <v-col
+            cols="12"
+            md="6"
+            class="pa-4"
+            style="max-height: 85vh; overflow-y: auto"
+          >
             <div class="d-flex flex-column ga-6 mt-16 pr-6">
               <div class="d-flex align-start ga-4">
                 <div class="flex-grow-0 flex-shrink-0">
@@ -737,7 +747,8 @@ const goToDetail = async (menu: any) => {
                             )
                           : props.menu.biryaniRunPrice.pq_description
                     }}
-                    <span
+                    <div
+                      class="mt-1 font-weight-bold"
                       v-if="
                         props.menu.biryaniRunPrice.pq_description.length > 80
                       "
@@ -752,7 +763,7 @@ const goToDetail = async (menu: any) => {
                           ? "less ...."
                           : "more ...."
                       }}
-                    </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -871,7 +882,8 @@ const goToDetail = async (menu: any) => {
                           ? item.pq_description.substring(0, 80)
                           : item.pq_description
                     }}
-                    <span
+                    <div
+                      class="mt-1 font-weight-bold"
                       v-if="item.pq_description.length > 80"
                       style="color: #4169e1; cursor: pointer"
                       @click="
@@ -884,7 +896,7 @@ const goToDetail = async (menu: any) => {
                           ? "less ...."
                           : "more ...."
                       }}
-                    </span>
+                    </div>
                   </div>
                 </div>
               </div>

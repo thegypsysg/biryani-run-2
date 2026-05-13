@@ -464,7 +464,7 @@ const closeDetail = () => {
 function getOrder() {
   loading.value = true;
   axios
-    .get(`/get-orders/${type.value}`)
+    .get(`/get-orders/${type.value}/7`)
     .then((response) => {
       const data = response.data.data;
       console.log(data);

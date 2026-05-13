@@ -1032,7 +1032,7 @@
                   block
                   class=""
                 >
-                  <div class="d-flex align-center justify-start">
+                  <div class="d-flex align-center justify-start ga-3">
                     <div style="width: 20%">
                       <v-img
                         height="60"
@@ -1065,7 +1065,7 @@
                   block
                   class=""
                 >
-                  <div class="d-flex align-center justify-start">
+                  <div class="d-flex align-center justify-start ga-3">
                     <div style="width: 20%">
                       <v-img
                         height="60"
@@ -1086,7 +1086,9 @@
               </v-col>
               <v-col v-if="step == 7" class="pa-5">
                 <div class="my-3 text-h6 d-flex justify-space-between">
-                  <span>Pay using PayNow</span>
+                  <span
+                    >Pay using {{ orders?.payment_type?.payment_name }}</span
+                  >
                   <v-btn
                     prepend-icon="mdi-arrow-left"
                     @click="step = 6"
@@ -1108,7 +1110,9 @@
                 </div>
                 <div class="font-weight-bold mb-4">
                   <p>Please Pay Exactly</p>
-                  <p class="text-green-darken-1 mt-2">S$ 265.35</p>
+                  <p class="text-blue-darken-1 mt-2">
+                    S$ {{ orders?.final_amount }}
+                  </p>
                 </div>
                 <div
                   class="d-flex w-100 align-center justify-space-between mt-10"
@@ -1649,6 +1653,8 @@ const addressForm = reactive({
 const selectedDate = ref(null);
 const selectedTimeSlot = ref(null);
 const deliveryScheduleInstruction = ref(null);
+
+const orders = ref([]);
 
 const addressesOptions = computed(() => {
   return addresses.value.map((address) => ({
@@ -2269,6 +2275,8 @@ const nextStep = (value) => {
       return;
     } else if (selectedPaymentMethod.value == 1) {
       return;
+    } else {
+      getOrder();
     }
   } else if (value === 5) {
     snackbar.value = false;
@@ -2540,6 +2548,29 @@ const getTaxAmount = async () => {
     console.log(error);
   }
 };
+
+function getOrder() {
+  // loading.value = true;
+  axios
+    .get(`/get-orders/all/7`)
+    .then((response) => {
+      const data = response.data.data;
+      // console.log(data);
+
+      orders.value = data.filter(
+        (item) => item.cart_id == cart.value[0]?.cart_id,
+      )[0];
+      console.log(orders.value);
+      // let itemFinal = [];
+    })
+    .catch((error) => {
+      console.log(error);
+      throw error;
+    });
+  // .finally(() => {
+  //   loading.value = false;
+  // });
+}
 
 const getCartData = async () => {
   await store.dispatch("getCartItems");
