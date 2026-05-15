@@ -91,6 +91,7 @@
       background-color: #fff;
       margin-top: 100vh;
     "
+    :id="formatName('All Categories')"
   >
     <ExploreOurMenu class="d-none d-md-block" />
     <YourOrder v-if="userName" class="mb-4" />
@@ -146,6 +147,8 @@ watch(selectedCountry, (newX) => {
 function scrollToSection() {
   eventBus.scrollToSection = "happeningTarget"; // Ganti dengan ID section yang diinginkan
 }
+
+const formatName = (name) => name.toLowerCase().replace(/\s+/g, "");
 
 const handleIntersection = (entries, observer) => {
   entries.forEach((entry) => {

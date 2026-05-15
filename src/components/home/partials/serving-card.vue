@@ -86,7 +86,11 @@
       <v-img
         v-if="!isDesktop"
         :src="
-          props.menu?.main_image ? props.fileURL + props.menu?.main_image : ''
+          props.menu?.location_image
+            ? props.fileURL + props.menu?.location_image
+            : props.menu?.main_image
+              ? props.fileURL + props.menu?.main_image
+              : ''
         "
         cover
         aspect-ratio="1"

@@ -1097,15 +1097,44 @@
                     >Back</v-btn
                   >
                 </div>
-                <v-img :src="qris" height="200" width="200" />
+                <v-img
+                  :src="
+                    orders?.payment_type_id == 2
+                      ? fileURL +
+                        paymentTypes.find(
+                          (item) =>
+                            item.payment_type_id === orders?.payment_type_id,
+                        )?.qr_code +
+                        '.jpeg'
+                      : fileURL +
+                        paymentTypes.find(
+                          (item) =>
+                            item.payment_type_id === orders?.payment_type_id,
+                        )?.qr_code
+                  "
+                  height="200"
+                  width="200"
+                />
                 <div class="font-weight-bold my-4">
                   <p>Paynow Number</p>
-                  <p class="text-grey-darken-1 mt-2">91992000</p>
+                  <p class="text-grey-darken-1 mt-2">
+                    {{
+                      paymentTypes.find(
+                        (item) =>
+                          item.payment_type_id === orders?.payment_type_id,
+                      )?.mobile_number
+                    }}
+                  </p>
                 </div>
                 <div class="font-weight-bold mb-4">
                   <p>Paynow Name</p>
                   <p class="text-grey-darken-1 mt-2">
-                    Foxtech 2000 Singapore Pte Ltd
+                    {{
+                      paymentTypes.find(
+                        (item) =>
+                          item.payment_type_id === orders?.payment_type_id,
+                      )?.company
+                    }}
                   </p>
                 </div>
                 <div class="font-weight-bold mb-4">
@@ -1609,7 +1638,7 @@ const selectedDelivery = ref(
 );
 const selectedPaymentMethod = ref(null);
 const dialog = ref(false);
-
+const paymentTypes = ref([]);
 const paymentOptions = ref([
   // {
   //   value: 1,
@@ -2276,7 +2305,9 @@ const nextStep = (value) => {
     } else if (selectedPaymentMethod.value == 1) {
       return;
     } else {
-      getOrder();
+      getPaymentOrder();
+      // getPaymentTypes();
+      // getOrder();
     }
   } else if (value === 5) {
     snackbar.value = false;
@@ -2636,6 +2667,15 @@ const getTimeSlots = async () => {
   }
 };
 
+const getPaymentOrder = async () => {
+  try {
+    await getPaymentTypes();
+    await getOrder();
+  } catch (error) {
+    console.error("Error fetching payment types or orders:", error);
+  }
+};
+
 const getPaymentTypes = async () => {
   try {
     const response = await axios.get(`/payment-type-list`, {
@@ -2649,6 +2689,7 @@ const getPaymentTypes = async () => {
           (item) => item.country_id == selectedCountry.value.country_id,
         )
       : [];
+    paymentTypes.value = result;
     paymentOptions.value = result
       .filter((item) => item.active == "Y")
       .map((pay) => {

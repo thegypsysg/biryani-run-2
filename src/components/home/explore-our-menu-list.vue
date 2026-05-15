@@ -233,7 +233,7 @@ onMounted(() => {
       handleSlideMove();
     }
   });
-  getMenuList();
+  getMenuList(selectedCountry.value.city_id);
 });
 </script>
 

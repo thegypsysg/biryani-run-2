@@ -153,10 +153,10 @@
                   <div class="text-h6">Your Order</div>
                   <div
                     class="text-h6"
-                    v-show="orderDetail?.products.length > 0"
+                    v-show="orderDetail?.biryaniRunPrice.length > 0"
                   >
                     <span class="text-red">{{
-                      orderDetail?.products.reduce(
+                      orderDetail?.biryaniRunPrice.reduce(
                         (total, item) => total + item.quantity,
                         0,
                       )
@@ -165,7 +165,7 @@
                     <span
                       class="text-blue"
                       v-if="
-                        orderDetail?.products.reduce(
+                        orderDetail?.biryaniRunPrice.reduce(
                           (total, item) => total + item.price * item.quantity,
                           0,
                         )
@@ -192,14 +192,14 @@
               </div>
 
               <template
-                v-for="product in orderDetail?.products"
+                v-for="product in orderDetail?.biryaniRunPrice"
                 :key="product?.product_id"
               >
                 <div class="d-flex align-center px-3 py-1">
                   <div class="flex-grow-0 flex-shrink-0">
                     <v-img
                       class="rounded bg-white"
-                      :src="fileURL + product.image"
+                      :src="fileURL + product.dish_image"
                       width="65"
                       height="65"
                       cover
@@ -241,7 +241,7 @@
                         <strong class="text-red">{{
                           selectedCountry?.currency_symbol
                         }}</strong>
-                        <strong class="text-red">S{{ product.price }}</strong>
+                        <strong class="text-red">{{ product.price }}</strong>
                       </div>
                     </div>
                   </div>
@@ -310,7 +310,7 @@
                         {{
                           taxAmount != null
                             ? (
-                                ((orderDetail?.products.reduce(
+                                ((orderDetail?.biryaniRunPrice.reduce(
                                   (total, item) =>
                                     total + item.price * item.quantity,
                                   0,

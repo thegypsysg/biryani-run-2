@@ -62,7 +62,7 @@
         <span
           @click="
             scrollToSection(
-              formatName(menuLists[0].title),
+              formatName(isSmall ? menuLists[0].title : 'All Categories'),
               isSmall ? true : false,
             )
           "
@@ -76,20 +76,49 @@
       <div class="categories-grid mt-6">
         <v-row dense>
           <v-col
-            v-for="item in menuLists?.slice(0, 6)"
-            :key="item.id"
+            v-for="item in servingLists?.slice(0, 6)"
+            :key="item.restaurant_id"
             cols="4"
             class="pa-1 pa-md-3"
           >
             <div
               class="category-item"
               @click="
-                scrollToSection(formatName(item.title), isSmall ? true : false)
+                scrollToSection(
+                  formatName(
+                    item.partner_name
+                      ? item.partner_name
+                      : item.short_name
+                        ? item.short_name
+                        : '',
+                  ),
+                  isSmall ? true : false,
+                )
               "
             >
-              <!-- <div class="category-title mb-2">{{ item.title }}</div> -->
+              <div
+                class="mb-2"
+                style="font-size: 11px"
+                :style="{
+                  height: isSmall ? '27px' : '40px',
+                }"
+              >
+                {{
+                  item.partner_name
+                    ? item.partner_name
+                    : item.short_name
+                      ? item.short_name
+                      : ""
+                }}
+              </div>
               <v-img
-                :src="$fileURL + item.img"
+                :src="
+                  item.location_image
+                    ? $fileURL + item.location_image
+                    : item.main_image
+                      ? $fileURL + item.main_image
+                      : ''
+                "
                 :height="isSmall ? '90' : '65'"
                 cover
                 class="rounded"
@@ -100,7 +129,17 @@
         </v-row>
       </div>
       <div class="mt-4">
-        <a href="#" class="view-all">View all</a>
+        <span
+          @click="
+            scrollToSection(
+              formatName('Restaurants Serving Biryani'),
+              isSmall ? true : false,
+            )
+          "
+          class="view-all cursor-pointer"
+        >
+          View all
+        </span>
       </div>
     </v-col>
     <v-col cols="12" md="3">
@@ -224,6 +263,7 @@ export default {
       footerData: null,
       screenWidth: window.innerWidth,
       menuLists: [],
+      servingLists: [],
     };
   },
   computed: {
@@ -246,6 +286,21 @@ export default {
     token() {
       return localStorage.getItem("token");
     },
+    selectedCountry() {
+      return this.$store.getters["selectedCountry"];
+    },
+    latitude() {
+      return localStorage.getItem("latitude");
+    },
+    longitude() {
+      return localStorage.getItem("longitude");
+    },
+  },
+  watch: {
+    selectedCountry(newVal) {
+      this.getMenuList(newVal.city_id);
+      this.getServingList(newVal.city_id);
+    },
   },
   mounted() {
     this.getAppContact();
@@ -253,6 +308,7 @@ export default {
     this.getSupeApp();
     this.getAppDetails2();
     this.getMenuList();
+    this.getServingList();
 
     const token = localStorage.getItem("token");
     if (this.tokenProvider != null) {
@@ -342,17 +398,31 @@ export default {
       this.getHeaderUserData2();
       // this.titleWelcome = title;
     },
-    async getMenuList() {
+    async getServingList(cityId = 1) {
       try {
         const res = await axios.get(
-          `/list-main-categories-by-app-id/${this.$appId}`,
+          `/list-biryani-run-price-restaurant/${cityId}/${this.latitude}/${this.longitude}`,
+        );
+        this.servingLists = res.data.data.sort(
+          (a, b) => a.distance - b.distance,
+        );
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    async getMenuList(cityId = 1) {
+      try {
+        const res = await axios.get(
+          `/list-main-categories-by-app-id/${this.$appId}/${cityId}/${this.latitude}/${this.longitude}`,
         );
         console.log(res);
-        this.menuLists = res.data.data.map((item) => ({
-          title: item.category_name,
-          img: item.main_image,
-          id: item.mc_id,
-        }));
+        this.menuLists = res.data.data
+          .filter((item) => item.onBoardDishes.length > 0)
+          .map((item) => ({
+            title: item.category_name,
+            img: item.main_image,
+            id: item.mc_id,
+          }));
         // console.log(menuLists.value);
       } catch (error) {
         console.log(error);
