@@ -1,5 +1,5 @@
 <template>
-  <div class="" style="background: #f8f8f8">
+  <div v-if="orders.length > 0" class="" style="background: #f8f8f8">
     <v-container>
       <h2 class="font-weight-black mb-6">Your Orders</h2>
       <div class="d-flex ga-4 text-caption" style="overflow-x: auto">
@@ -119,7 +119,7 @@
 
               <div class="d-flex font-weight-black ga-6 text-caption mt-4">
                 <div class="">
-                  <p>Payment By</p>
+                  <p>Payment Status</p>
                   <p class="text-red">
                     {{ item?.payment_status?.payment_status_name }}
                   </p>
@@ -188,7 +188,7 @@
           <v-row no-gutters>
             <v-col class="pa-5">
               <div class="my-3 text-h6 d-flex justify-start">
-                <span>Review Order</span>
+                <span>Order Placed</span>
               </div>
 
               <template
@@ -219,7 +219,7 @@
                   <div class="flex-grow-1 flex-shrink-0 ml-1 pa-2">
                     <div class="d-flex align-center justify-space-between">
                       <div class="text-wrap product-name text-body-2">
-                        {{ product.name }}
+                        {{ product.dish_name }}
                         <span class="text-blue">{{
                           product.quantity_name
                         }}</span>

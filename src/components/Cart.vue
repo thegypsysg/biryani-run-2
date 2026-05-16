@@ -1085,7 +1085,7 @@
                 </MazRadioButtons>
               </v-col>
               <v-col v-if="step == 7" class="pa-5">
-                <div class="my-3 text-h6 d-flex justify-space-between">
+                <div class="mt-3 mb-6 text-h6 d-flex justify-space-between">
                   <span
                     >Pay using {{ orders?.payment_type?.payment_name }}</span
                   >
@@ -1097,52 +1097,67 @@
                     >Back</v-btn
                   >
                 </div>
-                <v-img
-                  :src="
-                    orders?.payment_type_id == 2
-                      ? fileURL +
-                        paymentTypes.find(
-                          (item) =>
-                            item.payment_type_id === orders?.payment_type_id,
-                        )?.qr_code +
-                        '.jpeg'
-                      : fileURL +
-                        paymentTypes.find(
-                          (item) =>
-                            item.payment_type_id === orders?.payment_type_id,
-                        )?.qr_code
-                  "
-                  height="200"
-                  width="200"
-                />
-                <div class="font-weight-bold my-4">
-                  <p>Paynow Number</p>
-                  <p class="text-grey-darken-1 mt-2">
-                    {{
-                      paymentTypes.find(
-                        (item) =>
-                          item.payment_type_id === orders?.payment_type_id,
-                      )?.mobile_number
-                    }}
-                  </p>
-                </div>
-                <div class="font-weight-bold mb-4">
-                  <p>Paynow Name</p>
-                  <p class="text-grey-darken-1 mt-2">
-                    {{
-                      paymentTypes.find(
-                        (item) =>
-                          item.payment_type_id === orders?.payment_type_id,
-                      )?.company
-                    }}
-                  </p>
-                </div>
-                <div class="font-weight-bold mb-4">
-                  <p>Please Pay Exactly</p>
-                  <p class="text-blue-darken-1 mt-2">
-                    S$ {{ orders?.final_amount }}
-                  </p>
-                </div>
+                <v-row>
+                  <v-col cols="6">
+                    <v-img
+                      :src="
+                        orders?.payment_type_id == 2
+                          ? fileURL +
+                            paymentTypes.find(
+                              (item) =>
+                                item.payment_type_id ===
+                                orders?.payment_type_id,
+                            )?.qr_code +
+                            '.jpeg'
+                          : fileURL +
+                            paymentTypes.find(
+                              (item) =>
+                                item.payment_type_id ===
+                                orders?.payment_type_id,
+                            )?.qr_code
+                      "
+                      height="200"
+                      width="200"
+                    />
+                  </v-col>
+                  <v-col cols="6" class="d-flex align-center">
+                    <div class="font-weight-bold mb-4">
+                      <p>Please Pay Exactly</p>
+                      <p class="text-h4 font-weight-black mt-6">
+                        S$ {{ orders?.final_amount }}
+                      </p>
+                    </div>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col cols="6"
+                    ><div class="font-weight-bold mb-4">
+                      <p>Paynow Number</p>
+                      <p class="text-grey-darken-1 mt-2">
+                        {{
+                          paymentTypes.find(
+                            (item) =>
+                              item.payment_type_id === orders?.payment_type_id,
+                          )?.mobile_number
+                        }}
+                      </p>
+                    </div></v-col
+                  >
+                  <v-col cols="6">
+                    <div class="font-weight-bold mb-4">
+                      <p>Paynow Name</p>
+                      <p class="text-grey-darken-1 mt-2">
+                        {{
+                          paymentTypes.find(
+                            (item) =>
+                              item.payment_type_id === orders?.payment_type_id,
+                          )?.company
+                        }}
+                      </p>
+                    </div></v-col
+                  >
+                </v-row>
+
                 <div
                   class="d-flex w-100 align-center justify-space-between mt-10"
                 >
@@ -1240,6 +1255,29 @@
                 size="large"
                 >CONFIRM ORDER</v-btn
               >
+              <div v-if="step == 5" class="text-caption">
+                <p>Change your mind?</p>
+                <div
+                  class="d-flex flex-column flex-md-row align-start align-md-center ga-0 ga-md-2 mt-2 mt-md-0"
+                >
+                  <button
+                    @click="cancelOrderDialog = true"
+                    class="text-red-darken-1"
+                  >
+                    Cancel Order
+                  </button>
+                  <span class="d-none d-md-block">|</span>
+                  <hr
+                    class="d-block d-md-none w-100 my-1 border-black border-sm"
+                  />
+                  <button
+                    @click="isRestaurant = true"
+                    class="text-blue-darken-1"
+                  >
+                    Add More
+                  </button>
+                </div>
+              </div>
               <div>
                 <v-icon
                   @click="
@@ -1446,6 +1484,27 @@
       </v-card-text>
     </v-card>
   </v-dialog>
+  <v-dialog v-model="cancelOrderDialog" persistent width="auto">
+    <v-card width="350">
+      <v-card-text class="">
+        <h4 class="mt-4 mb-8 text-center">Cancel this Order . ?</h4>
+        <div class="w-100 d-flex align-center justify-space-around">
+          <v-btn
+            class="mb-4 w-33 bg-primary"
+            @click="cancelOrderDialog = false"
+          >
+            Yes
+          </v-btn>
+          <v-btn
+            class="mb-4 w-33 bg-primary"
+            @click="cancelOrderDialog = false"
+          >
+            No
+          </v-btn>
+        </div>
+      </v-card-text>
+    </v-card>
+  </v-dialog>
   <v-dialog v-model="isEmptyAddress" persistent width="auto">
     <v-card width="350">
       <v-card-text class="">
@@ -1606,6 +1665,7 @@ const emit = defineEmits(["update:viewCart"]);
 const currentTime = ref("");
 const streetRef = ref(null);
 const openDialog = ref(false);
+const cancelOrderDialog = ref(false);
 const payLater = ref(false);
 const havePaid = ref(false);
 const confirmOrder = ref(false);

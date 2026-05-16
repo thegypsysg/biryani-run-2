@@ -97,8 +97,8 @@
               "
             >
               <div
-                class="mb-2"
                 style="font-size: 11px"
+                class="text-blue-lighten-1 font-weight-bold"
                 :style="{
                   height: isSmall ? '27px' : '40px',
                 }"
@@ -111,6 +111,9 @@
                       : ""
                 }}
               </div>
+              <p class="mb-2" style="font-size: 11px">
+                {{ item?.town_name || "" }}
+              </p>
               <v-img
                 :src="
                   item.location_image
