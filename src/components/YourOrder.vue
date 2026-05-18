@@ -1,5 +1,9 @@
 <template>
-  <div v-if="orders.length > 0" class="" style="background: #f8f8f8">
+  <div
+    v-if="orders.length > 0 || type !== 'all'"
+    class=""
+    style="background: #f8f8f8"
+  >
     <v-container>
       <h2 class="font-weight-black mb-6">Your Orders</h2>
       <div class="d-flex ga-4 text-caption" style="overflow-x: auto">
@@ -91,7 +95,7 @@
                 <div class="d-flex align-center">
                   <p>Dated :</p>
                   <p class="text-blue-accent-4">
-                    {{ item?.created_at || "18/03/2026" }}
+                    {{ item?.cart_date || "" }}
                   </p>
                 </div>
               </div>
@@ -120,13 +124,22 @@
               <div class="d-flex font-weight-black ga-6 text-caption mt-4">
                 <div class="">
                   <p>Payment Status</p>
-                  <p class="text-red">
+
+                  <p v-if="item?.payment_verified_date">
+                    <span class="text-red">Paid</span> on
+                    <span class="text-red">{{
+                      item?.payment_verified_date
+                    }}</span>
+                  </p>
+                  <p v-else class="text-red">
                     {{ item?.payment_status?.payment_status_name }}
                   </p>
                 </div>
                 <div class="">
                   <p>Delivery Status</p>
-                  <p class="text-red">{{ item?.delivery_status }}</p>
+                  <p class="text-red">
+                    {{ item?.delivery_status?.delivery_status_name }}
+                  </p>
                 </div>
               </div>
             </v-card>
@@ -219,10 +232,10 @@
                   <div class="flex-grow-1 flex-shrink-0 ml-1 pa-2">
                     <div class="d-flex align-center justify-space-between">
                       <div class="text-wrap product-name text-body-2">
-                        {{ product.dish_name }}
-                        <span class="text-blue">{{
-                          product.quantity_name
-                        }}</span>
+                        <p class="">{{ product.dish_name }}</p>
+                        <p class="text-blue text-caption">
+                          {{ product.quantity_name }}
+                        </p>
                       </div>
                       <div class="text-body-2 text-end">
                         <strong

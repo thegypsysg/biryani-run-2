@@ -1236,7 +1236,7 @@
                 @click="confirmOrder2 = true"
                 color="#ff9800"
                 variant="flat"
-                size="large"
+                :size="isSmall ? 'small' : 'large'"
                 >Confirm Order</v-btn
               >
               <v-btn
@@ -1489,10 +1489,7 @@
       <v-card-text class="">
         <h4 class="mt-4 mb-8 text-center">Cancel this Order . ?</h4>
         <div class="w-100 d-flex align-center justify-space-around">
-          <v-btn
-            class="mb-4 w-33 bg-primary"
-            @click="cancelOrderDialog = false"
-          >
+          <v-btn class="mb-4 w-33 bg-primary" @click="cancelOrder()">
             Yes
           </v-btn>
           <v-btn
@@ -1744,6 +1741,10 @@ const selectedTimeSlot = ref(null);
 const deliveryScheduleInstruction = ref(null);
 
 const orders = ref([]);
+
+const isSmall = computed(() => {
+  return window.innerWidth < 600;
+});
 
 const addressesOptions = computed(() => {
   return addresses.value.map((address) => ({
@@ -2334,6 +2335,41 @@ const updateCartOrderStatus = async () => {
     confirmOrder2.value = false;
     nextStep(6);
     getCartData();
+    snackbar.value = true;
+    message.value = {
+      text: response.data.message,
+      color: "success",
+    };
+  } catch (error) {
+    const errorMessage =
+      error.response?.data?.message || "Something went wrong!";
+    snackbar.value = true;
+    message.value = {
+      text: errorMessage,
+      color: "error",
+    };
+  }
+};
+
+const cancelOrder = async () => {
+  try {
+    const response = await axios.post(
+      `/remove-order`,
+      {
+        cart_id: cart.value[0].cart_id,
+        app_id: 7,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      },
+    );
+    // const data = response.data.data;
+    // console.log(data);
+    getCartData();
+    cancelOrderDialog.value = false;
+    emit("update:viewCart", false);
     snackbar.value = true;
     message.value = {
       text: response.data.message,
