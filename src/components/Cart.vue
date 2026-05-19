@@ -113,8 +113,11 @@
                   </div>
                   <v-divider class="my-2" />
                   <template v-for="(product, index) in cart" :key="index">
-                    <div class="d-flex align-center px-3 py-1 my-2">
-                      <div class="flex-grow-0 flex-shrink-0">
+                    <div
+                      class="d-flex align-center px-3 py-1 my-2 w-100"
+                      style="max-width: 100%"
+                    >
+                      <div style="width: 20%">
                         <v-img
                           class="rounded bg-white"
                           :src="fileURL + product.dish_image"
@@ -134,7 +137,7 @@
                           </template>
                         </v-img>
                       </div>
-                      <div class="flex-grow-1 flex-shrink-0 ml-1 pa-2">
+                      <div style="width: 80%" class="ml-1 pa-2">
                         <div class="d-flex align-center justify-space-between">
                           <div class="">
                             <div
@@ -148,9 +151,24 @@
                                     : ""
                               }}
                             </div>
-                            <span class="text-blue text-body-2">{{
-                              product.quantity_name
-                            }}</span>
+                            <div
+                              class="d-flex flex-column flex-md-row justify-space-between w-100 align-start align-md-center"
+                            >
+                              <span class="text-blue text-caption">{{
+                                product.quantity_name
+                              }}</span>
+
+                              <span
+                                class="text-blue-darken-3 font-weight-bold text-caption cursor-pointer"
+                                @click="
+                                  openWhatsIncluded(
+                                    product.pq_description ||
+                                      product.dish_description,
+                                  )
+                                "
+                                >What's Included ?</span
+                              >
+                            </div>
                           </div>
                           <div class="text-body-2 text-end">
                             <strong
@@ -1382,24 +1400,124 @@
         <template v-else>
           <div class="cart-items flex-grow-1 overflow-y-auto">
             <v-row no-gutters>
-              <div class="text-center w-100 my-4">
-                <h2>{{ cart[0].restaurant_name }}</h2>
-                <p class="text-red-darken-4 mt-2 font-weight-bold">
-                  Biryani Menu
-                </p>
-              </div>
+              <v-col cols="12" class="d-flex align-center px-3 py-1">
+                <div class="flex-grow-0 flex-shrink-0">
+                  <v-img
+                    class="rounded bg-white"
+                    :src="fileURL + cart[0].restaurant_logo"
+                    width="80"
+                    height="60"
+                    cover
+                  >
+                    <template v-slot:placeholder>
+                      <div
+                        class="d-flex align-center justify-center fill-height"
+                      >
+                        <v-progress-circular
+                          color="grey-lighten-4"
+                          indeterminate
+                        ></v-progress-circular>
+                      </div>
+                    </template>
+                  </v-img>
+                </div>
+                <div class="flex-grow-1 flex-shrink-0 ml-1 pa-2">
+                  <div class="d-flex align-center justify-space-between">
+                    <div>
+                      <div
+                        :class="{
+                          'font-weight-bold text-blue-darken-2 text-no-wrap text-body-2': true,
+                        }"
+                      >
+                        {{
+                          cart[0]?.restaurant_name
+                            ? cart[0]?.restaurant_name
+                            : ""
+                        }}
+                      </div>
+                      <div class="text-grey font-weight-bold text-caption">
+                        {{ cart[0]?.town_name ? cart[0]?.town_name : "" }}
+                      </div>
+                      <div class="text-start text-caption font-weight-bold">
+                        <span class="text-red">
+                          {{ cart[0]?.distance ? cart[0]?.distance : "" }}
+                        </span>
+                        kms away
+                      </div>
+                    </div>
+                    <!-- <div
+                      class="font-weight-bold text-blue-darken-2 text-caption cursor-pointer"
+                    >
+                      Add More Items
+                    </div> -->
+                  </div>
+                </div>
+              </v-col>
+              <v-divider></v-divider>
+              <v-col cols="12" class="py-1">
+                <div
+                  class="d-flex align-center ga-3 overflow-x-auto px-3 py-2 hide-scrollbar"
+                  style="white-space: nowrap"
+                >
+                  <v-btn
+                    v-for="cat in categories"
+                    :key="cat.name"
+                    variant="outlined"
+                    rounded="pill"
+                    class="text-none font-weight-black text-caption flex-shrink-0"
+                    style="
+                      border-width: 1.5px;
+                      height: 38px;
+                      min-width: auto;
+                      letter-spacing: 0;
+                    "
+                    :style="{
+                      color:
+                        activeCategory === cat.name
+                          ? '#8b0000 !important'
+                          : '#3F51B5 !important',
+                      borderColor:
+                        activeCategory === cat.name
+                          ? '#8b0000 !important'
+                          : '#3F51B5 !important',
+                      backgroundColor: '#ffffff !important',
+                    }"
+                    @click="activeCategory = cat.name"
+                  >
+                    {{ cat.name }}
+                  </v-btn>
+
+                  <v-btn
+                    variant="outlined"
+                    rounded="pill"
+                    class="text-none font-weight-black text-caption flex-shrink-0"
+                    style="
+                      border-width: 1.5px;
+                      height: 38px;
+                      min-width: auto;
+                      color: #000000 !important;
+                      border-color: #e0e0e0 !important;
+                      background-color: #ffffff !important;
+                      letter-spacing: 0;
+                    "
+                    append-icon="mdi-chevron-down"
+                  >
+                    More
+                  </v-btn>
+                </div>
+              </v-col>
               <v-col
                 class="d-flex flex-column justify-space-between align-content-space-between"
               >
                 <div class="">
                   <template
-                    v-for="(product, index) in restaurantDish"
+                    v-for="(product, index) in filteredRestaurantDish"
                     :key="index"
                   >
                     <div
-                      class="d-flex align-center justify-space-between px-3 py-1"
+                      class="w-100 d-flex align-center justify-space-between px-3 py-1 ga-4"
                     >
-                      <div class="d-flex align-center">
+                      <div class="d-flex align-center" style="width: 90%">
                         <div class="flex-grow-0 flex-shrink-0">
                           <v-img
                             class="rounded bg-white"
@@ -1420,45 +1538,65 @@
                             </template>
                           </v-img>
                         </div>
-                        <div class="ml-1 pa-2">
+                        <div class="ml-1 pa-2 w-100">
                           <span
                             class="text-wrap font-weight-black product-name text-body-2 mb-2"
                           >
                             {{ product.dish_name }}
                           </span>
-                          <div style="font-size: 11px">
+                          <!-- <div style="font-size: 11px">
                             <v-icon color="#F63F17"> mdi-star </v-icon>
                             <v-icon color="#F63F17"> mdi-star </v-icon>
                             <v-icon color="#F63F17"> mdi-star </v-icon>
                             <v-icon color="#F63F17"> mdi-star </v-icon>
                             <v-icon color="#F63F17"> mdi-star-outline </v-icon>
                             <span class="ml-2 text-grey"> 132 votes </span>
-                          </div>
-                          <span class="text-body-2 text-red">
-                            <strong
-                              >{{ selectedCountry?.currency_symbol }}
-                              {{ product.rate }}</strong
+                          </div> -->
+                          <p class="text-blue text-caption">
+                            {{ product.quantity_name }}
+                          </p>
+
+                          <div
+                            class="d-flex justify-space-between w-100 align-center"
+                          >
+                            <span class="text-body-2 text-red">
+                              <strong
+                                >{{ selectedCountry?.currency_symbol }}
+                                {{ product.rate }}</strong
+                              >
+                            </span>
+                            <span
+                              class="text-blue-darken-3 font-weight-bold text-caption cursor-pointer"
+                              @click="
+                                openWhatsIncluded(
+                                  product.pq_description ||
+                                    product.dish_description,
+                                )
+                              "
+                              >What's Included ?</span
                             >
-                          </span>
+                          </div>
                         </div>
                       </div>
 
-                      <v-btn
-                        v-if="!isInCart2(product)"
-                        @click="addToCartData(product)"
-                        size="xs"
-                        color="black"
-                        class="text-caption py-1 px-4"
-                        variant="flat"
-                        >Add</v-btn
-                      >
+                      <div style="width: 10%">
+                        <v-btn
+                          v-if="!isInCart2(product)"
+                          @click="addToCartData(product)"
+                          size="xs"
+                          color="black"
+                          class="text-caption py-1 px-4"
+                          variant="flat"
+                          >Add</v-btn
+                        >
 
-                      <span
-                        v-else="isInCart2(product)"
-                        class="text-red text-caption font-weight-bold"
-                      >
-                        In Cart
-                      </span>
+                        <span
+                          v-else="isInCart2(product)"
+                          class="text-red text-caption font-weight-bold"
+                        >
+                          In Cart
+                        </span>
+                      </div>
                     </div>
                   </template>
                 </div>
@@ -1600,6 +1738,32 @@
       </v-card-text>
     </v-card>
   </v-dialog>
+
+  <v-dialog v-model="whatsIncludedDialog" width="auto" max-width="400">
+    <v-card rounded="lg" class="pa-4">
+      <div class="d-flex align-center justify-space-between mb-2">
+        <h3 class="text-blue-darken-3 font-weight-bold text-subtitle-1">
+          What's Included
+        </h3>
+        <v-btn
+          icon="mdi-close"
+          size="x-small"
+          color="grey-darken-2"
+          variant="flat"
+          class="text-white rounded-circle"
+          @click="whatsIncludedDialog = false"
+        ></v-btn>
+      </div>
+      <v-divider class="mb-4"></v-divider>
+      <v-card-text
+        class="pa-0 text-body-1 font-weight-medium text-black"
+        style="line-height: 1.5"
+      >
+        {{ selectedPqDescription }}
+      </v-card-text>
+    </v-card>
+  </v-dialog>
+
   <!-- <v-dialog v-model="confirmOrder" persistent width="auto">
     <v-card width="350">
       <v-card-text class="">
@@ -1721,6 +1885,60 @@ const taxAmount = ref(null);
 const timeSlots = ref([]);
 const isRestaurant = ref(false);
 const restaurantDish = ref([]);
+
+const activeCategory = ref("Biryani Menu");
+const categories = ref([
+  { name: "Biryani Menu" },
+  { name: "Desserts" },
+  { name: "Hot Drinks" },
+]);
+
+const whatsIncludedDialog = ref(false);
+const selectedPqDescription = ref("");
+
+const openWhatsIncluded = (description) => {
+  selectedPqDescription.value = description || "No description available.";
+  whatsIncludedDialog.value = true;
+};
+
+const filteredRestaurantDish = computed(() => {
+  if (!restaurantDish.value) return [];
+  if (activeCategory.value === "Desserts") {
+    return restaurantDish.value.filter((dish) => {
+      const name = (dish.dish_name || "").toLowerCase();
+      return (
+        name.includes("dessert") ||
+        name.includes("sweet") ||
+        name.includes("halwa") ||
+        name.includes("kheer") ||
+        name.includes("gulab") ||
+        name.includes("jamun") ||
+        name.includes("ice cream") ||
+        name.includes("kulfi")
+      );
+    });
+  } else if (activeCategory.value === "Hot Drinks") {
+    return restaurantDish.value.filter((dish) => {
+      const name = (dish.dish_name || "").toLowerCase();
+      return (
+        name.includes("drink") ||
+        name.includes("tea") ||
+        name.includes("coffee") ||
+        name.includes("chai") ||
+        name.includes("beverage") ||
+        name.includes("water") ||
+        name.includes("juice") ||
+        name.includes("lassi")
+      );
+    });
+  } else if (activeCategory.value === "Biryani Menu") {
+    return restaurantDish.value.filter((dish) => {
+      const name = (dish.dish_name || "").toLowerCase();
+      return name.includes("biryani");
+    });
+  }
+  return restaurantDish.value;
+});
 
 const addressForm = reactive({
   //main_address: "",
@@ -2990,5 +3208,13 @@ onMounted(() => {
   .product-name {
     width: 45vw !important;
   }
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 </style>
