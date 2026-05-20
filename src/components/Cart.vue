@@ -159,12 +159,10 @@
                               }}</span>
 
                               <span
+                                v-if="product.pq_description"
                                 class="text-blue-darken-3 font-weight-bold text-caption cursor-pointer"
                                 @click="
-                                  openWhatsIncluded(
-                                    product.pq_description ||
-                                      product.dish_description,
-                                  )
+                                  openWhatsIncluded(product.pq_description)
                                 "
                                 >What's Included ?</span
                               >
