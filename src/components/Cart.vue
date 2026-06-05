@@ -21,21 +21,33 @@
   >
     <template #default="{ close }">
       <div class="cart-drawer fill-height">
-        <div class="flex-grow-0 border-b">
+        <div class="flex-grow-0">
           <v-row no-gutters>
             <v-col cols="12">
               <v-sheet>
-                <div class="d-flex align-center justify-space-between pa-3">
-                  <div class="text-h6">My Cart</div>
-                  <div class="text-h6" v-show="cartQuantity > 0">
-                    <span class="text-red">{{ cartQuantity }}</span> Items |
-                    <span class="text-blue" v-if="subTotal">
+                <div
+                  class="d-flex align-center justify-space-between pa-3 bg-grey-lighten-4"
+                >
+                  <div class="text-h5 font-weight-bold">My Cart</div>
+                  <div
+                    class="text-h6 font-weight-light"
+                    v-show="cartQuantity > 0"
+                  >
+                    <span class="">{{ cartQuantity }}</span> Items
+                    <span v-if="!isSmall">|</span> <br v-if="isSmall" />Subtotal
+                    <span class="text-h6 font-weight-bold" v-if="subTotal">
                       {{ selectedCountry.currency_symbol }}
                       {{ finalCartTotal }}
                     </span>
                   </div>
                   <div v-if="!isRestaurant">
-                    <v-btn @click="close" icon="mdi-close-circle"></v-btn>
+                    <v-btn
+                      class="text-grey-lighten-1"
+                      :size="isSmall ? 'small' : 'large'"
+                      @click="close"
+                      variant="text"
+                      icon="mdi-close-circle"
+                    ></v-btn>
                   </div>
                   <div v-else>
                     <v-btn
@@ -55,16 +67,18 @@
             style="min-height: 0; overflow-y: auto"
           >
             <v-row no-gutters>
-              <v-col v-if="step == 1" class="pb-4">
+              <v-col v-if="step == 1" class="pb-4 px-2 bg-grey-lighten-4">
                 <div class="">
-                  <div class="d-flex align-center px-3 py-1">
+                  <div
+                    class="d-flex align-center px-3 py-3 my-3 bg-white rounded-lg"
+                    style="border: 1px solid #e0e0e0 !important"
+                  >
                     <div class="flex-grow-0 flex-shrink-0">
                       <v-img
-                        class="rounded bg-white"
+                        class="rounded-circle bg-white border"
                         :src="fileURL + cart[0].restaurant_logo"
-                        width="80"
-                        height="60"
-                        cover
+                        width="65"
+                        height="65"
                       >
                         <template v-slot:placeholder>
                           <div
@@ -78,51 +92,61 @@
                         </template>
                       </v-img>
                     </div>
-                    <div class="flex-grow-1 flex-shrink-0 ml-1 pa-2">
-                      <div class="d-flex align-center justify-space-between">
-                        <div>
-                          <div
-                            :class="{
-                              'font-weight-bold text-blue-darken-2 text-no-wrap text-body-2': true,
-                            }"
-                          >
-                            {{
-                              cart[0]?.restaurant_name
-                                ? cart[0]?.restaurant_name
-                                : ""
-                            }}
-                          </div>
-                          <div class="text-grey font-weight-bold text-caption">
-                            {{ cart[0]?.town_name ? cart[0]?.town_name : "" }}
-                          </div>
-                          <div class="text-start text-caption font-weight-bold">
-                            <span class="text-red">
-                              {{ cart[0]?.distance ? cart[0]?.distance : "" }}
-                            </span>
-                            kms away
-                          </div>
+                    <div class="flex-grow-1 flex-shrink-0 ml-3 pa-0">
+                      <!-- Row 1: Restaurant Name -->
+                      <div
+                        class="font-weight-bold text-black text-no-wrap text-body-2"
+                      >
+                        {{
+                          cart[0]?.restaurant_name
+                            ? cart[0]?.restaurant_name
+                            : ""
+                        }}
+                      </div>
+
+                      <!-- Row 2: Town & Add More Items -->
+                      <div
+                        class="d-flex align-center justify-space-between mt-1"
+                      >
+                        <div class="text-grey font-weight-bold text-caption">
+                          {{ cart[0]?.town_name ? cart[0]?.town_name : "" }}
                         </div>
                         <div
-                          class="font-weight-bold text-blue-darken-2 text-caption cursor-pointer"
+                          class="font-weight-bold text-black text-caption cursor-pointer text-decoration-underline"
                           @click="isRestaurant = true"
                         >
                           Add More Items
                         </div>
+                      </div>
+
+                      <!-- Row 3: Distance with Icon -->
+                      <div
+                        class="d-flex align-center text-start text-caption font-weight-bold text-grey-darken-2 mt-1"
+                      >
+                        <v-icon size="14" class="mr-1"
+                          >mdi-map-marker-outline</v-icon
+                        >
+                        <span>
+                          {{ cart[0]?.distance ? cart[0]?.distance : "" }} kms
+                        </span>
                       </div>
                     </div>
                   </div>
                   <v-divider class="my-2" />
                   <template v-for="(product, index) in cart" :key="index">
                     <div
-                      class="d-flex align-center px-3 py-1 my-2 w-100"
-                      style="max-width: 100%"
+                      class="d-flex align-start px-3 py-3 my-3 w-100 bg-white rounded-lg"
+                      style="
+                        max-width: 100%;
+                        border: 1px solid #e0e0e0 !important;
+                      "
                     >
-                      <div style="width: 20%">
+                      <div style="width: 25%" class="flex-shrink-0">
                         <v-img
-                          class="rounded bg-white"
+                          class="rounded-lg bg-white"
                           :src="fileURL + product.dish_image"
-                          width="65"
-                          height="65"
+                          width="85"
+                          height="85"
                           cover
                         >
                           <template v-slot:placeholder>
@@ -137,52 +161,113 @@
                           </template>
                         </v-img>
                       </div>
-                      <div style="width: 80%" class="ml-1 pa-2">
-                        <div class="d-flex align-center justify-space-between">
-                          <div class="">
-                            <div
-                              class="text-wrap font-weight-bold product-name text-body-"
-                            >
-                              {{
-                                product?.actual_dish_name
-                                  ? product.actual_dish_name
-                                  : product?.dish_name
-                                    ? product.dish_name
-                                    : ""
-                              }}
-                            </div>
-                            <div
-                              class="d-flex flex-column flex-md-row justify-space-between w-100 align-start align-md-center"
-                            >
-                              <span class="text-blue text-caption">{{
-                                product.quantity_name
-                              }}</span>
+                      <div style="width: 75%" class="ml-md-0 ml-2 pa-0">
+                        <!-- Row 1: Product Name -->
+                        <div
+                          class="text-wrap font-weight-bold text-subtitle-1 text-black"
+                          style="line-height: 1.25"
+                        >
+                          {{
+                            product?.actual_dish_name
+                              ? product.actual_dish_name
+                              : product?.dish_name
+                                ? product.dish_name
+                                : ""
+                          }}
+                        </div>
 
-                              <span
-                                v-if="product.pq_description"
-                                class="text-blue-darken-3 font-weight-bold text-caption cursor-pointer"
-                                @click="
-                                  openWhatsIncluded(product.pq_description)
-                                "
-                                >What's Included ?</span
-                              >
-                            </div>
+                        <!-- Row 2: Variant & Total Price -->
+                        <div
+                          class="d-flex align-center justify-space-between mt-1"
+                        >
+                          <span class="text-grey-darken-2 text-body-2">{{
+                            product.quantity_name
+                          }}</span>
+                          <span
+                            class="font-weight-black text-subtitle-1 text-black"
+                          >
+                            {{ selectedCountry?.currency_symbol }}
+                            {{ (product.price * product.quantity).toFixed(2) }}
+                          </span>
+                        </div>
+
+                        <!-- Row 3: Info Chips -->
+                        <div class="d-flex align-center ga-2 mt-2 flex-wrap">
+                          <div
+                            v-if="product.dish_description"
+                            class="d-flex align-center cursor-pointer px-2 py-1 rounded bg-orange-lighten-5 border text-caption text-grey-darken-4 font-weight-medium cursor-pointer"
+                            @click="
+                              showInformationModal(
+                                `How is it made?`,
+                                product.dish_description,
+                              )
+                            "
+                            style="
+                              border-color: #ffe0b2 !important;
+                              border-radius: 6px !important;
+                              font-size: 9px !important;
+                            "
+                          >
+                            <span>How is it made?</span>
+                            <v-icon size="12" class="ml-1" color="grey-darken-3"
+                              >mdi-information-outline</v-icon
+                            >
                           </div>
-                          <div class="text-body-2 text-end">
-                            <strong
-                              >{{ selectedCountry?.currency_symbol }}
-                              {{
-                                (product.price * product.quantity).toFixed(2)
-                              }}</strong
+                          <div
+                            v-if="product.pq_description"
+                            class="d-flex align-center cursor-pointer px-2 py-1 rounded bg-orange-lighten-5 border text-caption text-grey-darken-4 font-weight-medium"
+                            style="
+                              border-color: #ffe0b2 !important;
+                              border-radius: 6px !important;
+                              font-size: 9px !important;
+                            "
+                            @click="
+                              showInformationModal(
+                                `What's Included?`,
+                                product.pq_description,
+                              )
+                            "
+                          >
+                            <span>What's Included?</span>
+                            <v-icon size="12" class="ml-1" color="grey-darken-3"
+                              >mdi-information-outline</v-icon
+                            >
+                          </div>
+                          <div
+                            v-if="product.whats_free"
+                            class="d-flex align-center cursor-pointer px-2 py-1 rounded bg-orange-lighten-5 border text-caption text-grey-darken-4 font-weight-medium"
+                            @click="
+                              showInformationModal(
+                                `What's Free?`,
+                                product.whats_free,
+                              )
+                            "
+                            style="
+                              border-color: #ffe0b2 !important;
+                              border-radius: 6px !important;
+                              font-size: 9px !important;
+                            "
+                          >
+                            <span>What's Free?</span>
+                            <v-icon size="12" class="ml-1" color="grey-darken-3"
+                              >mdi-information-outline</v-icon
                             >
                           </div>
                         </div>
-                        <div class="d-flex align-center justify-space-between">
-                          <div class="d-flex align-center ga-3 border">
+
+                        <!-- Row 4: Controls & Unit Price -->
+                        <div
+                          class="d-flex align-center justify-space-between mt-3"
+                        >
+                          <!-- Quantity Control -->
+                          <div
+                            class="d-flex align-center rounded border overflow-hidden bg-grey-lighten-4"
+                            style="height: 32px"
+                          >
                             <v-btn
-                              size="xs"
-                              color="black"
-                              class="text-caption pa-1 rounded-0"
+                              size="32"
+                              color="orange-darken-1"
+                              class="rounded-0 text-white"
                               variant="flat"
                               icon
                               @click="
@@ -193,15 +278,18 @@
                                 )
                               "
                             >
-                              <v-icon>mdi-minus</v-icon>
+                              <v-icon size="14">mdi-minus</v-icon>
                             </v-btn>
-                            <span class="text-body-2">{{
-                              product.quantity
-                            }}</span>
+                            <span
+                              class="px-3 text-body-2 font-weight-bold text-center"
+                              style="min-width: 32px"
+                            >
+                              {{ product.quantity }}
+                            </span>
                             <v-btn
-                              size="xs"
-                              color="black"
-                              class="text-caption pa-1 rounded-0"
+                              size="32"
+                              color="orange-darken-1"
+                              class="rounded-0 text-white"
                               variant="flat"
                               icon
                               @click="
@@ -212,23 +300,26 @@
                                 )
                               "
                             >
-                              <v-icon>mdi-plus</v-icon>
+                              <v-icon size="14">mdi-plus</v-icon>
                             </v-btn>
                           </div>
-                          <div class="text-body-2">
-                            <strong class="text-red">{{
-                              selectedCountry?.currency_symbol
-                            }}</strong>
-                            <strong class="text-red">{{
-                              product.price
-                            }}</strong>
+
+                          <!-- Unit Price -->
+                          <div
+                            class="text-body-2 text-grey-darken-3 font-weight-bold"
+                          >
+                            {{ selectedCountry?.currency_symbol }}
+                            {{ product.price }}
                           </div>
+
+                          <!-- Trash Button -->
                           <div>
                             <v-btn
                               @click="handleRemoveFromCart(product)"
-                              color="red"
-                              icon="mdi-trash-can"
-                              size="x-small"
+                              color="orange-darken-1"
+                              icon="mdi-delete-outline"
+                              variant="text"
+                              size="small"
                             ></v-btn>
                           </div>
                         </div>
@@ -236,7 +327,7 @@
                     </div>
                   </template>
                 </div>
-                <p class="text-red-darken-4 font-weight-bold pl-3 text-body-2">
+                <p class="pl-3 text-body-2">
                   To Proceed Please Select Pick up or Delivery
                 </p>
               </v-col>
@@ -1542,7 +1633,7 @@
                           >
                             {{ product.dish_name }}
                           </span>
-                          <!-- <div style="font-size: 11px">
+                          <!-- <div style="font-size: 9px">
                             <v-icon color="#F63F17"> mdi-star </v-icon>
                             <v-icon color="#F63F17"> mdi-star </v-icon>
                             <v-icon color="#F63F17"> mdi-star </v-icon>
@@ -1605,6 +1696,17 @@
       </div>
     </template>
   </MazDrawer>
+  <v-dialog v-model="informationModal" width="auto">
+    <v-card width="350">
+      <v-card-title>{{ informationModalTitle }}</v-card-title>
+      <v-card-text>
+        {{ informationModalContent }}
+      </v-card-text>
+      <v-card-actions>
+        <v-btn color="primary" @click="informationModal = false">Close</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
   <v-dialog v-model="openDialog" persistent width="auto">
     <v-card width="350">
       <v-card-text class="">
@@ -1824,6 +1926,9 @@ const emit = defineEmits(["update:viewCart"]);
 const currentTime = ref("");
 const streetRef = ref(null);
 const openDialog = ref(false);
+const informationModal = ref(false);
+const informationModalContent = ref("");
+const informationModalTitle = ref("");
 const cancelOrderDialog = ref(false);
 const payLater = ref(false);
 const havePaid = ref(false);
@@ -2322,6 +2427,12 @@ const onSelectPayment = async (selectedId) => {
   // finally {
   //   savingAddress.value = false;
   // }
+};
+
+const showInformationModal = (title, description) => {
+  informationModalTitle.value = title;
+  informationModalContent.value = description;
+  informationModal.value = true;
 };
 
 // Open Confirmation Modal

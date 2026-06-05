@@ -17,6 +17,9 @@ const props = defineProps<{
 }>();
 
 const selectedVariant = ref(props.menu?.biryaniRunPrice);
+const informationModal = ref(false);
+const informationModalContent = ref("");
+const informationModalTitle = ref("");
 
 watch(
   () => props.menu,
@@ -115,6 +118,12 @@ const goToDetail = async (menu: any) => {
     };
   }
 };
+
+const showInformationModal = (title, description) => {
+  informationModalTitle.value = title;
+  informationModalContent.value = description;
+  informationModal.value = true;
+};
 </script>
 
 <template>
@@ -128,7 +137,7 @@ const goToDetail = async (menu: any) => {
     :class="{ 'bg-white': true, 'pa-3': isDesktop, 'pa-1': !isDesktop }"
     elevation="4"
     style="width: 100%"
-    :style="{ height: isDesktop ? '420px' : '390px' }"
+    :style="{ height: isDesktop ? '470px' : '440px' }"
   >
     <div
       class="align-center text-start ga-3"
@@ -268,10 +277,11 @@ const goToDetail = async (menu: any) => {
       style="
         position: absolute;
         gap: 10px;
-        bottom: 140px;
+        top: 250px;
         right: 30px;
         z-index: 100;
       "
+      :style="{ top: isDesktop ? '250px' : '220px' }"
     >
       <v-btn
         color="white"
@@ -323,11 +333,34 @@ const goToDetail = async (menu: any) => {
           <p>{{ props.menu?.biryaniRunPrice?.likes || 0 }}</p>
         </div>
       </div>
-      <p class="font-weight-black text-subtitle-2 text-start mt-2">
-        {{
-          props.menu?.biryaniRunPrice?.actual_dish_name || props.menu?.dish_name
-        }}
-      </p>
+      <div class="d-flex align-center justify-space-between ga-2">
+        <p class="font-weight-black text-subtitle-2 text-start mt-2">
+          {{
+            props.menu?.biryaniRunPrice?.actual_dish_name ||
+            props.menu?.dish_name
+          }}
+        </p>
+        <div
+          v-if="props.menu?.biryaniRunPrice?.dish_description"
+          class="d-flex align-center cursor-pointer px-2 py-1 rounded bg-orange-lighten-5 border text-grey-darken-4 font-weight-medium cursor-pointer text-no-wrap"
+          @click="
+            showInformationModal(
+              `How is it made?`,
+              props.menu?.biryaniRunPrice?.dish_description,
+            )
+          "
+          style="
+            border-color: #ffe0b2 !important;
+            border-radius: 6px !important;
+            font-size: 9px !important;
+          "
+        >
+          <span>How is it made?</span>
+          <v-icon size="12" class="ml-1" color="grey-darken-3"
+            >mdi-information-outline</v-icon
+          >
+        </div>
+      </div>
       <p
         v-if="props.menu?.biryaniRunPrice?.biryaniRunPrice2.length == 0"
         class="text-blue-darken-4 font-weight-bold ml-2 my-3"
@@ -377,7 +410,52 @@ const goToDetail = async (menu: any) => {
           More Options
         </p>
       </div>
-      <div class="d-flex justify-space-between align-center">
+      <div class="d-flex align-center ga-2 mt-2 flex-wrap">
+        <div
+          v-if="props.menu?.biryaniRunPrice?.pq_description"
+          class="d-flex align-center cursor-pointer px-2 py-1 rounded bg-orange-lighten-5 border text-caption text-grey-darken-4 font-weight-medium"
+          style="
+            border-color: #ffe0b2 !important;
+            border-radius: 6px !important;
+            font-size: 9px !important;
+          "
+          @click="
+            showInformationModal(
+              `What's Included?`,
+              props.menu?.biryaniRunPrice?.pq_description,
+            )
+          "
+        >
+          <span>What's Included?</span>
+          <v-icon size="12" class="ml-1" color="grey-darken-3"
+            >mdi-information-outline</v-icon
+          >
+        </div>
+        <div
+          v-if="props.menu?.biryaniRunPrice?.whats_free"
+          class="d-flex align-center cursor-pointer px-2 py-1 rounded bg-orange-lighten-5 border text-caption text-grey-darken-4 font-weight-medium"
+          @click="
+            showInformationModal(
+              `What's Free?`,
+              props.menu?.biryaniRunPrice?.whats_free,
+            )
+          "
+          style="
+            border-color: #ffe0b2 !important;
+            border-radius: 6px !important;
+            font-size: 9px !important;
+          "
+        >
+          <span>What's Free?</span>
+          <v-icon size="12" class="ml-1" color="grey-darken-3"
+            >mdi-information-outline</v-icon
+          >
+        </div>
+      </div>
+      <div
+        class="d-flex justify-space-between align-center"
+        style="position: absolute; bottom: 10px; left: 20px; width: 90%"
+      >
         <p class="text-start font-weight-bold mt-2">
           {{ selectedCountry?.currency_symbol }}
           {{
@@ -459,6 +537,17 @@ const goToDetail = async (menu: any) => {
           @click="store.commit('setErrorAddCart', false)"
           >No</v-btn
         >
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+  <v-dialog v-model="informationModal" width="auto">
+    <v-card width="350">
+      <v-card-title>{{ informationModalTitle }}</v-card-title>
+      <v-card-text>
+        {{ informationModalContent }}
+      </v-card-text>
+      <v-card-actions>
+        <v-btn color="primary" @click="informationModal = false">Close</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
