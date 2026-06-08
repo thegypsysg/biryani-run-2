@@ -340,26 +340,6 @@ const showInformationModal = (title, description) => {
             props.menu?.dish_name
           }}
         </p>
-        <div
-          v-if="props.menu?.biryaniRunPrice?.dish_description"
-          class="d-flex align-center cursor-pointer px-2 py-1 rounded bg-orange-lighten-5 border text-grey-darken-4 font-weight-medium cursor-pointer text-no-wrap"
-          @click="
-            showInformationModal(
-              `How is it made?`,
-              props.menu?.biryaniRunPrice?.dish_description,
-            )
-          "
-          style="
-            border-color: #ffe0b2 !important;
-            border-radius: 6px !important;
-            font-size: 9px !important;
-          "
-        >
-          <span>How is it made?</span>
-          <v-icon size="12" class="ml-1" color="grey-darken-3"
-            >mdi-information-outline</v-icon
-          >
-        </div>
       </div>
       <p
         v-if="props.menu?.biryaniRunPrice?.biryaniRunPrice2.length == 0"
@@ -411,6 +391,26 @@ const showInformationModal = (title, description) => {
         </p>
       </div>
       <div class="d-flex align-center ga-2 mt-2 flex-wrap">
+        <div
+          v-if="props.menu?.biryaniRunPrice?.dish_description"
+          class="d-flex align-center cursor-pointer px-2 py-1 rounded bg-orange-lighten-5 border text-grey-darken-4 font-weight-medium cursor-pointer text-no-wrap"
+          @click="
+            showInformationModal(
+              `How is it made?`,
+              props.menu?.biryaniRunPrice?.dish_description,
+            )
+          "
+          style="
+            border-color: #ffe0b2 !important;
+            border-radius: 6px !important;
+            font-size: 9px !important;
+          "
+        >
+          <span>How is it made?</span>
+          <v-icon size="12" class="ml-1" color="grey-darken-3"
+            >mdi-information-outline</v-icon
+          >
+        </div>
         <div
           v-if="props.menu?.biryaniRunPrice?.pq_description"
           class="d-flex align-center cursor-pointer px-2 py-1 rounded bg-orange-lighten-5 border text-caption text-grey-darken-4 font-weight-medium"
@@ -717,6 +717,48 @@ const showInformationModal = (title, description) => {
                 @click="isDescriptionExpanded = !isDescriptionExpanded"
               >
                 {{ isDescriptionExpanded ? "less ...." : "more ...." }}
+              </div>
+            </div>
+            <div class="d-flex align-center ga-2 mt-2 flex-wrap">
+              <div
+                v-if="props.menu?.biryaniRunPrice?.pq_description"
+                class="d-flex align-center cursor-pointer px-2 py-1 rounded bg-orange-lighten-5 border text-caption text-grey-darken-4 font-weight-medium"
+                style="
+                  border-color: #ffe0b2 !important;
+                  border-radius: 6px !important;
+                  font-size: 9px !important;
+                "
+                @click="
+                  showInformationModal(
+                    `What's Included?`,
+                    props.menu?.biryaniRunPrice?.pq_description,
+                  )
+                "
+              >
+                <span>What's Included?</span>
+                <v-icon size="12" class="ml-1" color="grey-darken-3"
+                  >mdi-information-outline</v-icon
+                >
+              </div>
+              <div
+                v-if="props.menu?.biryaniRunPrice?.whats_free"
+                class="d-flex align-center cursor-pointer px-2 py-1 rounded bg-orange-lighten-5 border text-caption text-grey-darken-4 font-weight-medium"
+                @click="
+                  showInformationModal(
+                    `What's Free?`,
+                    props.menu?.biryaniRunPrice?.whats_free,
+                  )
+                "
+                style="
+                  border-color: #ffe0b2 !important;
+                  border-radius: 6px !important;
+                  font-size: 9px !important;
+                "
+              >
+                <span>What's Free?</span>
+                <v-icon size="12" class="ml-1" color="grey-darken-3"
+                  >mdi-information-outline</v-icon
+                >
               </div>
             </div>
           </v-col>

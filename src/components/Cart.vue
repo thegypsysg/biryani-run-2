@@ -141,7 +141,10 @@
                         border: 1px solid #e0e0e0 !important;
                       "
                     >
-                      <div style="width: 25%" class="flex-shrink-0">
+                      <div
+                        style="width: 25%"
+                        class="flex-shrink-0 position-relative"
+                      >
                         <v-img
                           class="rounded-lg bg-white"
                           :src="fileURL + product.dish_image"
@@ -160,6 +163,18 @@
                             </div>
                           </template>
                         </v-img>
+                        <!-- Trash Button -->
+                        <div
+                          style="position: absolute; bottom: -35px; left: 20px"
+                        >
+                          <v-btn
+                            @click="handleRemoveFromCart(product)"
+                            color="orange-darken-1"
+                            icon="mdi-delete-outline"
+                            variant="text"
+                            size="small"
+                          ></v-btn>
+                        </div>
                       </div>
                       <div style="width: 75%" class="ml-md-0 ml-2 pa-0">
                         <!-- Row 1: Product Name -->
@@ -183,36 +198,47 @@
                           <span class="text-grey-darken-2 text-body-2">{{
                             product.quantity_name
                           }}</span>
-                          <span
-                            class="font-weight-black text-subtitle-1 text-black"
+                          <div
+                            class="d-flex align-center gap-2 justify-space-between"
                           >
-                            {{ selectedCountry?.currency_symbol }}
-                            {{ (product.price * product.quantity).toFixed(2) }}
-                          </span>
+                            <div
+                              v-if="product.dish_description"
+                              class="d-flex align-center cursor-pointer px-2 py-1 rounded bg-orange-lighten-5 border text-caption text-grey-darken-4 font-weight-medium cursor-pointer"
+                              @click="
+                                showInformationModal(
+                                  `How is it made?`,
+                                  product.dish_description,
+                                )
+                              "
+                              style="
+                                border-color: #ffe0b2 !important;
+                                border-radius: 6px !important;
+                                font-size: 9px !important;
+                              "
+                            >
+                              <span>How is it made?</span>
+                              <v-icon
+                                size="12"
+                                class="ml-1"
+                                color="grey-darken-3"
+                                >mdi-information-outline</v-icon
+                              >
+                            </div>
+                            <span
+                              class="font-weight-black text-subtitle-1 text-black ml-2"
+                            >
+                              {{ selectedCountry?.currency_symbol }}
+                              {{
+                                (product.price * product.quantity).toFixed(2)
+                              }}
+                            </span>
+                          </div>
                         </div>
 
                         <!-- Row 3: Info Chips -->
-                        <div class="d-flex align-center ga-2 mt-2 flex-wrap">
-                          <div
-                            v-if="product.dish_description"
-                            class="d-flex align-center cursor-pointer px-2 py-1 rounded bg-orange-lighten-5 border text-caption text-grey-darken-4 font-weight-medium cursor-pointer"
-                            @click="
-                              showInformationModal(
-                                `How is it made?`,
-                                product.dish_description,
-                              )
-                            "
-                            style="
-                              border-color: #ffe0b2 !important;
-                              border-radius: 6px !important;
-                              font-size: 9px !important;
-                            "
-                          >
-                            <span>How is it made?</span>
-                            <v-icon size="12" class="ml-1" color="grey-darken-3"
-                              >mdi-information-outline</v-icon
-                            >
-                          </div>
+                        <div
+                          class="d-flex align-center ga-md-10 ga-2 mt-2 flex-wrap"
+                        >
                           <div
                             v-if="product.pq_description"
                             class="d-flex align-center cursor-pointer px-2 py-1 rounded bg-orange-lighten-5 border text-caption text-grey-darken-4 font-weight-medium"
@@ -257,7 +283,7 @@
 
                         <!-- Row 4: Controls & Unit Price -->
                         <div
-                          class="d-flex align-center justify-space-between mt-3"
+                          class="d-flex align-center justify-start ga-md-16 ga-10 mt-3"
                         >
                           <!-- Quantity Control -->
                           <div
@@ -310,17 +336,6 @@
                           >
                             {{ selectedCountry?.currency_symbol }}
                             {{ product.price }}
-                          </div>
-
-                          <!-- Trash Button -->
-                          <div>
-                            <v-btn
-                              @click="handleRemoveFromCart(product)"
-                              color="orange-darken-1"
-                              icon="mdi-delete-outline"
-                              variant="text"
-                              size="small"
-                            ></v-btn>
                           </div>
                         </div>
                       </div>

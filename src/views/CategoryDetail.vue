@@ -244,6 +244,49 @@
           </div>
         </div>
 
+        <div class="d-flex align-center ga-md-10 ga-2 mt-2 flex-wrap">
+          <div
+            v-if="categoryData?.biryaniRunPrice?.pq_description"
+            class="d-flex align-center cursor-pointer px-2 py-1 rounded bg-orange-lighten-5 border text-caption text-grey-darken-4 font-weight-medium"
+            style="
+              border-color: #ffe0b2 !important;
+              border-radius: 6px !important;
+              font-size: 9px !important;
+            "
+            @click="
+              showInformationModal(
+                `What's Included?`,
+                categoryData?.biryaniRunPrice?.pq_description,
+              )
+            "
+          >
+            <span>What's Included?</span>
+            <v-icon size="12" class="ml-1" color="grey-darken-3"
+              >mdi-information-outline</v-icon
+            >
+          </div>
+          <div
+            v-if="categoryData?.biryaniRunPrice?.whats_free"
+            class="d-flex align-center cursor-pointer px-2 py-1 rounded bg-orange-lighten-5 border text-caption text-grey-darken-4 font-weight-medium"
+            @click="
+              showInformationModal(
+                `What's Free?`,
+                categoryData?.biryaniRunPrice?.whats_free,
+              )
+            "
+            style="
+              border-color: #ffe0b2 !important;
+              border-radius: 6px !important;
+              font-size: 9px !important;
+            "
+          >
+            <span>What's Free?</span>
+            <v-icon size="12" class="ml-1" color="grey-darken-3"
+              >mdi-information-outline</v-icon
+            >
+          </div>
+        </div>
+
         <div class="d-flex align-center py-1 my-2">
           <div class="flex-grow-0 flex-shrink-0">
             <v-img
@@ -540,6 +583,18 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <v-dialog v-model="informationModal" width="auto">
+    <v-card width="350">
+      <v-card-title>{{ informationModalTitle }}</v-card-title>
+      <v-card-text>
+        {{ informationModalContent }}
+      </v-card-text>
+      <v-card-actions>
+        <v-btn color="primary" @click="informationModal = false">Close</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script>
@@ -731,12 +786,16 @@ export default {
 </script>
 
 <script setup>
-import { computed } from "vue";
+import { ref, computed } from "vue";
 import { useStore } from "vuex";
 import { useCart } from "@/composables/useCart";
 
 const store = useStore();
 const { isInCart, cartQuantity, addToCart, updateQuantity } = useCart();
+
+const informationModal = ref(false);
+const informationModalContent = ref("");
+const informationModalTitle = ref("");
 
 const errorAddCart = computed(() => store.state.errorAddCart);
 const selectedCountry = computed(() => store.state.selectedCountry);
@@ -750,6 +809,12 @@ const addToCartData = (data, range) => {
   } else {
     addToCart(data, range);
   }
+};
+
+const showInformationModal = (title, description) => {
+  informationModalTitle.value = title;
+  informationModalContent.value = description;
+  informationModal.value = true;
 };
 </script>
 
