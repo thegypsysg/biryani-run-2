@@ -1626,8 +1626,8 @@
                           <v-img
                             class="rounded bg-white"
                             :src="fileURL + product.dish_image"
-                            width="120"
-                            height="80"
+                            width="80"
+                            height="60"
                             cover
                           >
                             <template v-slot:placeholder>
@@ -1679,6 +1679,78 @@
                               "
                               >What's Included ?</span
                             >
+                          </div>
+
+                          <div class="d-flex align-center flex-wrap mt-2 ga-1">
+                            <div
+                              v-if="product.dish_description"
+                              class="d-flex align-center cursor-pointer pa-1 rounded bg-orange-lighten-5 border text-caption text-grey-darken-4 font-weight-medium cursor-pointer"
+                              @click="
+                                showInformationModal(
+                                  `How is it made?`,
+                                  product.dish_description,
+                                )
+                              "
+                              style="
+                                border-color: #ffe0b2 !important;
+                                border-radius: 6px !important;
+                                font-size: 8px !important;
+                              "
+                            >
+                              <span>How is it made?</span>
+                              <v-icon
+                                size="12"
+                                class="ml-1"
+                                color="grey-darken-3"
+                                >mdi-information-outline</v-icon
+                              >
+                            </div>
+                            <div
+                              v-if="product.pq_description"
+                              class="d-flex align-center cursor-pointer pa-1 rounded bg-orange-lighten-5 border text-caption text-grey-darken-4 font-weight-medium"
+                              style="
+                                border-color: #ffe0b2 !important;
+                                border-radius: 6px !important;
+                                font-size: 8px !important;
+                              "
+                              @click="
+                                showInformationModal(
+                                  `What's Included?`,
+                                  product.pq_description,
+                                )
+                              "
+                            >
+                              <span>What's Included?</span>
+                              <v-icon
+                                size="12"
+                                class="ml-1"
+                                color="grey-darken-3"
+                                >mdi-information-outline</v-icon
+                              >
+                            </div>
+                            <div
+                              v-if="product.whats_free"
+                              class="d-flex align-center cursor-pointer pa-1 rounded bg-orange-lighten-5 border text-caption text-grey-darken-4 font-weight-medium"
+                              @click="
+                                showInformationModal(
+                                  `What's Free?`,
+                                  product.whats_free,
+                                )
+                              "
+                              style="
+                                border-color: #ffe0b2 !important;
+                                border-radius: 6px !important;
+                                font-size: 8px !important;
+                              "
+                            >
+                              <span>What's Free?</span>
+                              <v-icon
+                                size="12"
+                                class="ml-1"
+                                color="grey-darken-3"
+                                >mdi-information-outline</v-icon
+                              >
+                            </div>
                           </div>
                         </div>
                       </div>
