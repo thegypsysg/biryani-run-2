@@ -92,46 +92,204 @@
                         </template>
                       </v-img>
                     </div>
-                    <div class="flex-grow-1 flex-shrink-0 ml-3 pa-0">
-                      <!-- Row 1: Restaurant Name -->
-                      <div
-                        class="font-weight-bold text-black text-no-wrap text-body-2"
-                      >
-                        {{
-                          cart[0]?.restaurant_name
-                            ? cart[0]?.restaurant_name
-                            : ""
-                        }}
-                      </div>
-
-                      <!-- Row 2: Town & Add More Items -->
-                      <div
-                        class="d-flex align-center justify-space-between mt-1"
-                      >
-                        <div class="text-grey font-weight-bold text-caption">
-                          {{ cart[0]?.town_name ? cart[0]?.town_name : "" }}
+                    <div class="flex-grow-1 ml-3 pa-0" style="min-width: 0">
+                      <!-- Row 1: Restaurant Name & Distance -->
+                      <div class="d-flex align-center justify-space-between">
+                        <div
+                          class="font-weight-bold text-black text-subtitle-1 text-truncate mr-2"
+                          style="font-size: 1.1rem !important; line-height: 1.2"
+                        >
+                          {{
+                            cart[0]?.restaurant_name
+                              ? cart[0]?.restaurant_name
+                              : ""
+                          }}
                         </div>
                         <div
-                          class="font-weight-bold text-black text-caption cursor-pointer text-decoration-underline"
-                          @click="isRestaurant = true"
+                          class="d-flex align-center text-grey-darken-3 flex-shrink-0"
                         >
-                          Add More Items
+                          <v-icon size="18" class="mr-1"
+                            >mdi-map-marker-outline</v-icon
+                          >
+                          <span
+                            class="text-subtitle-1 font-weight-bold"
+                            style="font-size: 1rem !important"
+                            >{{
+                              cart[0]?.distance ? cart[0]?.distance : ""
+                            }}
+                            kms</span
+                          >
                         </div>
                       </div>
 
-                      <!-- Row 3: Distance with Icon -->
+                      <!-- Row 2: Town -->
                       <div
-                        class="d-flex align-center text-start text-caption font-weight-bold text-grey-darken-2 mt-1"
+                        class="text-grey font-weight-medium text-subtitle-2 mt-1"
+                        style="line-height: 1.2"
                       >
-                        <v-icon size="14" class="mr-1"
-                          >mdi-map-marker-outline</v-icon
+                        {{ cart[0]?.town_name ? cart[0]?.town_name : "" }}
+                      </div>
+
+                      <!-- Row 3: Action Buttons -->
+                      <div
+                        class="d-flex flex-wrap align-center mt-2"
+                        style="gap: 8px"
+                      >
+                        <div
+                          class="bg-blue-lighten-5 text-blue-darken-3 rounded-pill px-3 py-1 text-caption font-weight-bold cursor-pointer"
                         >
-                        <span>
-                          {{ cart[0]?.distance ? cart[0]?.distance : "" }} kms
-                        </span>
+                          Note to Kitchen
+                        </div>
+                        <div
+                          class="bg-blue-lighten-5 text-blue-darken-3 rounded-pill px-3 py-1 text-caption font-weight-bold cursor-pointer"
+                        >
+                          Note to Rider
+                        </div>
+                        <div
+                          class="bg-blue-lighten-5 text-blue-darken-3 rounded-pill px-3 py-1 text-caption font-weight-bold cursor-pointer"
+                          @click="isRestaurant = true"
+                        >
+                          Add more Items
+                        </div>
+                        <div
+                          class="bg-red-lighten-5 text-red-darken-3 rounded-pill px-3 py-1 text-caption font-weight-bold cursor-pointer"
+                          @click="store.dispatch('clearCart')"
+                        >
+                          Clear Items
+                        </div>
                       </div>
                     </div>
                   </div>
+                  <!-- Address & Instructions Section -->
+                  <v-row no-gutters class="mb-3 mx-0 px-0">
+                    <!-- Address Card -->
+                    <v-col cols="6" class="pr-1">
+                      <div
+                        class="bg-grey-lighten-4 rounded-lg pa-3 fill-height"
+                        style="border: 1px solid #e0e0e0 !important"
+                      >
+                        <div
+                          class="d-flex justify-space-between align-center mb-3"
+                        >
+                          <div
+                            class="font-weight-bold text-black text-subtitle-1"
+                            style="font-family: serif"
+                          >
+                            Address
+                          </div>
+                          <div
+                            class="text-caption text-grey-darken-1 font-weight-medium cursor-pointer"
+                            @click="addressDialog = true"
+                          >
+                            Edit/Add
+                          </div>
+                        </div>
+
+                        <div
+                          class="d-flex flex-wrap gap-2 mb-3"
+                          style="gap: 8px"
+                        >
+                          <div
+                            class="bg-blue-grey-darken-1 text-white rounded-pill px-3 py-1 text-caption font-weight-bold cursor-pointer"
+                          >
+                            Home
+                          </div>
+                          <div
+                            class="bg-transparent text-grey-darken-2 border border-grey-darken-1 rounded-pill px-3 py-1 text-caption font-weight-medium cursor-pointer"
+                          >
+                            Home 2
+                          </div>
+                          <div
+                            class="bg-transparent text-grey-darken-2 border border-grey-darken-1 rounded-pill px-3 py-1 text-caption font-weight-medium cursor-pointer"
+                          >
+                            Office
+                          </div>
+                        </div>
+
+                        <div class="text-body-2 text-black mt-2">
+                          Block 76, #13-03 Marine Drive
+                        </div>
+                      </div>
+                    </v-col>
+
+                    <!-- Delivery Instructions Card -->
+                    <v-col cols="6" class="pl-1">
+                      <div
+                        class="bg-grey-lighten-4 rounded-lg pa-3 fill-height d-flex flex-column"
+                        style="border: 1px solid #e0e0e0 !important"
+                      >
+                        <div
+                          class="d-flex gap-2 mb-3 overflow-x-auto hide-scrollbar"
+                          style="gap: 8px"
+                        >
+                          <div
+                            class="bg-amber-accent-2 rounded pa-2 text-center flex-shrink-0 cursor-pointer"
+                            style="width: 70px"
+                          >
+                            <v-icon size="20" color="brown-darken-4"
+                              >mdi-package-variant-closed</v-icon
+                            >
+                            <div
+                              class="text-brown-darken-4 mt-1"
+                              style="
+                                font-size: 10px;
+                                line-height: 1.2;
+                                font-weight: 600;
+                              "
+                            >
+                              Leave outside door
+                            </div>
+                          </div>
+                          <div
+                            class="bg-white border rounded pa-2 text-center flex-shrink-0 cursor-pointer"
+                            style="width: 70px"
+                          >
+                            <v-icon size="20" color="black"
+                              >mdi-bell-off-outline</v-icon
+                            >
+                            <div
+                              class="text-black mt-1"
+                              style="
+                                font-size: 10px;
+                                line-height: 1.2;
+                                font-weight: 500;
+                              "
+                            >
+                              Do not ring bell
+                            </div>
+                          </div>
+                          <div
+                            class="bg-white border rounded pa-2 text-center flex-shrink-0 cursor-pointer"
+                            style="width: 70px"
+                          >
+                            <v-icon size="20" color="black"
+                              >mdi-pencil-outline</v-icon
+                            >
+                            <div
+                              class="text-black mt-1"
+                              style="
+                                font-size: 10px;
+                                line-height: 1.2;
+                                font-weight: 500;
+                              "
+                            >
+                              Write your own...
+                            </div>
+                          </div>
+                        </div>
+
+                        <div
+                          class="font-weight-bold text-black text-caption mb-1"
+                        >
+                          How to get there. ?
+                        </div>
+                        <div
+                          class="bg-white rounded flex-grow-1"
+                          style="min-height: 24px"
+                        ></div>
+                      </div>
+                    </v-col>
+                  </v-row>
                   <v-divider class="my-2" />
                   <template v-for="(product, index) in cart" :key="index">
                     <div
@@ -1660,7 +1818,7 @@
                             {{ product.quantity_name }}
                           </p>
 
-                          <div
+                          <!-- <div
                             class="d-flex justify-space-between w-100 align-center"
                           >
                             <span class="text-body-2 text-red">
@@ -1679,7 +1837,7 @@
                               "
                               >What's Included ?</span
                             >
-                          </div>
+                          </div> -->
 
                           <div class="d-flex align-center flex-wrap mt-2 ga-1">
                             <div
@@ -2093,8 +2251,9 @@ const openWhatsIncluded = (description) => {
 
 const filteredRestaurantDish = computed(() => {
   if (!restaurantDish.value) return [];
+  let result = [];
   if (activeCategory.value === "Desserts") {
-    return restaurantDish.value.filter((dish) => {
+    result = restaurantDish.value.filter((dish) => {
       const name = (dish.dish_name || "").toLowerCase();
       return (
         name.includes("dessert") ||
@@ -2108,7 +2267,7 @@ const filteredRestaurantDish = computed(() => {
       );
     });
   } else if (activeCategory.value === "Hot Drinks") {
-    return restaurantDish.value.filter((dish) => {
+    result = restaurantDish.value.filter((dish) => {
       const name = (dish.dish_name || "").toLowerCase();
       return (
         name.includes("drink") ||
@@ -2122,12 +2281,21 @@ const filteredRestaurantDish = computed(() => {
       );
     });
   } else if (activeCategory.value === "Biryani Menu") {
-    return restaurantDish.value.filter((dish) => {
+    result = restaurantDish.value.filter((dish) => {
       const name = (dish.dish_name || "").toLowerCase();
       return name.includes("biryani");
     });
+  } else {
+    result = restaurantDish.value;
   }
-  return restaurantDish.value;
+
+  return [...result].sort((a, b) => {
+    const inCartA = cart.value.some((item) => item.brp_id === a.brp_id);
+    const inCartB = cart.value.some((item) => item.brp_id === b.brp_id);
+    if (inCartA && !inCartB) return -1;
+    if (!inCartA && inCartB) return 1;
+    return 0;
+  });
 });
 
 const addressForm = reactive({
