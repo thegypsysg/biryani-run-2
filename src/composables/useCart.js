@@ -133,6 +133,22 @@ export function useCart() {
     store.dispatch("addToCart", cartMasterData);
   };
 
+  const addToCartMenuRatePrice = (product) => {
+    console.log(product);
+    getPlatformFee();
+    getTaxAmount();
+
+    const cartMasterData = {
+      app_id: 7,
+      country_id: selectedCountry.value ? selectedCountry.value.country_id : 1,
+      city_id: selectedCountry.value ? selectedCountry.value.city_id : 1,
+      mrp_id: product?.mrp_id ? product.mrp_id : product?.brp_id,
+      qty: 1,
+    };
+
+    store.dispatch("addToCartMenuRatePrice", cartMasterData);
+  };
+
   const updateQuantity = (product, change, brpId2 = null) => {
     const brpId = product?.biryaniRunPrice?.brp_id
       ? product?.biryaniRunPrice?.brp_id
@@ -169,6 +185,7 @@ export function useCart() {
     updateQuantity,
     cartQuantity,
     addToCart,
+    addToCartMenuRatePrice,
     // increaseQuantity,
     // decreaseQuantity,
   };

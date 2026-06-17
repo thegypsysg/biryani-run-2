@@ -2180,7 +2180,7 @@ import { VueDatePicker } from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 
 const { snackbarVisible, snackbarMessage, snackbarColor } = useGlobalSnackbar();
-const { addToCart, updateQuantity } = useCart();
+const { addToCart, updateQuantity, addToCartMenuRatePrice } = useCart();
 const store = useStore();
 
 let autocomplete;
@@ -2450,12 +2450,11 @@ const isInCart2 = (product) => {
 };
 
 const addToCartData = (data) => {
-  // console.log(token.value);
-  // if (token.value == "null") {
-  //   store.commit("setIsNotLoggedIn", true);
-  // } else {
-  addToCart(data);
-  // }
+  if (activeCategory.value !== "Biryani Menu") {
+    addToCartMenuRatePrice(data);
+  } else {
+    addToCart(data);
+  }
 };
 
 const format = (date) => {

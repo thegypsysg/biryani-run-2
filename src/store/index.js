@@ -264,6 +264,50 @@ export default createStore({
         });
     },
 
+    async addToCartMenuRatePrice({ commit, state }, data) {
+      commit("isLoading", true);
+      await axios
+        .post(`/add-to-cart-menu-rate-price`, data, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        })
+        .then((response) => {
+          axios
+            .get(
+              `/get-cart-items-biryani-run/7/${localStorage.getItem("latitude")}/${localStorage.getItem("longitude")}`,
+              null,
+              {
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+              },
+            )
+            .then((response) => {
+              if (response?.data.length > 0) {
+                commit("isEmptyCart", false);
+              }
+              commit("cart", response?.data);
+              commit("totalCartItems", response?.data.length);
+              commit("isLoading", false);
+            })
+            .catch((error) => {
+              console.log(error);
+              commit("isLoading", false);
+            });
+        })
+        .catch((error) => {
+          console.log(error);
+          if (
+            error?.response?.data?.message ==
+            "You cannot add items from different restaurants in the same cart"
+          ) {
+            commit("setErrorAddCart", true);
+          }
+          commit("isLoading", false);
+        });
+    },
+
     async updateCart({ commit, state }, product) {
       commit("isLoading", true);
       // console.log("updateCart", product);
