@@ -1722,16 +1722,17 @@
                   style="white-space: nowrap"
                 >
                   <v-btn
-                    v-for="cat in categories"
+                    v-for="cat in categories.slice(0, 3)"
                     :key="cat.name"
                     variant="outlined"
                     rounded="pill"
-                    class="text-none font-weight-black text-caption flex-shrink-0"
+                    class="text-none font-weight-black flex-shrink-0"
                     style="
                       border-width: 1.5px;
                       height: 38px;
                       min-width: auto;
                       letter-spacing: 0;
+                      font-size: 10px;
                     "
                     :style="{
                       color:
@@ -1746,26 +1747,49 @@
                     }"
                     @click="activeCategory = cat.name"
                   >
-                    {{ cat.name }}
+                    {{ cat.name
+                    }}<span v-if="cat.count !== undefined"
+                      >({{ cat.count }})</span
+                    >
                   </v-btn>
 
-                  <v-btn
-                    variant="outlined"
-                    rounded="pill"
-                    class="text-none font-weight-black text-caption flex-shrink-0"
-                    style="
-                      border-width: 1.5px;
-                      height: 38px;
-                      min-width: auto;
-                      color: #000000 !important;
-                      border-color: #e0e0e0 !important;
-                      background-color: #ffffff !important;
-                      letter-spacing: 0;
-                    "
-                    append-icon="mdi-chevron-down"
-                  >
-                    More
-                  </v-btn>
+                  <v-menu v-if="categories.length > 3">
+                    <template v-slot:activator="{ props }">
+                      <v-btn
+                        v-bind="props"
+                        variant="outlined"
+                        rounded="pill"
+                        class="text-none font-weight-black text-caption flex-shrink-0"
+                        style="
+                          border-width: 1.5px;
+                          height: 38px;
+                          min-width: auto;
+                          color: #000000 !important;
+                          border-color: #e0e0e0 !important;
+                          background-color: #ffffff !important;
+                          letter-spacing: 0;
+                        "
+                        append-icon="mdi-chevron-down"
+                      >
+                        More
+                      </v-btn>
+                    </template>
+                    <v-list>
+                      <v-list-item
+                        v-for="cat in categories.slice(3)"
+                        :key="cat.name"
+                        @click="activeCategory = cat.name"
+                        :active="activeCategory === cat.name"
+                      >
+                        <v-list-item-title class="text-caption font-weight-bold"
+                          >{{ cat.name
+                          }}<span v-if="cat.count !== undefined"
+                            >({{ cat.count }})</span
+                          ></v-list-item-title
+                        >
+                      </v-list-item>
+                    </v-list>
+                  </v-menu>
                 </div>
               </v-col>
               <v-col
@@ -2235,11 +2259,8 @@ const isRestaurant = ref(false);
 const restaurantDish = ref([]);
 
 const activeCategory = ref("Biryani Menu");
-const categories = ref([
-  { name: "Biryani Menu" },
-  { name: "Desserts" },
-  { name: "Hot Drinks" },
-]);
+const categories = ref([{ name: "Biryani Menu" }]);
+const categoryDishes = ref([]);
 
 const whatsIncludedDialog = ref(false);
 const selectedPqDescription = ref("");
@@ -2249,44 +2270,44 @@ const openWhatsIncluded = (description) => {
   whatsIncludedDialog.value = true;
 };
 
+const getCategoryItems = async (restaurantId, mcId) => {
+  try {
+    const response = await axios.get(
+      `/list-menu-rate-prices-items-to-add/${restaurantId}/${mcId}`,
+      {
+        headers: { Authorization: `Bearer ${authToken}` },
+      }
+    );
+    categoryDishes.value = response.data.data.map((item) => ({
+      ...item,
+      dish_image: item.main_image,
+      pq_description: item.whats_included,
+      brp_id: item.mrp_id
+    }));
+  } catch (error) {
+    console.error("Error fetching category items:", error);
+  }
+};
+
+watch(activeCategory, (newCategory) => {
+  if (newCategory !== "Biryani Menu") {
+    const category = categories.value.find((c) => c.name === newCategory);
+    if (category && category.mcId) {
+      getCategoryItems(cart.value[0]?.restaurant_id, category.mcId);
+    }
+  }
+});
+
 const filteredRestaurantDish = computed(() => {
-  if (!restaurantDish.value) return [];
   let result = [];
-  if (activeCategory.value === "Desserts") {
-    result = restaurantDish.value.filter((dish) => {
-      const name = (dish.dish_name || "").toLowerCase();
-      return (
-        name.includes("dessert") ||
-        name.includes("sweet") ||
-        name.includes("halwa") ||
-        name.includes("kheer") ||
-        name.includes("gulab") ||
-        name.includes("jamun") ||
-        name.includes("ice cream") ||
-        name.includes("kulfi")
-      );
-    });
-  } else if (activeCategory.value === "Hot Drinks") {
-    result = restaurantDish.value.filter((dish) => {
-      const name = (dish.dish_name || "").toLowerCase();
-      return (
-        name.includes("drink") ||
-        name.includes("tea") ||
-        name.includes("coffee") ||
-        name.includes("chai") ||
-        name.includes("beverage") ||
-        name.includes("water") ||
-        name.includes("juice") ||
-        name.includes("lassi")
-      );
-    });
-  } else if (activeCategory.value === "Biryani Menu") {
+  if (activeCategory.value === "Biryani Menu") {
+    if (!restaurantDish.value) return [];
     result = restaurantDish.value.filter((dish) => {
       const name = (dish.dish_name || "").toLowerCase();
       return name.includes("biryani");
     });
   } else {
-    result = restaurantDish.value;
+    result = categoryDishes.value;
   }
 
   return [...result].sort((a, b) => {
@@ -2637,6 +2658,38 @@ const getRestaurantDish = async (restaurantId) => {
     restaurantDish.value = data;
   } catch (error) {
     console.error(error);
+  }
+};
+
+const getMenuCategories = async (restaurantId) => {
+  if (!restaurantId) return;
+  try {
+    const response = await axios.get(
+      `/list-menu-rate-prices-menu-categories/${restaurantId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      },
+    );
+    const data = response.data.data;
+    categories.value = [{ name: "Biryani Menu" }];
+    if (data && data.length > 0) {
+      data.forEach((item) => {
+        if (item.menu_category && item.menu_category.menu_header) {
+          const categoryName = item.menu_category.menu_header;
+          if (categoryName !== "Biryani Menu") {
+            categories.value.push({
+              name: categoryName,
+              count: item.mrp_count,
+              mcId: item.mc_id,
+            });
+          }
+        }
+      });
+    }
+  } catch (error) {
+    console.error("Error fetching menu categories:", error);
   }
 };
 
@@ -3435,6 +3488,7 @@ watch(
   (newValue) => {
     if (newValue) {
       getRestaurantDish(cart.value[0]?.restaurant_id);
+      getMenuCategories(cart.value[0]?.restaurant_id);
       // console.log(
       //   "open cart",
       //   store.state.selectedDelivery ||
