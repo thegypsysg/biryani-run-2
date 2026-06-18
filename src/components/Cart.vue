@@ -69,233 +69,422 @@
             <v-row no-gutters>
               <v-col v-if="step == 1" class="pb-4 px-2 bg-grey-lighten-4">
                 <div class="">
+                  <!-- 1. Restaurant Info & Action Buttons Card -->
                   <div
-                    class="d-flex align-center px-3 py-3 my-3 bg-white rounded-lg"
+                    class="d-flex flex-column pa-3 my-3 bg-white rounded-lg"
                     style="border: 1px solid #e0e0e0 !important"
                   >
-                    <div class="flex-grow-0 flex-shrink-0">
-                      <v-img
-                        class="rounded-circle bg-white border"
-                        :src="fileURL + cart[0].restaurant_logo"
-                        width="65"
-                        height="65"
-                      >
-                        <template v-slot:placeholder>
-                          <div
-                            class="d-flex align-center justify-center fill-height"
-                          >
-                            <v-progress-circular
-                              color="grey-lighten-4"
-                              indeterminate
-                            ></v-progress-circular>
-                          </div>
-                        </template>
-                      </v-img>
-                    </div>
-                    <div class="flex-grow-1 ml-3 pa-0" style="min-width: 0">
-                      <!-- Row 1: Restaurant Name & Distance -->
-                      <div class="d-flex align-center justify-space-between">
+                    <!-- Restaurant Info (Logo, Name, Town) -->
+                    <div class="d-flex align-center mb-3">
+                      <div class="flex-grow-0 flex-shrink-0">
+                        <v-img
+                          class="rounded-circle bg-white border"
+                          :src="fileURL + cart[0]?.restaurant_logo"
+                          width="60"
+                          height="60"
+                        >
+                          <template v-slot:placeholder>
+                            <div
+                              class="d-flex align-center justify-center fill-height"
+                            >
+                              <v-progress-circular
+                                color="grey-lighten-4"
+                                indeterminate
+                              ></v-progress-circular>
+                            </div>
+                          </template>
+                        </v-img>
+                      </div>
+                      <div class="ml-3 pa-0" style="min-width: 0">
                         <div
-                          class="font-weight-bold text-black text-subtitle-1 text-truncate mr-2"
+                          class="font-weight-bold text-black text-subtitle-1 text-truncate"
                           style="font-size: 1.1rem !important; line-height: 1.2"
                         >
-                          {{
-                            cart[0]?.restaurant_name
-                              ? cart[0]?.restaurant_name
-                              : ""
-                          }}
+                          {{ cart[0]?.restaurant_name || "" }}
                         </div>
                         <div
-                          class="d-flex align-center text-grey-darken-3 flex-shrink-0"
+                          class="text-grey font-weight-medium text-subtitle-2 mt-1"
+                          style="line-height: 1.2"
                         >
-                          <v-icon size="18" class="mr-1"
-                            >mdi-map-marker-outline</v-icon
+                          {{ cart[0]?.town_name || "" }}
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex flex-wrap align-center" style="gap: 8px">
+                      <div
+                        class="bg-blue-lighten-5 text-blue-darken-3 rounded-pill px-3 py-1 text-caption font-weight-bold cursor-pointer"
+                      >
+                        Note to Kitchen
+                      </div>
+                      <div
+                        class="bg-blue-lighten-5 text-blue-darken-3 rounded-pill px-3 py-1 text-caption font-weight-bold cursor-pointer"
+                      >
+                        Note to Rider
+                      </div>
+                      <div
+                        class="bg-blue-lighten-5 text-blue-darken-3 rounded-pill px-3 py-1 text-caption font-weight-bold cursor-pointer"
+                        @click="isRestaurant = true"
+                      >
+                        Add more Items
+                      </div>
+                      <div
+                        class="bg-red-lighten-5 text-red-darken-3 rounded-pill px-3 py-1 text-caption font-weight-bold cursor-pointer"
+                        @click="store.dispatch('clearCart')"
+                      >
+                        Clear Items
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 2. Pick-Up & Delivery Toggle Buttons -->
+                  <div class="d-flex my-3" style="gap: 12px">
+                    <div
+                      @click="deliveryType = 'pickup'"
+                      class="flex-1-1-0 d-flex align-center justify-center py-2 px-4 border rounded-lg cursor-pointer transition-all"
+                      :style="
+                        deliveryType === 'pickup'
+                          ? {
+                              border: '1.5px solid #a03022 !important',
+                              backgroundColor: '#fbebe9',
+                            }
+                          : {
+                              border: '1px solid #e0e0e0 !important',
+                              backgroundColor: '#ffffff',
+                            }
+                      "
+                    >
+                      <v-img
+                        :src="pickup"
+                        width="24"
+                        height="24"
+                        class="mr-2 flex-grow-0"
+                        contain
+                      />
+                      <span
+                        class="font-weight-bold text-subtitle-2"
+                        :class="
+                          deliveryType === 'pickup'
+                            ? 'text-red-darken-4'
+                            : 'text-grey-darken-3'
+                        "
+                        >Pick-Up</span
+                      >
+                    </div>
+                    <div
+                      @click="deliveryType = 'delivery'"
+                      class="flex-1-1-0 d-flex align-center justify-center py-2 px-4 border rounded-lg cursor-pointer transition-all"
+                      :style="
+                        deliveryType === 'delivery'
+                          ? {
+                              border: '1.5px solid #a03022 !important',
+                              backgroundColor: '#fbebe9',
+                            }
+                          : {
+                              border: '1px solid #e0e0e0 !important',
+                              backgroundColor: '#ffffff',
+                            }
+                      "
+                    >
+                      <v-img
+                        :src="delivery"
+                        width="24"
+                        height="24"
+                        class="mr-2 flex-grow-0"
+                        contain
+                      />
+                      <span
+                        class="font-weight-bold text-subtitle-2"
+                        :class="
+                          deliveryType === 'delivery'
+                            ? 'text-red-darken-4'
+                            : 'text-grey-darken-3'
+                        "
+                        >Delivery</span
+                      >
+                    </div>
+                  </div>
+
+                  <!-- 3. Date Selector -->
+                  <div class="my-3">
+                    <div class="d-flex align-center justify-space-between mb-2">
+                      <span
+                        class="font-weight-bold text-blue-darken-2 text-subtitle-2"
+                        >Today</span
+                      >
+                      <span class="text-caption text-grey">Select Date</span>
+                    </div>
+
+                    <div
+                      class="d-flex gap-2 overflow-x-auto pb-2 hide-scrollbar"
+                      style="gap: 8px"
+                    >
+                      <div
+                        v-for="d in [
+                          'Wed 17',
+                          'Thu 18',
+                          'Fri 19',
+                          'Sat 20',
+                          'Sun 21',
+                          'Mon 22',
+                          'Tue 23',
+                        ]"
+                        :key="d"
+                        @click="selectedDummyDate = d"
+                        class="d-flex flex-column align-center justify-center rounded-lg cursor-pointer px-3 py-2 flex-shrink-0"
+                        :style="
+                          selectedDummyDate === d
+                            ? {
+                                backgroundColor: '#a03022',
+                                color: '#ffffff',
+                                border: '1.5px solid #a03022',
+                                minWidth: '60px',
+                              }
+                            : {
+                                backgroundColor: '#ffffff',
+                                color: '#757575',
+                                border: '1px solid #e0e0e0',
+                                minWidth: '60px',
+                              }
+                        "
+                      >
+                        <span class="text-caption font-weight-medium">{{
+                          d.split(" ")[0]
+                        }}</span>
+                        <span
+                          class="text-subtitle-1 font-weight-bold"
+                          style="line-height: 1.1"
+                          >{{ d.split(" ")[1] }}</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 4. My Addresses Card -->
+                  <div
+                    class="bg-grey-lighten-4 rounded-lg pa-3 my-3"
+                    style="border: 1px solid #e0e0e0 !important"
+                  >
+                    <div class="d-flex align-center justify-space-between mb-3">
+                      <span
+                        class="font-weight-bold text-black text-subtitle-1"
+                        style="font-family: serif"
+                      >
+                        My Addresses
+                      </span>
+                      <div class="d-flex" style="gap: 8px">
+                        <div
+                          v-for="chip in ['Home', 'Home 2']"
+                          :key="chip"
+                          @click="selectedDummyAddressChip = chip"
+                          class="rounded-pill px-3 py-1 text-caption font-weight-bold cursor-pointer transition-all"
+                          :class="
+                            selectedDummyAddressChip === chip
+                              ? 'bg-blue-grey-darken-1 text-white'
+                              : 'bg-transparent text-grey-darken-2 border'
+                          "
+                          :style="
+                            selectedDummyAddressChip !== chip
+                              ? 'border: 1px solid #757575 !important'
+                              : ''
+                          "
+                        >
+                          {{ chip }}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      class="text-body-2 text-red-darken-4 font-weight-bold mb-3"
+                      style="line-height: 1.4"
+                    >
+                      Block 76, #13-03 Marine Drive,<br />
+                      Singapore 440076
+                    </div>
+
+                    <div
+                      class="d-flex align-center justify-space-between pt-2 border-t"
+                      style="border-top: 1px solid #e0e0e0 !important"
+                    >
+                      <div
+                        class="d-flex align-center text-grey-darken-3 text-caption font-weight-bold"
+                      >
+                        <v-icon size="16" color="grey-darken-2" class="mr-1"
+                          >mdi-map-marker-outline</v-icon
+                        >
+                        <p>
+                          Total Distance :
+                          <span class="text-red-darken-4"> 3.26 </span> kms away
+                        </p>
+                      </div>
+                      <div
+                        class="text-caption text-blue-darken-2 font-weight-bold cursor-pointer hover:underline"
+                      >
+                        Note To Rider
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 5. Delivery Options Section -->
+                  <div class="my-3">
+                    <div
+                      class="font-weight-bold text-subtitle-2 text-grey-darken-3 mb-2"
+                    >
+                      Delivery Options
+                    </div>
+
+                    <div class="d-flex flex-column" style="gap: 8px">
+                      <!-- Option 1: Priority Delivery -->
+                      <div
+                        @click="selectedDummyDeliveryOption = 'priority'"
+                        class="d-flex align-center justify-space-between pa-3 rounded-lg cursor-pointer transition-all elevation-1 bg-white"
+                        :style="
+                          selectedDummyDeliveryOption === 'priority'
+                            ? {
+                                border: '1.5px solid #a03022',
+                                backgroundColor: '#fbebe9',
+                              }
+                            : {
+                                border: '1px solid #e0e0e0',
+                              }
+                        "
+                      >
+                        <div class="d-flex align-center">
+                          <v-icon
+                            size="24"
+                            :color="
+                              selectedDummyDeliveryOption === 'priority'
+                                ? 'red-darken-4'
+                                : 'grey-darken-1'
+                            "
+                            class="mr-3"
                           >
-                          <span
-                            class="text-subtitle-1 font-weight-bold"
-                            style="font-size: 1rem !important"
-                            >{{
-                              cart[0]?.distance ? cart[0]?.distance : ""
-                            }}
-                            kms</span
-                          >
+                            mdi-clock-fast
+                          </v-icon>
+                          <div>
+                            <div
+                              class="font-weight-bold text-subtitle-2 text-black"
+                            >
+                              Priority Delivery
+                            </div>
+                            <div class="text-caption text-grey-darken-1">
+                              By 12:00 pm
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          class="font-weight-bold text-subtitle-2 text-blue-darken-3"
+                        >
+                          S$ 9.20
                         </div>
                       </div>
 
-                      <!-- Row 2: Town -->
+                      <!-- Option 2: Basic Delivery -->
                       <div
-                        class="text-grey font-weight-medium text-subtitle-2 mt-1"
-                        style="line-height: 1.2"
+                        @click="selectedDummyDeliveryOption = 'basic'"
+                        class="d-flex align-center justify-space-between pa-3 rounded-lg cursor-pointer transition-all elevation-1 bg-white"
+                        :style="
+                          selectedDummyDeliveryOption === 'basic'
+                            ? {
+                                border: '1.5px solid #a03022',
+                                backgroundColor: '#fbebe9',
+                              }
+                            : {
+                                border: '1px solid #e0e0e0',
+                              }
+                        "
                       >
-                        {{ cart[0]?.town_name ? cart[0]?.town_name : "" }}
+                        <div class="d-flex align-center">
+                          <v-icon
+                            size="24"
+                            :color="
+                              selectedDummyDeliveryOption === 'basic'
+                                ? 'red-darken-4'
+                                : 'grey-darken-1'
+                            "
+                            class="mr-3"
+                          >
+                            mdi-truck-delivery-outline
+                          </v-icon>
+                          <div>
+                            <div
+                              class="font-weight-bold text-subtitle-2 text-black"
+                            >
+                              Basic Delivery
+                            </div>
+                            <div class="text-caption text-grey-darken-1">
+                              By 12:30 pm
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          class="font-weight-bold text-subtitle-2 text-blue-darken-3"
+                        >
+                          S$ 7.80
+                        </div>
                       </div>
 
-                      <!-- Row 3: Action Buttons -->
+                      <!-- Option 3: No Hurry Delivery -->
                       <div
-                        class="d-flex flex-wrap align-center mt-2"
-                        style="gap: 8px"
+                        @click="selectedDummyDeliveryOption = 'no_hurry'"
+                        class="d-flex align-center justify-space-between pa-3 rounded-lg cursor-pointer transition-all elevation-1 bg-white"
+                        :style="
+                          selectedDummyDeliveryOption === 'no_hurry'
+                            ? {
+                                border: '1.5px solid #a03022',
+                                backgroundColor: '#fbebe9',
+                              }
+                            : {
+                                border: '1px solid #e0e0e0',
+                              }
+                        "
                       >
-                        <div
-                          class="bg-blue-lighten-5 text-blue-darken-3 rounded-pill px-3 py-1 text-caption font-weight-bold cursor-pointer"
-                        >
-                          Note to Kitchen
+                        <div class="d-flex align-center">
+                          <v-icon
+                            size="24"
+                            :color="
+                              selectedDummyDeliveryOption === 'no_hurry'
+                                ? 'red-darken-4'
+                                : 'grey-darken-1'
+                            "
+                            class="mr-3"
+                          >
+                            mdi-walk
+                          </v-icon>
+                          <div>
+                            <div
+                              class="font-weight-bold text-subtitle-2 text-black"
+                            >
+                              No Hurry Delivery
+                            </div>
+                            <div class="text-caption text-grey-darken-1">
+                              By 01:00 pm
+                            </div>
+                          </div>
                         </div>
                         <div
-                          class="bg-blue-lighten-5 text-blue-darken-3 rounded-pill px-3 py-1 text-caption font-weight-bold cursor-pointer"
+                          class="font-weight-bold text-subtitle-2 text-blue-darken-3"
                         >
-                          Note to Rider
-                        </div>
-                        <div
-                          class="bg-blue-lighten-5 text-blue-darken-3 rounded-pill px-3 py-1 text-caption font-weight-bold cursor-pointer"
-                          @click="isRestaurant = true"
-                        >
-                          Add more Items
-                        </div>
-                        <div
-                          class="bg-red-lighten-5 text-red-darken-3 rounded-pill px-3 py-1 text-caption font-weight-bold cursor-pointer"
-                          @click="store.dispatch('clearCart')"
-                        >
-                          Clear Items
+                          S$ 6.50
                         </div>
                       </div>
                     </div>
                   </div>
-                  <!-- Address & Instructions Section -->
-                  <v-row no-gutters class="mb-3 mx-0 px-0">
-                    <!-- Address Card -->
-                    <v-col cols="6" class="pr-1">
-                      <div
-                        class="bg-grey-lighten-4 rounded-lg pa-3 fill-height"
-                        style="border: 1px solid #e0e0e0 !important"
-                      >
-                        <div
-                          class="d-flex justify-space-between align-center mb-3"
-                        >
-                          <div
-                            class="font-weight-bold text-black text-subtitle-1"
-                            style="font-family: serif"
-                          >
-                            Address
-                          </div>
-                          <div
-                            class="text-caption text-grey-darken-1 font-weight-medium cursor-pointer"
-                            @click="addressDialog = true"
-                          >
-                            Edit/Add
-                          </div>
-                        </div>
-
-                        <div
-                          class="d-flex flex-wrap gap-2 mb-3"
-                          style="gap: 8px"
-                        >
-                          <div
-                            class="bg-blue-grey-darken-1 text-white rounded-pill px-3 py-1 text-caption font-weight-bold cursor-pointer"
-                          >
-                            Home
-                          </div>
-                          <div
-                            class="bg-transparent text-grey-darken-2 border border-grey-darken-1 rounded-pill px-3 py-1 text-caption font-weight-medium cursor-pointer"
-                          >
-                            Home 2
-                          </div>
-                          <div
-                            class="bg-transparent text-grey-darken-2 border border-grey-darken-1 rounded-pill px-3 py-1 text-caption font-weight-medium cursor-pointer"
-                          >
-                            Office
-                          </div>
-                        </div>
-
-                        <div class="text-body-2 text-black mt-2">
-                          Block 76, #13-03 Marine Drive
-                        </div>
-                      </div>
-                    </v-col>
-
-                    <!-- Delivery Instructions Card -->
-                    <v-col cols="6" class="pl-1">
-                      <div
-                        class="bg-grey-lighten-4 rounded-lg pa-3 fill-height d-flex flex-column"
-                        style="border: 1px solid #e0e0e0 !important"
-                      >
-                        <div
-                          class="d-flex gap-2 mb-3 overflow-x-auto hide-scrollbar"
-                          style="gap: 8px"
-                        >
-                          <div
-                            class="bg-amber-accent-2 rounded pa-2 text-center flex-shrink-0 cursor-pointer"
-                            style="width: 70px"
-                          >
-                            <v-icon size="20" color="brown-darken-4"
-                              >mdi-package-variant-closed</v-icon
-                            >
-                            <div
-                              class="text-brown-darken-4 mt-1"
-                              style="
-                                font-size: 10px;
-                                line-height: 1.2;
-                                font-weight: 600;
-                              "
-                            >
-                              Leave outside door
-                            </div>
-                          </div>
-                          <div
-                            class="bg-white border rounded pa-2 text-center flex-shrink-0 cursor-pointer"
-                            style="width: 70px"
-                          >
-                            <v-icon size="20" color="black"
-                              >mdi-bell-off-outline</v-icon
-                            >
-                            <div
-                              class="text-black mt-1"
-                              style="
-                                font-size: 10px;
-                                line-height: 1.2;
-                                font-weight: 500;
-                              "
-                            >
-                              Do not ring bell
-                            </div>
-                          </div>
-                          <div
-                            class="bg-white border rounded pa-2 text-center flex-shrink-0 cursor-pointer"
-                            style="width: 70px"
-                          >
-                            <v-icon size="20" color="black"
-                              >mdi-pencil-outline</v-icon
-                            >
-                            <div
-                              class="text-black mt-1"
-                              style="
-                                font-size: 10px;
-                                line-height: 1.2;
-                                font-weight: 500;
-                              "
-                            >
-                              Write your own...
-                            </div>
-                          </div>
-                        </div>
-
-                        <div
-                          class="font-weight-bold text-black text-caption mb-1"
-                        >
-                          How to get there. ?
-                        </div>
-                        <div
-                          class="bg-white rounded flex-grow-1"
-                          style="min-height: 24px"
-                        ></div>
-                      </div>
-                    </v-col>
-                  </v-row>
                   <v-divider class="my-2" />
-                  <template v-for="({ isHeader, category, product, key }) in flatGroupedCart" :key="key">
+                  <template
+                    v-for="{
+                      isHeader,
+                      category,
+                      product,
+                      key,
+                    } in flatGroupedCart"
+                    :key="key"
+                  >
                     <div
                       v-if="isHeader"
                       class="text-subtitle-1 font-weight-bold mt-4 mb-1 px-3 text-orange-darken-3"
-                      style="font-family: serif; font-size: 1.1rem !important;"
+                      style="font-family: serif; font-size: 1.1rem !important"
                     >
                       {{ category }}
                     </div>
@@ -2198,6 +2387,10 @@ const informationModal = ref(false);
 const informationModalContent = ref("");
 const informationModalTitle = ref("");
 const cancelOrderDialog = ref(false);
+const deliveryType = ref("delivery"); // 'pickup' or 'delivery'
+const selectedDummyDate = ref("Wed 17");
+const selectedDummyAddressChip = ref("Home");
+const selectedDummyDeliveryOption = ref("basic");
 const payLater = ref(false);
 const havePaid = ref(false);
 const confirmOrder = ref(false);
@@ -2468,7 +2661,7 @@ const flatGroupedCart = computed(() => {
     result.push({
       isHeader: false,
       product: item,
-      key: `item-${item.cart_id || item.mrp_id || item.dish_id}-${item.brp_id || ''}-${item.brp_id_2 || ''}`,
+      key: `item-${item.cart_id || item.mrp_id || item.dish_id}-${item.brp_id || ""}-${item.brp_id_2 || ""}`,
     });
   });
 
@@ -2483,14 +2676,13 @@ const flatGroupedCart = computed(() => {
       result.push({
         isHeader: false,
         product: item,
-        key: `item-${item.cart_id || item.mrp_id || item.dish_id}-${item.brp_id || ''}-${item.brp_id_2 || ''}`,
+        key: `item-${item.cart_id || item.mrp_id || item.dish_id}-${item.brp_id || ""}-${item.brp_id_2 || ""}`,
       });
     });
   });
 
   return result;
 });
-
 
 const isInCart2 = (product) => {
   return cart.value.some((item) => item.brp_id === product.brp_id);
