@@ -293,208 +293,199 @@
                   <v-divider class="my-2" />
                   <template v-for="(product, index) in cart" :key="index">
                     <div
-                      class="d-flex align-start px-3 py-3 my-3 w-100 bg-white rounded-lg"
+                      class="d-flex flex-column px-3 py-3 my-3 w-100 bg-white rounded-lg"
                       style="
                         max-width: 100%;
                         border: 1px solid #e0e0e0 !important;
                       "
                     >
-                      <div
-                        style="width: 25%"
-                        class="flex-shrink-0 position-relative"
-                      >
-                        <v-img
-                          class="rounded-lg bg-white"
-                          :src="fileURL + product.dish_image"
-                          width="85"
-                          height="85"
-                          cover
-                        >
-                          <template v-slot:placeholder>
-                            <div
-                              class="d-flex align-center justify-center fill-height"
-                            >
-                              <v-progress-circular
-                                color="grey-lighten-4"
-                                indeterminate
-                              ></v-progress-circular>
-                            </div>
-                          </template>
-                        </v-img>
-                        <!-- Trash Button -->
-                        <div
-                          style="position: absolute; bottom: -35px; left: 20px"
-                        >
-                          <v-btn
-                            @click="handleRemoveFromCart(product)"
-                            color="orange-darken-1"
-                            icon="mdi-delete-outline"
-                            variant="text"
-                            size="small"
-                          ></v-btn>
-                        </div>
-                      </div>
-                      <div style="width: 75%" class="ml-md-0 ml-2 pa-0">
-                        <!-- Row 1: Product Name -->
-                        <div
-                          class="text-wrap font-weight-bold text-subtitle-1 text-black"
-                          style="line-height: 1.25"
-                        >
-                          {{
-                            product?.actual_dish_name
-                              ? product.actual_dish_name
-                              : product?.dish_name
-                                ? product.dish_name
-                                : ""
-                          }}
-                        </div>
-
-                        <!-- Row 2: Variant & Total Price -->
-                        <div
-                          class="d-flex align-center justify-space-between mt-1"
-                        >
-                          <span class="text-grey-darken-2 text-body-2">{{
-                            product.quantity_name
-                          }}</span>
-                          <div
-                            class="d-flex align-center gap-2 justify-space-between"
+                      <div class="d-flex align-start w-100">
+                        <div style="width: 25%" class="flex-shrink-0">
+                          <v-img
+                            class="rounded-lg bg-white"
+                            :src="fileURL + product.dish_image"
+                            width="85"
+                            height="85"
+                            cover
                           >
-                            <div
-                              v-if="product.dish_description"
-                              class="d-flex align-center cursor-pointer px-2 py-1 rounded bg-orange-lighten-5 border text-caption text-grey-darken-4 font-weight-medium cursor-pointer"
-                              @click="
-                                showInformationModal(
-                                  `How is it made?`,
-                                  product.dish_description,
-                                )
-                              "
-                              style="
-                                border-color: #ffe0b2 !important;
-                                border-radius: 6px !important;
-                                font-size: 9px !important;
-                              "
-                            >
-                              <span>How is it made?</span>
-                              <v-icon
-                                size="12"
-                                class="ml-1"
-                                color="grey-darken-3"
-                                >mdi-information-outline</v-icon
+                            <template v-slot:placeholder>
+                              <div
+                                class="d-flex align-center justify-center fill-height"
                               >
+                                <v-progress-circular
+                                  color="grey-lighten-4"
+                                  indeterminate
+                                ></v-progress-circular>
+                              </div>
+                            </template>
+                          </v-img>
+                        </div>
+                        <div style="width: 75%" class="ml-md-0 ml-2 pa-0">
+                          <!-- Row 1: Product Name -->
+                          <div
+                            class="text-wrap font-weight-bold text-subtitle-1 text-black"
+                            style="line-height: 1.25"
+                          >
+                            {{
+                              product?.actual_dish_name
+                                ? product.actual_dish_name
+                                : product?.dish_name
+                                  ? product.dish_name
+                                  : ""
+                            }}
+                          </div>
+
+                          <!-- Row 2: Variant & Total Price -->
+                          <div
+                            class="d-flex align-center justify-space-between mt-1"
+                          >
+                            <span class="text-grey-darken-2 text-body-2">{{
+                              product.quantity_name
+                            }}</span>
+                            <div
+                              class="d-flex align-center gap-2 justify-space-between"
+                            >
+                              <span
+                                class="font-weight-black text-subtitle-1 text-black ml-2"
+                              >
+                                {{ selectedCountry?.currency_symbol }}
+                                {{
+                                  (product.price * product.quantity).toFixed(2)
+                                }}
+                              </span>
                             </div>
-                            <span
-                              class="font-weight-black text-subtitle-1 text-black ml-2"
+                          </div>
+
+                          <!-- Row 4: Controls & Unit Price -->
+                          <div
+                            class="d-flex align-center justify-space-between"
+                          >
+                            <!-- Quantity Control -->
+                            <div
+                              class="d-flex align-center rounded border overflow-hidden bg-grey-lighten-4"
+                              style="height: 32px"
+                            >
+                              <v-btn
+                                size="32"
+                                color="orange-darken-1"
+                                class="rounded-0 text-white"
+                                variant="flat"
+                                icon
+                                @click="
+                                  updateQuantity(
+                                    product,
+                                    'decrease',
+                                    product?.brp_id_2,
+                                  )
+                                "
+                              >
+                                <v-icon size="14">mdi-minus</v-icon>
+                              </v-btn>
+                              <span
+                                class="px-3 text-body-2 font-weight-bold text-center"
+                                style="min-width: 32px"
+                              >
+                                {{ product.quantity }}
+                              </span>
+                              <v-btn
+                                size="32"
+                                color="orange-darken-1"
+                                class="rounded-0 text-white"
+                                variant="flat"
+                                icon
+                                @click="
+                                  updateQuantity(
+                                    product,
+                                    'increase',
+                                    product?.brp_id_2,
+                                  )
+                                "
+                              >
+                                <v-icon size="14">mdi-plus</v-icon>
+                              </v-btn>
+                            </div>
+
+                            <!-- Unit Price -->
+                            <div
+                              class="text-body-2 text-grey-darken-3 font-weight-bold"
                             >
                               {{ selectedCountry?.currency_symbol }}
-                              {{
-                                (product.price * product.quantity).toFixed(2)
-                              }}
-                            </span>
+                              {{ product.price }}
+                            </div>
+
+                            <v-btn
+                              @click="handleRemoveFromCart(product)"
+                              color="orange-darken-1"
+                              icon="mdi-delete-outline"
+                              variant="text"
+                              size="small"
+                            ></v-btn>
                           </div>
                         </div>
-
-                        <!-- Row 3: Info Chips -->
+                      </div>
+                      <!-- Row 3: Info Chips -->
+                      <div
+                        class="d-flex ga-2 align-center mt-2 flex-wrap w-100"
+                      >
                         <div
-                          class="d-flex align-center ga-md-10 ga-2 mt-2 flex-wrap"
+                          v-if="product.dish_description"
+                          class="d-flex align-center cursor-pointer px-2 py-1 rounded bg-orange-lighten-5 border text-caption text-grey-darken-4 font-weight-medium cursor-pointer"
+                          @click="
+                            showInformationModal(
+                              `How is it made?`,
+                              product.dish_description,
+                            )
+                          "
+                          style="
+                            border-color: #ffe0b2 !important;
+                            border-radius: 6px !important;
+                            font-size: 9px !important;
+                          "
                         >
-                          <div
-                            v-if="product.pq_description"
-                            class="d-flex align-center cursor-pointer px-2 py-1 rounded bg-orange-lighten-5 border text-caption text-grey-darken-4 font-weight-medium"
-                            style="
-                              border-color: #ffe0b2 !important;
-                              border-radius: 6px !important;
-                              font-size: 9px !important;
-                            "
-                            @click="
-                              showInformationModal(
-                                `What's Included?`,
-                                product.pq_description,
-                              )
-                            "
+                          <span>How is it made?</span>
+                          <v-icon size="12" class="ml-1" color="grey-darken-3"
+                            >mdi-information-outline</v-icon
                           >
-                            <span>What's Included?</span>
-                            <v-icon size="12" class="ml-1" color="grey-darken-3"
-                              >mdi-information-outline</v-icon
-                            >
-                          </div>
-                          <div
-                            v-if="product.whats_free"
-                            class="d-flex align-center cursor-pointer px-2 py-1 rounded bg-orange-lighten-5 border text-caption text-grey-darken-4 font-weight-medium"
-                            @click="
-                              showInformationModal(
-                                `What's Free?`,
-                                product.whats_free,
-                              )
-                            "
-                            style="
-                              border-color: #ffe0b2 !important;
-                              border-radius: 6px !important;
-                              font-size: 9px !important;
-                            "
-                          >
-                            <span>What's Free?</span>
-                            <v-icon size="12" class="ml-1" color="grey-darken-3"
-                              >mdi-information-outline</v-icon
-                            >
-                          </div>
                         </div>
-
-                        <!-- Row 4: Controls & Unit Price -->
                         <div
-                          class="d-flex align-center justify-start ga-md-16 ga-10 mt-3"
+                          v-if="product.pq_description"
+                          class="d-flex align-center cursor-pointer px-2 py-1 rounded bg-orange-lighten-5 border text-caption text-grey-darken-4 font-weight-medium"
+                          style="
+                            border-color: #ffe0b2 !important;
+                            border-radius: 6px !important;
+                            font-size: 9px !important;
+                          "
+                          @click="
+                            showInformationModal(
+                              `What's Included?`,
+                              product.pq_description,
+                            )
+                          "
                         >
-                          <!-- Quantity Control -->
-                          <div
-                            class="d-flex align-center rounded border overflow-hidden bg-grey-lighten-4"
-                            style="height: 32px"
+                          <span>What's Included?</span>
+                          <v-icon size="12" class="ml-1" color="grey-darken-3"
+                            >mdi-information-outline</v-icon
                           >
-                            <v-btn
-                              size="32"
-                              color="orange-darken-1"
-                              class="rounded-0 text-white"
-                              variant="flat"
-                              icon
-                              @click="
-                                updateQuantity(
-                                  product,
-                                  'decrease',
-                                  product?.brp_id_2,
-                                )
-                              "
-                            >
-                              <v-icon size="14">mdi-minus</v-icon>
-                            </v-btn>
-                            <span
-                              class="px-3 text-body-2 font-weight-bold text-center"
-                              style="min-width: 32px"
-                            >
-                              {{ product.quantity }}
-                            </span>
-                            <v-btn
-                              size="32"
-                              color="orange-darken-1"
-                              class="rounded-0 text-white"
-                              variant="flat"
-                              icon
-                              @click="
-                                updateQuantity(
-                                  product,
-                                  'increase',
-                                  product?.brp_id_2,
-                                )
-                              "
-                            >
-                              <v-icon size="14">mdi-plus</v-icon>
-                            </v-btn>
-                          </div>
-
-                          <!-- Unit Price -->
-                          <div
-                            class="text-body-2 text-grey-darken-3 font-weight-bold"
+                        </div>
+                        <div
+                          v-if="product.whats_free"
+                          class="d-flex align-center cursor-pointer px-2 py-1 rounded bg-orange-lighten-5 border text-caption text-grey-darken-4 font-weight-medium"
+                          @click="
+                            showInformationModal(
+                              `What's Free?`,
+                              product.whats_free,
+                            )
+                          "
+                          style="
+                            border-color: #ffe0b2 !important;
+                            border-radius: 6px !important;
+                            font-size: 9px !important;
+                          "
+                        >
+                          <span>What's Free?</span>
+                          <v-icon size="12" class="ml-1" color="grey-darken-3"
+                            >mdi-information-outline</v-icon
                           >
-                            {{ selectedCountry?.currency_symbol }}
-                            {{ product.price }}
-                          </div>
                         </div>
                       </div>
                     </div>
@@ -1842,7 +1833,7 @@
                             {{ product.quantity_name }}
                           </p>
 
-                          <!-- <div
+                          <div
                             class="d-flex justify-space-between w-100 align-center"
                           >
                             <span class="text-body-2 text-red">
@@ -1851,7 +1842,7 @@
                                 {{ product.rate }}</strong
                               >
                             </span>
-                            <span
+                            <!-- <span
                               class="text-blue-darken-3 font-weight-bold text-caption cursor-pointer"
                               @click="
                                 openWhatsIncluded(
@@ -1860,8 +1851,8 @@
                                 )
                               "
                               >What's Included ?</span
-                            >
-                          </div> -->
+                            > -->
+                          </div>
 
                           <div class="d-flex align-center flex-wrap mt-2 ga-1">
                             <div
@@ -2276,13 +2267,13 @@ const getCategoryItems = async (restaurantId, mcId) => {
       `/list-menu-rate-prices-items-to-add/${restaurantId}/${mcId}`,
       {
         headers: { Authorization: `Bearer ${authToken}` },
-      }
+      },
     );
     categoryDishes.value = response.data.data.map((item) => ({
       ...item,
       dish_image: item.main_image,
       pq_description: item.whats_included,
-      brp_id: item.mrp_id
+      brp_id: item.mrp_id,
     }));
   } catch (error) {
     console.error("Error fetching category items:", error);
