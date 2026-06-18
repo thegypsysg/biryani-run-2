@@ -168,27 +168,57 @@ export default createStore({
     },
 
     async getCartItems({ commit, state }) {
-      await axios
-        .get(
-          `/get-cart-items-biryani-run/7/${localStorage.getItem("latitude")}/${localStorage.getItem("longitude")}`,
-          null,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          },
-        )
-        .then((response) => {
-          if (response?.data.length > 0) {
+      const lat = localStorage.getItem("latitude");
+      const long = localStorage.getItem("longitude");
+      const token = localStorage.getItem("token");
+      
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
+      const req1 = axios.get(`/get-cart-items-biryani-run/7/${lat}/${long}`, config)
+        .then(res => Array.isArray(res?.data) ? res.data : [])
+        .catch(err => {
+          console.error("Error fetching biryani items:", err);
+          return [];
+        });
+
+      const req2 = axios.get(`/get-cart-items-menu-rate-price/7/${lat}/${long}`, config)
+        .then(res => {
+          let categoryItems = [];
+          const itemsObj = res?.data?.data || res?.data || {};
+          if (typeof itemsObj === 'object' && itemsObj !== null) {
+            Object.values(itemsObj).forEach((arr) => {
+              if (Array.isArray(arr)) {
+                arr.forEach((item) => {
+                  categoryItems.push({
+                    ...item,
+                    brp_id: item.mrp_id
+                  });
+                });
+              }
+            });
+          }
+          return categoryItems;
+        })
+        .catch(err => {
+          console.error("Error fetching menu rate price items:", err);
+          return [];
+        });
+
+      await Promise.all([req1, req2])
+        .then(([biryaniItems, categoryItems]) => {
+          const mergedCart = [...biryaniItems, ...categoryItems];
+          if (mergedCart.length > 0) {
             commit("isEmptyCart", false);
           }
-          commit("cart", response?.data);
-          commit("totalCartItems", response?.data.length);
+          commit("cart", mergedCart);
+          commit("totalCartItems", mergedCart.length);
         })
         .catch((error) => {
-          console.log(error);
-          // state.errorCart = error?.error;
-          // showSnackbar(error?.response?.data?.error, "error");
+          console.log("Error merging cart items:", error);
         });
     },
 
@@ -220,7 +250,7 @@ export default createStore({
         });
     },
 
-    async addToCart({ commit, state }, data) {
+    async addToCart({ commit, state, dispatch }, data) {
       commit("isLoading", true);
       await axios
         .post(`/add-to-cart-biryani-run`, data, {
@@ -228,29 +258,14 @@ export default createStore({
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         })
-        .then((response) => {
-          axios
-            .get(
-              `/get-cart-items-biryani-run/7/${localStorage.getItem("latitude")}/${localStorage.getItem("longitude")}`,
-              null,
-              {
-                headers: {
-                  Authorization: `Bearer ${localStorage.getItem("token")}`,
-                },
-              },
-            )
-            .then((response) => {
-              if (response?.data.length > 0) {
-                commit("isEmptyCart", false);
-              }
-              commit("cart", response?.data);
-              commit("totalCartItems", response?.data.length);
-              commit("isLoading", false);
-            })
-            .catch((error) => {
-              console.log(error);
-              commit("isLoading", false);
-            });
+        .then(async (response) => {
+          try {
+            await dispatch("getCartItems");
+          } catch (error) {
+            console.error(error);
+          } finally {
+            commit("isLoading", false);
+          }
         })
         .catch((error) => {
           console.log(error);
@@ -264,7 +279,7 @@ export default createStore({
         });
     },
 
-    async addToCartMenuRatePrice({ commit, state }, data) {
+    async addToCartMenuRatePrice({ commit, state, dispatch }, data) {
       commit("isLoading", true);
       await axios
         .post(`/add-to-cart-menu-rate-price`, data, {
@@ -272,29 +287,14 @@ export default createStore({
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         })
-        .then((response) => {
-          axios
-            .get(
-              `/get-cart-items-biryani-run/7/${localStorage.getItem("latitude")}/${localStorage.getItem("longitude")}`,
-              null,
-              {
-                headers: {
-                  Authorization: `Bearer ${localStorage.getItem("token")}`,
-                },
-              },
-            )
-            .then((response) => {
-              if (response?.data.length > 0) {
-                commit("isEmptyCart", false);
-              }
-              commit("cart", response?.data);
-              commit("totalCartItems", response?.data.length);
-              commit("isLoading", false);
-            })
-            .catch((error) => {
-              console.log(error);
-              commit("isLoading", false);
-            });
+        .then(async (response) => {
+          try {
+            await dispatch("getCartItems");
+          } catch (error) {
+            console.error(error);
+          } finally {
+            commit("isLoading", false);
+          }
         })
         .catch((error) => {
           console.log(error);
@@ -308,7 +308,7 @@ export default createStore({
         });
     },
 
-    async updateCart({ commit, state }, product) {
+    async updateCart({ commit, state, dispatch }, product) {
       commit("isLoading", true);
       // console.log("updateCart", product);
       await axios
@@ -317,38 +317,22 @@ export default createStore({
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         })
-        .then(() => {
-          axios
-            .get(
-              `/get-cart-items-biryani-run/7/${localStorage.getItem("latitude")}/${localStorage.getItem("longitude")}`,
-              null,
-              {
-                headers: {
-                  Authorization: `Bearer ${localStorage.getItem("token")}`,
-                },
-              },
-            )
-            .then((response) => {
-              if (response?.data.length > 0) {
-                commit("isEmptyCart", false);
-              }
-              commit("cart", response?.data);
-              commit("totalCartItems", response?.data.length);
-              commit("isLoading", false);
-            })
-            .catch((error) => {
-              console.log(error);
-              // state.errorCart = error?.error;
-              // showSnackbar(error?.response?.data?.error, "error");
-              commit("isLoading", false);
-            });
+        .then(async () => {
+          try {
+            await dispatch("getCartItems");
+          } catch (error) {
+            console.error(error);
+          } finally {
+            commit("isLoading", false);
+          }
         })
         .catch((error) => {
           state.errorCart = error?.response?.data;
+          commit("isLoading", false);
         });
     },
 
-    async removeFromCart({ commit, state }, data) {
+    async removeFromCart({ commit, state, dispatch }, data) {
       commit("isLoading", true);
       // console.log("removeFromCart", product);
       await axios
@@ -357,33 +341,14 @@ export default createStore({
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         })
-        .then((response) => {
-          // this.getCartItems();
-
-          axios
-            .get(
-              `/get-cart-items-biryani-run/7/${localStorage.getItem("latitude")}/${localStorage.getItem("longitude")}`,
-              null,
-              {
-                headers: {
-                  Authorization: `Bearer ${localStorage.getItem("token")}`,
-                },
-              },
-            )
-            .then((response) => {
-              if (response?.data.length > 0) {
-                commit("isEmptyCart", false);
-              }
-              commit("cart", response?.data);
-              commit("totalCartItems", response?.data.length);
-              commit("isLoading", false);
-            })
-            .catch((error) => {
-              console.log(error);
-              // state.errorCart = error?.error;
-              // showSnackbar(error?.response?.data?.error, "error");
-              commit("isLoading", false);
-            });
+        .then(async (response) => {
+          try {
+            await dispatch("getCartItems");
+          } catch (error) {
+            console.error(error);
+          } finally {
+            commit("isLoading", false);
+          }
         })
         .catch((error) => {
           state.errorCart = error;
