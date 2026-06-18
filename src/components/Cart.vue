@@ -291,8 +291,16 @@
                     </v-col>
                   </v-row>
                   <v-divider class="my-2" />
-                  <template v-for="(product, index) in cart" :key="index">
+                  <template v-for="({ isHeader, category, product, key }) in flatGroupedCart" :key="key">
                     <div
+                      v-if="isHeader"
+                      class="text-subtitle-1 font-weight-bold mt-4 mb-1 px-3 text-orange-darken-3"
+                      style="font-family: serif; font-size: 1.1rem !important;"
+                    >
+                      {{ category }}
+                    </div>
+                    <div
+                      v-else
                       class="d-flex flex-column px-3 py-3 my-3 w-100 bg-white rounded-lg"
                       style="
                         max-width: 100%;
@@ -2435,6 +2443,54 @@ const finalCartTotal = computed(() => {
 const cart = computed(() => {
   return store.state.cart;
 });
+
+const flatGroupedCart = computed(() => {
+  const result = [];
+  const biryaniItems = [];
+  const categoryGroups = {};
+
+  if (!cart.value) return [];
+
+  cart.value.forEach((item) => {
+    const category = item.menu_category;
+    if (!category || category === "Biryani Menu") {
+      biryaniItems.push(item);
+    } else {
+      if (!categoryGroups[category]) {
+        categoryGroups[category] = [];
+      }
+      categoryGroups[category].push(item);
+    }
+  });
+
+  // 1. Put Biryani items on top (without header)
+  biryaniItems.forEach((item) => {
+    result.push({
+      isHeader: false,
+      product: item,
+      key: `item-${item.cart_id || item.mrp_id || item.dish_id}-${item.brp_id || ''}-${item.brp_id_2 || ''}`,
+    });
+  });
+
+  // 2. Add other categories with headers
+  Object.keys(categoryGroups).forEach((category) => {
+    result.push({
+      isHeader: true,
+      category: category,
+      key: `header-${category}`,
+    });
+    categoryGroups[category].forEach((item) => {
+      result.push({
+        isHeader: false,
+        product: item,
+        key: `item-${item.cart_id || item.mrp_id || item.dish_id}-${item.brp_id || ''}-${item.brp_id_2 || ''}`,
+      });
+    });
+  });
+
+  return result;
+});
+
 
 const isInCart2 = (product) => {
   return cart.value.some((item) => item.brp_id === product.brp_id);
