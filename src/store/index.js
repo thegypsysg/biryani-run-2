@@ -334,9 +334,24 @@ export default createStore({
 
     async removeFromCart({ commit, state, dispatch }, data) {
       commit("isLoading", true);
-      // console.log("removeFromCart", product);
+
+      let endpoint = `/remove-cart-item-biryani-run`;
+      let payload = { ...data };
+
+      if (payload.is_mrp) {
+        // API baru untuk Category Dishes
+        endpoint = `/remove-cart-item-menu-rate-price`;
+        payload = {
+          mrp_id: payload.mrp_id,
+          cart_id: payload.cart_id,
+        };
+      } else {
+        // Hapus property is_mrp untuk request payload Biryani Menu
+        delete payload.is_mrp;
+      }
+
       await axios
-        .post(`/remove-cart-item-biryani-run`, data, {
+        .post(endpoint, payload, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
@@ -354,7 +369,6 @@ export default createStore({
           state.errorCart = error;
           commit("isLoading", false);
         });
-      // commit('removeFromCart', data);
     },
 
     async getLongLat({ commit }) {

@@ -2854,11 +2854,21 @@ const resetForm = () => {
 const handleRemoveFromCart = (product) => {
   const data = {
     cart_id: cart.value[0]?.cart_id,
-    brp_id: product?.brp_id,
   };
-  if (product?.brp_id_2) {
-    data.brp_id_2 = product?.brp_id_2;
+
+  if (product?.mrp_id) {
+    // Jika item adalah dari Category Dishes
+    data.is_mrp = true;
+    data.mrp_id = product.mrp_id;
+  } else {
+    // Jika item adalah Biryani Menu (default lama)
+    data.is_mrp = false;
+    data.brp_id = product?.brp_id;
+    if (product?.brp_id_2) {
+      data.brp_id_2 = product?.brp_id_2;
+    }
   }
+
   store.dispatch("removeFromCart", data);
 };
 
