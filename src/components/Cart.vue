@@ -569,11 +569,7 @@
                                 variant="flat"
                                 icon
                                 @click="
-                                  updateQuantity(
-                                    product,
-                                    'decrease',
-                                    product?.brp_id_2,
-                                  )
+                                  handleUpdateQuantity(product, 'decrease')
                                 "
                               >
                                 <v-icon size="14">mdi-minus</v-icon>
@@ -591,11 +587,7 @@
                                 variant="flat"
                                 icon
                                 @click="
-                                  updateQuantity(
-                                    product,
-                                    'increase',
-                                    product?.brp_id_2,
-                                  )
+                                  handleUpdateQuantity(product, 'increase')
                                 "
                               >
                                 <v-icon size="14">mdi-plus</v-icon>
@@ -942,7 +934,7 @@
               <v-col v-if="step == 4" class="pa-5">
                 <div class="my-3 text-h6 d-flex justify-space-between">
                   <div class="d-flex flex-column">
-                    <span>Where To Deliver . ?</span>
+                    <span>My Addresses</span>
                     <!-- <span class="text-caption text-red">You do not have any Delivery Address in your List .</span> -->
                   </div>
                   <v-btn
@@ -971,13 +963,13 @@
                     block
                     >Add New</v-btn
                   >
-                  <v-dialog v-model="addressDialog" max-width="400">
+                  <v-dialog v-model="addressDialog" max-width="700">
                     <v-card>
                       <div
                         class="d-flex align-center justify-space-between pa-4 border-b"
                       >
                         <div>
-                          <strong>This Would Be Your Primary Address</strong>
+                          <strong>Add New Address</strong>
                         </div>
                         <div>
                           <v-icon @click="addressDialog = false"
@@ -987,27 +979,41 @@
                       </div>
                       <div class="pa-5 d-flex flex-column ga-3">
                         <v-row>
-                          <v-col>
-                            <label class="text-grey-darken-1 font-weight-bold"
-                              >Name Location as</label
+                          <v-col cols="12">
+                            <v-autocomplete
+                              prepend-inner-icon="mdi-magnify"
+                              v-model:search="search"
+                              :items="searchResults"
+                              item-title="ADDRESS"
+                              item-value="ADDRESS"
+                              placeholder="Search Address..."
+                              density="compact"
+                              variant="outlined"
+                              ref="searchRef"
+                              :loading="isLoadingAddress"
+                              hide-no-data
+                              return-object
+                              @update:model-value="onAddressSelected"
                             >
-                            <MazInput
-                              class="mt-1"
-                              v-model="addressForm.location_name"
-                              placeholder="Name Your Location"
-                            />
-                            <small class="text-muted text-caption"
-                              >e.g Home, Office</small
-                            >
+                              <template v-slot:item="{ props, item }">
+                                <v-list-item
+                                  v-bind="props"
+                                  :title="item.raw.ADDRESS"
+                                  :subtitle="item.raw.BUILDING"
+                                ></v-list-item>
+                              </template>
+                            </v-autocomplete>
                           </v-col>
-                        </v-row>
-
-                        <v-row class="mt-n2">
-                          <v-col>
+                          <v-col cols="12">
                             <div>
-                              <label class="text-grey-darken-1 font-weight-bold"
-                                >Full Address</label
+                              <p class="text-grey-darken-1 font-weight-bold">
+                                Full Address
+                              </p>
+                              <p
+                                class="text-blue-darken-1 text-caption font-weight-bold"
                               >
+                                * Please update your exact Address below
+                              </p>
                               <MazTextarea
                                 class="mt-1"
                                 rows="4"
@@ -1016,110 +1022,81 @@
                               />
                             </div>
                           </v-col>
-                        </v-row>
-
-                        <!--  -->
-
-                        <!-- <v-row>
-                        <v-col>
-                          <div>
-                            <label class="text-grey-darken-1 font-weight-bold"
-                              >Unit #</label
-                            >
+                          <v-col cols="12" v-if="dwellingTypes.length > 0">
+                            <p class="text-grey-darken-1 font-weight-bold mb-2">
+                              Dwelling Type
+                            </p>
+                            <div class="d-flex flex-wrap align-center" style="gap: 8px;">
+                              <v-btn
+                                v-for="dwelling in dwellingTypes.slice(0, 3)"
+                                :key="dwelling.dwelling_id"
+                                :color="addressForm.dwelling_id === dwelling.dwelling_id ? '#a03022' : 'indigo-darken-1'"
+                                variant="outlined"
+                                rounded="pill"
+                                size="small"
+                                class="text-none font-weight-bold text-black"
+                                :style="addressForm.dwelling_id === dwelling.dwelling_id ? 'border: 2px solid #a03022 !important;' : 'border: 1px solid #3F51B5 !important;'"
+                                @click="addressForm.dwelling_id = dwelling.dwelling_id"
+                              >
+                                {{ dwelling.dwelling_name }}
+                              </v-btn>
+                              
+                              <v-menu v-if="dwellingTypes.length > 3">
+                                <template v-slot:activator="{ props }">
+                                  <v-btn
+                                    v-bind="props"
+                                    :color="selectedDwellingName !== 'More' ? '#a03022' : 'grey-lighten-1'"
+                                    variant="outlined"
+                                    rounded="pill"
+                                    size="small"
+                                    class="text-none font-weight-bold text-black"
+                                    :style="selectedDwellingName !== 'More' ? 'border: 2px solid #a03022 !important;' : 'border: 1px solid #BDBDBD !important;'"
+                                    append-icon="mdi-chevron-down"
+                                  >
+                                    {{ selectedDwellingName }}
+                                  </v-btn>
+                                </template>
+                                <v-list>
+                                  <v-list-item
+                                    v-for="dwelling in dwellingTypes.slice(3)"
+                                    :key="dwelling.dwelling_id"
+                                    @click="addressForm.dwelling_id = dwelling.dwelling_id"
+                                  >
+                                    <v-list-item-title 
+                                      :class="addressForm.dwelling_id === dwelling.dwelling_id ? 'text-red font-weight-bold' : ''"
+                                    >
+                                      {{ dwelling.dwelling_name }}
+                                    </v-list-item-title>
+                                  </v-list-item>
+                                </v-list>
+                              </v-menu>
+                            </div>
+                          </v-col>
+                          <v-col cols="6">
+                            <p class="text-grey-darken-1 font-weight-bold">
+                              Unit #
+                            </p>
                             <MazInput
                               class="mt-1 mb-2"
                               v-model="addressForm.unit"
                               placeholder="Unit"
                             />
-                          </div>
-                          <div>
-                            <label class="text-grey-darken-1 font-weight-bold"
-                              >Postal Code</label
-                            >
-                            <MazInput
+                          </v-col>
+                          <v-col cols="6">
+                            <p class="text-grey-darken-1 font-weight-bold">
+                              Location Name
+                            </p>
+                            <v-combobox
                               class="mt-1"
-                              v-model="addressForm.postal_code"
-                              placeholder="Postal Code"
-                            />
-                          </div>
-                        </v-col>
-                        <v-col cols="12">
-                          <label class="text-grey-darken-1 font-weight-bold"
-                            >Street Address</label
-                          >
-                          <MazInput
-                            class="mt-1"
-                            ref="streetRef"
-                            v-model="addressForm.main_address"
-                            placeholder="Type Your Street Address"
-                          />
-                        </v-col>
-                      </v-row>
-
-                      <v-row>
-                        <v-col cols="4">
-                          <div>
-                            <label class="text-grey-darken-1 font-weight-bold"
-                              >Town</label
-                            >
-                            <MazInput
-                              class="mt-1"
-                              v-model="addressForm.town"
-                              placeholder="Town"
-                            />
-                          </div>
-                        </v-col>
-                        <v-col cols="4">
-                          <div>
-                            <label class="text-grey-darken-1 font-weight-bold"
-                              >City</label
-                            >
-                            <MazInput
-                              class="mt-1"
-                              v-model="addressForm.city"
-                              placeholder="City"
-                            />
-                          </div>
-                        </v-col>
-                        <v-col cols="4">
-                          <div>
-                            <label class="text-grey-darken-1 font-weight-bold"
-                              >Country</label
-                            >
-                            <MazInput
-                              class="mt-1"
-                              v-model="addressForm.country"
-                              placeholder="Country"
-                            />
-                          </div>
-                        </v-col>
-                      </v-row>
-
-                      <v-row>
-                        <v-col>
-                          <label class="text-grey-darken-1 font-weight-bold"
-                            >Condo / Apartment Name</label
-                          >
-                          <MazInput
-                            class="mt-1"
-                            v-model="addressForm.condo_name"
-                            placeholder="Condo Name"
-                          />
-                        </v-col>
-                      </v-row>
-
-                      <v-row>
-                        <v-col>
-                          <label class="text-grey-darken-1 font-weight-bold"
-                            >Landmark Details</label
-                          >
-                          <MazTextarea
-                            class="mt-1"
-                            v-model="addressForm.landmark"
-                            placeholder="Any Landmarks"
-                          />
-                        </v-col>
-                      </v-row> -->
+                              v-model="addressForm.location_name"
+                              :items="locationNames"
+                              placeholder="e.g Home, Office"
+                              density="compact"
+                              variant="outlined"
+                              hide-details
+                            ></v-combobox>
+                          </v-col>
+                        </v-row>
 
                         <!--  -->
 
@@ -1286,13 +1263,7 @@
                             class="text-caption pa-1 rounded-0"
                             variant="flat"
                             icon
-                            @click="
-                              updateQuantity(
-                                product,
-                                'decrease',
-                                product?.brp_id_2,
-                              )
-                            "
+                            @click="handleUpdateQuantity(product, 'decrease')"
                           >
                             <v-icon>mdi-minus</v-icon>
                           </v-btn>
@@ -1305,13 +1276,7 @@
                             class="text-caption pa-1 rounded-0"
                             variant="flat"
                             icon
-                            @click="
-                              updateQuantity(
-                                product,
-                                'increase',
-                                product?.brp_id_2,
-                              )
-                            "
+                            @click="handleUpdateQuantity(product, 'increase')"
                           >
                             <v-icon>mdi-plus</v-icon>
                           </v-btn>
@@ -2381,7 +2346,7 @@ const props = defineProps({
 const emit = defineEmits(["update:viewCart"]);
 
 const currentTime = ref("");
-const streetRef = ref(null);
+const searchRef = ref(null);
 const openDialog = ref(false);
 const informationModal = ref(false);
 const informationModalContent = ref("");
@@ -2440,6 +2405,48 @@ const paymentOptions2 = ref([
   //   payment_image: cash,
   // },
 ]);
+const search = ref("");
+const searchResults = ref([]);
+const isLoadingAddress = ref(false);
+let searchTimeout = null;
+
+const onAddressSelected = (selectedItem) => {
+  if (selectedItem) {
+    addressForm.full_address = selectedItem.ADDRESS;
+    if (selectedItem.BUILDING && selectedItem.BUILDING !== "NIL") {
+      addressForm.location_name = selectedItem.BUILDING;
+    }
+  }
+};
+
+watch(search, (newVal) => {
+  if (!newVal || newVal.length < 3) {
+    searchResults.value = [];
+    return;
+  }
+
+  if (addressForm.full_address === newVal) {
+    return;
+  }
+
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(async () => {
+    isLoadingAddress.value = true;
+    try {
+      const response = await axios.get(`/get-one-map-address/${newVal}`);
+      if (response.data && response.data.results) {
+        searchResults.value = response.data.results;
+      } else {
+        searchResults.value = [];
+      }
+    } catch (error) {
+      console.error("Error fetching address:", error);
+      searchResults.value = [];
+    } finally {
+      isLoadingAddress.value = false;
+    }
+  }, 500);
+});
 const addresses = ref([]);
 const selectedAddress = ref(null);
 const savingAddress = ref(false);
@@ -2514,7 +2521,7 @@ const filteredRestaurantDish = computed(() => {
 const addressForm = reactive({
   //main_address: "",
   full_address: "",
-  //unit: "",
+  unit: "",
   //postal_code: "",
   //town: "",
   //city: "",
@@ -2524,6 +2531,49 @@ const addressForm = reactive({
   location_name: "",
   //latitude: "",
   //longitude: "",
+  dwelling_id: null,
+});
+
+const dwellingTypes = ref([]);
+const locationNames = ref([]);
+
+const selectedDwellingName = computed(() => {
+  const activeDwelling = dwellingTypes.value.find(
+    (d) => d.dwelling_id === addressForm.dwelling_id,
+  );
+  if (!activeDwelling) return "More";
+  const isFirstThree = dwellingTypes.value
+    .slice(0, 3)
+    .some((d) => d.dwelling_id === addressForm.dwelling_id);
+  return isFirstThree ? "More" : activeDwelling.dwelling_name;
+});
+
+watch(addressDialog, async (isOpen) => {
+  if (isOpen) {
+    if (dwellingTypes.value.length === 0) {
+      try {
+        const response = await axios.get("/list-dwelling-master");
+        if (response.data && response.data.data) {
+          dwellingTypes.value = response.data.data;
+        }
+      } catch (error) {
+        console.error("Error fetching dwelling master:", error);
+      }
+    }
+
+    if (locationNames.value.length === 0) {
+      try {
+        const response = await axios.get("/list-location-name");
+        if (response.data && response.data.data) {
+          locationNames.value = response.data.data.map(
+            (item) => item.location_name,
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching location names:", error);
+      }
+    }
+  }
 });
 const selectedDate = ref(null);
 const selectedTimeSlot = ref(null);
@@ -2760,8 +2810,8 @@ const initAutocomplete = async () => {
   await loader.load();
 
   nextTick(() => {
-    if (streetRef.value) {
-      const nativeInput = streetRef.value.$el.querySelector("input");
+    if (searchRef.value) {
+      const nativeInput = searchRef.value.$el.querySelector("input");
       if (!nativeInput) {
         console.error("❌ Could not find the actual input inside MazInput!");
         return;
@@ -2826,7 +2876,7 @@ const initAutocomplete = async () => {
         }
       });
     } else {
-      console.error("Invalid input element:", streetRef.value);
+      console.error("Invalid input element:", searchRef.value);
     }
   });
 };
@@ -2834,7 +2884,7 @@ const initAutocomplete = async () => {
 const resetForm = () => {
   // addressForm.main_address = "";
   addressForm.full_address = "";
-  // addressForm.unit = "";
+  addressForm.unit = "";
   // addressForm.postal_code = "";
   // addressForm.town = "";
   // addressForm.city = "";
@@ -2870,6 +2920,28 @@ const handleRemoveFromCart = (product) => {
   }
 
   store.dispatch("removeFromCart", data);
+};
+
+const handleUpdateQuantity = (product, change) => {
+  const data = {
+    cart_id: cart.value[0]?.cart_id,
+    change: change,
+  };
+
+  if (product?.mrp_id) {
+    // Jika item adalah Category Dishes
+    data.is_mrp = true;
+    data.mrp_id = product.mrp_id;
+  } else {
+    // Jika item adalah Biryani Menu
+    data.is_mrp = false;
+    data.brp_id = product?.brp_id;
+    if (product?.brp_id_2) {
+      data.brp_id_2 = product?.brp_id_2;
+    }
+  }
+
+  store.dispatch("updateCart", data);
 };
 
 const onSelectDelivery = (selectedId) => {
@@ -3138,7 +3210,7 @@ const handleEditLocation = async (address_id) => {
       let formData = response.data.data;
       // (addressForm.main_address = formData.address_master?.street_address),
       (addressForm.full_address = formData.full_address),
-        // (addressForm.unit = formData.unit_number),
+        (addressForm.unit = formData.unit_number),
         // (addressForm.postal_code = formData.address_master?.postal_code),
         // (addressForm.town = formData.address_master?.town.town_name),
         // (addressForm.city = formData.address_master?.city.city_name),

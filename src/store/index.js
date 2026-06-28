@@ -308,11 +308,27 @@ export default createStore({
         });
     },
 
-    async updateCart({ commit, state, dispatch }, product) {
+    async updateCart({ commit, state, dispatch }, data) {
       commit("isLoading", true);
-      // console.log("updateCart", product);
+
+      let endpoint = `/update-cart-biryani-run`;
+      let payload = { ...data };
+
+      if (payload.is_mrp) {
+        // API baru untuk Category Dishes
+        endpoint = `/update-cart-menu-rate-price`;
+        payload = {
+          cart_id: payload.cart_id,
+          mrp_id: payload.mrp_id,
+          change: payload.change,
+        };
+      } else {
+        // Hapus flag is_mrp untuk request Biryani Menu
+        delete payload.is_mrp;
+      }
+
       await axios
-        .put(`/update-cart-biryani-run`, product, {
+        .put(endpoint, payload, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
