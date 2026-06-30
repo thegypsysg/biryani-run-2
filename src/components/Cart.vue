@@ -68,7 +68,7 @@
           >
             <v-row no-gutters>
               <v-col v-if="step == 1" class="pb-4 px-2 bg-grey-lighten-4">
-                <div class="">
+                <div style="min-height: 75vh">
                   <!-- 1. Restaurant Info & Action Buttons Card -->
                   <div
                     class="d-flex flex-column pa-3 my-3 bg-white rounded-lg"
@@ -139,7 +139,7 @@
                   </div>
 
                   <!-- 2. Pick-Up & Delivery Toggle Buttons -->
-                  <div class="d-flex my-3" style="gap: 12px">
+                  <!-- <div class="d-flex my-3" style="gap: 12px">
                     <div
                       @click="deliveryType = 'pickup'"
                       class="flex-1-1-0 d-flex align-center justify-center py-2 px-4 border rounded-lg cursor-pointer transition-all"
@@ -204,10 +204,10 @@
                         >Delivery</span
                       >
                     </div>
-                  </div>
+                  </div> -->
 
                   <!-- 3. Date Selector -->
-                  <div class="my-3">
+                  <!-- <div class="my-3">
                     <div class="d-flex align-center justify-space-between mb-2">
                       <span
                         class="font-weight-bold text-blue-darken-2 text-subtitle-2"
@@ -259,10 +259,10 @@
                         >
                       </div>
                     </div>
-                  </div>
+                  </div> -->
 
                   <!-- 4. My Addresses Card -->
-                  <div
+                  <!-- <div
                     class="bg-grey-lighten-4 rounded-lg pa-3 my-3"
                     style="border: 1px solid #e0e0e0 !important"
                   >
@@ -324,10 +324,10 @@
                         Note To Rider
                       </div>
                     </div>
-                  </div>
+                  </div> -->
 
                   <!-- 5. Delivery Options Section -->
-                  <div class="my-3">
+                  <!-- <div class="my-3">
                     <div
                       class="font-weight-bold text-subtitle-2 text-grey-darken-3 mb-2"
                     >
@@ -335,7 +335,6 @@
                     </div>
 
                     <div class="d-flex flex-column" style="gap: 8px">
-                      <!-- Option 1: Priority Delivery -->
                       <div
                         @click="selectedDummyDeliveryOption = 'priority'"
                         class="d-flex align-center justify-space-between pa-3 rounded-lg cursor-pointer transition-all elevation-1 bg-white"
@@ -380,7 +379,6 @@
                         </div>
                       </div>
 
-                      <!-- Option 2: Basic Delivery -->
                       <div
                         @click="selectedDummyDeliveryOption = 'basic'"
                         class="d-flex align-center justify-space-between pa-3 rounded-lg cursor-pointer transition-all elevation-1 bg-white"
@@ -425,7 +423,6 @@
                         </div>
                       </div>
 
-                      <!-- Option 3: No Hurry Delivery -->
                       <div
                         @click="selectedDummyDeliveryOption = 'no_hurry'"
                         class="d-flex align-center justify-space-between pa-3 rounded-lg cursor-pointer transition-all elevation-1 bg-white"
@@ -470,7 +467,7 @@
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </div> -->
                   <v-divider class="my-2" />
                   <template
                     v-for="{
@@ -684,254 +681,7 @@
                   To Proceed Please Select Pick up or Delivery
                 </p>
               </v-col>
-              <v-col v-if="step == 2" class="pa-5">
-                <div class="my-3 text-h6 d-flex justify-space-between">
-                  <span>Delivery Options</span>
-                  <v-btn
-                    prepend-icon="mdi-arrow-left"
-                    @click="step = 1"
-                    color="grey"
-                    variant="flat"
-                    >Back</v-btn
-                  >
-                </div>
-                <p class="font-weight-black mb-2 mt-6">Today</p>
-                <p class="text-red-darken-4 font-weight-bold">
-                  {{ currentTime }}
-                </p>
-
-                <MazRadioButtons
-                  v-slot="{ option, selected }"
-                  v-model="selectedDelivery"
-                  :options="
-                    deliveryOptions.filter((item) => item.same_day == 'S')
-                  "
-                  class="pt-5 d-flex flex-row"
-                  color="secondary"
-                  selector
-                  block
-                  @update:model-value="onSelectDelivery"
-                >
-                  <div style="display: flex; flex-direction: column">
-                    <span class="text-blue-accent-4 font-weight-bold ml-2"
-                      >{{ selectedCountry.currency_symbol }}
-                      {{ option?.price ? option.price.toFixed(2) : "" }}</span
-                    >
-                    <div class="d-flex justify-space-between ma-2">
-                      <strong>{{ option.label }}</strong>
-                    </div>
-                    <div class="ma-2">
-                      <p
-                        class="text-red-darken-4 font-weight-bold font-sm mb-2"
-                      >
-                        {{ option.description_2 }}
-                      </p>
-                      <p
-                        v-if="option.cut_off"
-                        class="text-red font-weight-bold font-sm"
-                      >
-                        Cut off Time ({{ option.cut_off }})
-                      </p>
-                    </div>
-                  </div>
-                </MazRadioButtons>
-                <p class="font-weight-black mb-2 mt-6">Tomorrow Onwards</p>
-                <MazRadioButtons
-                  v-slot="{ option, selected }"
-                  v-model="selectedDelivery"
-                  :options="
-                    deliveryOptions.filter((item) => item.same_day == 'A')
-                  "
-                  class="pt-5 d-flex flex-row"
-                  color="secondary"
-                  selector
-                  block
-                  @update:model-value="onSelectDelivery"
-                >
-                  <div style="display: flex; flex-direction: column">
-                    <span class="text-blue-accent-4 font-weight-bold ml-2"
-                      >{{ selectedCountry.currency_symbol }}
-                      {{ option?.price ? option.price.toFixed(2) : "" }}</span
-                    >
-                    <div class="d-flex justify-space-between ma-2">
-                      <strong>{{ option.label }}</strong>
-                    </div>
-                    <span class="text-red font-weight-bold font-sm ml-2">{{
-                      option.description_1
-                    }}</span>
-                    <span class="text-red font-weight-bold font-sm ml-2">{{
-                      option.description_2
-                    }}</span>
-                  </div>
-                </MazRadioButtons>
-              </v-col>
-              <v-col v-if="step == 3" class="pa-5">
-                <div class="my-3 text-h6 d-flex justify-space-between">
-                  <span class="font-weight-bold text-blue-darken-2"
-                    >Delivery Schedule</span
-                  >
-                  <v-btn
-                    prepend-icon="mdi-arrow-left"
-                    @click="step = 2"
-                    color="grey"
-                    variant="flat"
-                    >Back</v-btn
-                  >
-                </div>
-                <p class="text-red-darken-4 font-weight-bold mt-2">
-                  {{ currentTime }}
-                </p>
-                <!-- <p class="font-weight-bold text-red-darken-4 mb-6">
-                You Selected
-                </p> -->
-                <div style="border: 1.5px solid #daf4fd" class="px-4 py-3 my-4">
-                  <div class="d-flex justify-space-between mb-3">
-                    <strong>{{ selectedDeliveryObject?.label }}</strong>
-                    <span v-if="selectedDeliveryObject?.price" class="price"
-                      >{{ selectedCountry.currency_symbol }}
-                      {{ selectedDeliveryObject?.price.toFixed(2) }}</span
-                    >
-                  </div>
-
-                  <div class="">
-                    <strong
-                      v-if="selectedDeliveryObject?.same_day == 'S'"
-                      class="text-red font-weight-bold font-sm"
-                      >Cut off Time ({{
-                        selectedDeliveryObject?.cut_off
-                      }})</strong
-                    >
-                    <template v-else>
-                      <span class="text-red font-weight-bold font-sm">{{
-                        selectedDeliveryObject?.description_1
-                      }}</span>
-                      <span class="text-red font-weight-bold font-sm">{{
-                        selectedDeliveryObject?.description_2
-                      }}</span>
-                    </template>
-                  </div>
-                </div>
-                <div
-                  class="w-75 mt-4"
-                  v-if="selectedDeliveryObject?.same_day == 'A'"
-                >
-                  <!-- v-if="selectedDelivery == 5 || selectedDelivery == 6" -->
-                  <!-- <VueDatePicker
-                  style="font-size: 12px !important"
-                  class="text-caption mb-4"
-                  :disabled-week-days="selectedDeliveryObject?.allowedDays"
-                  v-model="selectedDate"
-                  :format="format"
-                  :min-date="
-                    new Date(new Date().setDate(new Date().getDate() + 1))
-                  "
-                  placeholder="Select Advance Delivery"
-                  /> -->
-                  <v-dialog v-model="dialog" width="300">
-                    <template #activator="{ props }">
-                      <v-btn
-                        class="w-100 text-left text-blue-darken-2"
-                        variant="outlined"
-                        color="primary"
-                        v-bind="props"
-                      >
-                        <span v-if="!selectedDate">
-                          Select Advance Delivery
-                        </span>
-                        <span v-else>{{ format(selectedDate) }}</span>
-                      </v-btn>
-                    </template>
-
-                    <v-card height="550">
-                      <v-card-title>Select a Date</v-card-title>
-                      <v-card-text>
-                        <VueDatePicker
-                          v-model="selectedDate"
-                          :format="format"
-                          :min-date="tomorrow"
-                          placeholder="Select Advance Delivery"
-                          style="font-size: 12px !important"
-                          class="text-caption mb-4"
-                          :disabled-week-days="
-                            selectedDeliveryObject?.allowedDays
-                          "
-                          :enable-time-picker="false"
-                        />
-                      </v-card-text>
-                      <v-card-actions>
-                        <v-spacer />
-                        <v-btn text @click="cancelDate">Cancel</v-btn>
-                        <v-btn text @click="confirmDate">OK</v-btn>
-                      </v-card-actions>
-                    </v-card>
-                  </v-dialog>
-                  <v-select
-                    clearable
-                    density="compact"
-                    placeholder="Select Time Slot"
-                    v-model="selectedTimeSlot"
-                    :items="timeSlots"
-                    class="border-sm text-blue-darken-2 mt-4"
-                    variant="outlined"
-                    item-title="slot_from_to"
-                    item-value="slot_from_to"
-                  >
-                    <template #item="{ props, item }">
-                      <p class="mb-2 text-sm cursor-pointer" v-bind="props">
-                        {{ item.raw.slot_from_to }}
-                        <span
-                          v-if="item.raw.description"
-                          class="font-weight-bold"
-                          >({{ item.raw.description }})</span
-                        >
-                      </p>
-                    </template>
-                  </v-select>
-                </div>
-                <template v-else>
-                  <!-- <p class="font-weight-bold text-red-darken-4 mt-10 mb-6">
-                  This is your Delivery Schedule
-                  </p> -->
-                  <div class="d-flex justify-start align-center ga-8">
-                    <div>
-                      <label class="font-weight-bold text-caption"
-                        >Today
-                        <span class="text-blue-darken-2"
-                          >({{ selectedDeliveryObject?.today_day }})</span
-                        ></label
-                      >
-                      <MazInput
-                        class="mt-1 text-blue-darken-2 font-weight-bold"
-                        v-model="selectedDeliveryObject.today_date"
-                        readonly
-                      />
-                    </div>
-                    <div>
-                      <label class="font-weight-bold text-caption"
-                        >Approx Delivery Time</label
-                      >
-                      <MazInput
-                        class="mt-1 text-blue-darken-2 font-weight-bold"
-                        v-model="selectedDeliveryObject.time_slot"
-                        readonly
-                      />
-                    </div>
-                  </div>
-                </template>
-                <div class="mt-12">
-                  <label class="text-red-darken-4 font-weight-bold"
-                    >Delivery Order Instructions</label
-                  >
-                  <p class="text-caption">(Do not type address here)</p>
-                  <MazTextarea
-                    class="mt-1"
-                    rows="4"
-                    v-model="deliveryScheduleInstruction"
-                    @update:model-value="changeDeliveryScheduleInstruction"
-                  />
-                </div>
-              </v-col>
-              <v-col v-if="step == 4" class="pa-5">
+              <v-col v-if="step == 2" class="pa-5" style="min-height: 75vh">
                 <div class="my-3 text-h6 d-flex justify-space-between">
                   <div class="d-flex flex-column">
                     <span>My Addresses</span>
@@ -939,7 +689,7 @@
                   </div>
                   <v-btn
                     prepend-icon="mdi-arrow-left"
-                    @click="step = 3"
+                    @click="step = 1"
                     color="grey"
                     variant="flat"
                     >Back</v-btn
@@ -1026,31 +776,54 @@
                             <p class="text-grey-darken-1 font-weight-bold mb-2">
                               Dwelling Type
                             </p>
-                            <div class="d-flex flex-wrap align-center" style="gap: 8px;">
+                            <div
+                              class="d-flex flex-wrap align-center"
+                              style="gap: 8px"
+                            >
                               <v-btn
                                 v-for="dwelling in dwellingTypes.slice(0, 3)"
                                 :key="dwelling.dwelling_id"
-                                :color="addressForm.dwelling_id === dwelling.dwelling_id ? '#a03022' : 'indigo-darken-1'"
+                                :color="
+                                  addressForm.dwelling_id ===
+                                  dwelling.dwelling_id
+                                    ? '#a03022'
+                                    : 'indigo-darken-1'
+                                "
                                 variant="outlined"
                                 rounded="pill"
                                 size="small"
                                 class="text-none font-weight-bold text-black"
-                                :style="addressForm.dwelling_id === dwelling.dwelling_id ? 'border: 2px solid #a03022 !important;' : 'border: 1px solid #3F51B5 !important;'"
-                                @click="addressForm.dwelling_id = dwelling.dwelling_id"
+                                :style="
+                                  addressForm.dwelling_id ===
+                                  dwelling.dwelling_id
+                                    ? 'border: 2px solid #a03022 !important;'
+                                    : 'border: 1px solid #3F51B5 !important;'
+                                "
+                                @click="
+                                  addressForm.dwelling_id = dwelling.dwelling_id
+                                "
                               >
                                 {{ dwelling.dwelling_name }}
                               </v-btn>
-                              
+
                               <v-menu v-if="dwellingTypes.length > 3">
                                 <template v-slot:activator="{ props }">
                                   <v-btn
                                     v-bind="props"
-                                    :color="selectedDwellingName !== 'More' ? '#a03022' : 'grey-lighten-1'"
+                                    :color="
+                                      selectedDwellingName !== 'More'
+                                        ? '#a03022'
+                                        : 'grey-lighten-1'
+                                    "
                                     variant="outlined"
                                     rounded="pill"
                                     size="small"
                                     class="text-none font-weight-bold text-black"
-                                    :style="selectedDwellingName !== 'More' ? 'border: 2px solid #a03022 !important;' : 'border: 1px solid #BDBDBD !important;'"
+                                    :style="
+                                      selectedDwellingName !== 'More'
+                                        ? 'border: 2px solid #a03022 !important;'
+                                        : 'border: 1px solid #BDBDBD !important;'
+                                    "
                                     append-icon="mdi-chevron-down"
                                   >
                                     {{ selectedDwellingName }}
@@ -1060,10 +833,18 @@
                                   <v-list-item
                                     v-for="dwelling in dwellingTypes.slice(3)"
                                     :key="dwelling.dwelling_id"
-                                    @click="addressForm.dwelling_id = dwelling.dwelling_id"
+                                    @click="
+                                      addressForm.dwelling_id =
+                                        dwelling.dwelling_id
+                                    "
                                   >
-                                    <v-list-item-title 
-                                      :class="addressForm.dwelling_id === dwelling.dwelling_id ? 'text-red font-weight-bold' : ''"
+                                    <v-list-item-title
+                                      :class="
+                                        addressForm.dwelling_id ===
+                                        dwelling.dwelling_id
+                                          ? 'text-red font-weight-bold'
+                                          : ''
+                                      "
                                     >
                                       {{ dwelling.dwelling_name }}
                                     </v-list-item-title>
@@ -1084,17 +865,27 @@
                           </v-col>
                           <v-col cols="6">
                             <p class="text-grey-darken-1 font-weight-bold">
+                              Building / Condo Name
+                            </p>
+                            <MazInput
+                              class="mt-1 mb-2"
+                              v-model="addressForm.building"
+                              placeholder="Building / Condo Name"
+                            />
+                          </v-col>
+                          <v-col cols="6">
+                            <p class="text-grey-darken-1 font-weight-bold">
                               Location Name
                             </p>
-                            <v-combobox
+                            <v-select
                               class="mt-1"
                               v-model="addressForm.location_name"
                               :items="locationNames"
-                              placeholder="e.g Home, Office"
+                              placeholder="Select Location Name"
                               density="compact"
                               variant="outlined"
                               hide-details
-                            ></v-combobox>
+                            ></v-select>
                           </v-col>
                         </v-row>
 
@@ -1196,12 +987,307 @@
                 </v-col>
               </v-row> -->
               </v-col>
-              <v-col v-if="step == 5" class="pa-5">
+              <v-col v-if="step == 3" class="pa-5" style="min-height: 75vh">
+                <div class="my-3 text-h6 d-flex justify-space-between">
+                  <span>Delivery Options</span>
+                  <v-btn
+                    prepend-icon="mdi-arrow-left"
+                    @click="step = 2"
+                    color="grey"
+                    variant="flat"
+                    >Back</v-btn
+                  >
+                </div>
+                <!-- <p class="font-weight-black mb-2 mt-6">Today</p>
+                <p class="text-red-darken-4 font-weight-bold">
+                  {{ currentTime }}
+                </p>
+
+                <MazRadioButtons
+                  v-slot="{ option, selected }"
+                  v-model="selectedDelivery"
+                  :options="
+                    deliveryOptions.filter((item) => item.same_day == 'S')
+                  "
+                  class="pt-5 d-flex flex-row"
+                  color="secondary"
+                  selector
+                  block
+                  @update:model-value="onSelectDelivery"
+                >
+                  <div style="display: flex; flex-direction: column">
+                    <span class="text-blue-accent-4 font-weight-bold ml-2"
+                      >{{ selectedCountry.currency_symbol }}
+                      {{ option?.price ? option.price.toFixed(2) : "" }}</span
+                    >
+                    <div class="d-flex justify-space-between ma-2">
+                      <strong>{{ option.label }}</strong>
+                    </div>
+                    <div class="ma-2">
+                      <p
+                        class="text-red-darken-4 font-weight-bold font-sm mb-2"
+                      >
+                        {{ option.description_2 }}
+                      </p>
+                      <p
+                        v-if="option.cut_off"
+                        class="text-red font-weight-bold font-sm"
+                      >
+                        Cut off Time ({{ option.cut_off }})
+                      </p>
+                    </div>
+                  </div>
+                </MazRadioButtons>
+                <p class="font-weight-black mb-2 mt-6">Tomorrow Onwards</p>
+                <MazRadioButtons
+                  v-slot="{ option, selected }"
+                  v-model="selectedDelivery"
+                  :options="
+                    deliveryOptions.filter((item) => item.same_day == 'A')
+                  "
+                  class="pt-5 d-flex flex-row"
+                  color="secondary"
+                  selector
+                  block
+                  @update:model-value="onSelectDelivery"
+                >
+                  <div style="display: flex; flex-direction: column">
+                    <span class="text-blue-accent-4 font-weight-bold ml-2"
+                      >{{ selectedCountry.currency_symbol }}
+                      {{ option?.price ? option.price.toFixed(2) : "" }}</span
+                    >
+                    <div class="d-flex justify-space-between ma-2">
+                      <strong>{{ option.label }}</strong>
+                    </div>
+                    <span class="text-red font-weight-bold font-sm ml-2">{{
+                      option.description_1
+                    }}</span>
+                    <span class="text-red font-weight-bold font-sm ml-2">{{
+                      option.description_2
+                    }}</span>
+                  </div>
+                </MazRadioButtons> -->
+
+                <!-- NEW UI -->
+                <div class="d-flex justify-space-between align-center mt-8">
+                  <div
+                    class="d-flex align-center text-grey-darken-3 text-caption font-weight-bold"
+                  >
+                    <v-icon size="16" color="grey-darken-2" class="mr-1"
+                      >mdi-map-marker-outline</v-icon
+                    >
+                    <p>
+                      Total Distance :
+                      <span class="text-red-darken-4"> 3.26 </span> kms away
+                    </p>
+                  </div>
+                  <p class="text-red-darken-4 text-caption font-weight-bold">
+                    {{ currentHour }}
+                  </p>
+                </div>
+
+                <div class="mb-3 mt-8">
+                  <div class="d-flex align-center justify-space-between mb-2">
+                    <span
+                      class="font-weight-bold text-grey-darken-3 text-subtitle-2"
+                      >When</span
+                    >
+                    <span class="text-caption text-grey">Select Date</span>
+                  </div>
+
+                  <div
+                    class="d-flex gap-2 overflow-x-auto pb-2 hide-scrollbar"
+                    style="gap: 8px"
+                  >
+                    <div
+                      v-for="d in [
+                        'Wed 17',
+                        'Thu 18',
+                        'Fri 19',
+                        'Sat 20',
+                        'Sun 21',
+                        'Mon 22',
+                        'Tue 23',
+                      ]"
+                      :key="d"
+                      @click="selectedDummyDate = d"
+                      class="d-flex flex-column align-center justify-center rounded-lg cursor-pointer px-3 py-2 flex-shrink-0"
+                      :style="
+                        selectedDummyDate === d
+                          ? {
+                              backgroundColor: '#a03022',
+                              color: '#ffffff',
+                              border: '1.5px solid #a03022',
+                              minWidth: '60px',
+                            }
+                          : {
+                              backgroundColor: '#ffffff',
+                              color: '#757575',
+                              border: '1px solid #e0e0e0',
+                              minWidth: '60px',
+                            }
+                      "
+                    >
+                      <span class="text-caption font-weight-medium">{{
+                        d.split(" ")[0]
+                      }}</span>
+                      <span
+                        class="text-subtitle-1 font-weight-bold"
+                        style="line-height: 1.1"
+                        >{{ d.split(" ")[1] }}</span
+                      >
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mb-3 mt-8">
+                  <div
+                    class="font-weight-bold text-subtitle-2 text-grey-darken-3 mb-2"
+                  >
+                    Delivery Options
+                  </div>
+
+                  <div class="d-flex flex-column" style="gap: 8px">
+                    <div
+                      @click="selectedDummyDeliveryOption = 'priority'"
+                      class="d-flex align-center justify-space-between pa-3 rounded-lg cursor-pointer transition-all elevation-1 bg-white"
+                      :style="
+                        selectedDummyDeliveryOption === 'priority'
+                          ? {
+                              border: '1.5px solid #a03022',
+                              backgroundColor: '#fbebe9',
+                            }
+                          : {
+                              border: '1px solid #e0e0e0',
+                            }
+                      "
+                    >
+                      <div class="d-flex align-center">
+                        <v-icon
+                          size="24"
+                          :color="
+                            selectedDummyDeliveryOption === 'priority'
+                              ? 'red-darken-4'
+                              : 'grey-darken-1'
+                          "
+                          class="mr-3"
+                        >
+                          mdi-clock-fast
+                        </v-icon>
+                        <div>
+                          <div
+                            class="font-weight-bold text-subtitle-2 text-black"
+                          >
+                            Priority Delivery
+                          </div>
+                          <div class="text-caption text-grey-darken-1">
+                            By 12:00 pm
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        class="font-weight-bold text-subtitle-2 text-blue-darken-3"
+                      >
+                        S$ 9.20
+                      </div>
+                    </div>
+
+                    <div
+                      @click="selectedDummyDeliveryOption = 'basic'"
+                      class="d-flex align-center justify-space-between pa-3 rounded-lg cursor-pointer transition-all elevation-1 bg-white"
+                      :style="
+                        selectedDummyDeliveryOption === 'basic'
+                          ? {
+                              border: '1.5px solid #a03022',
+                              backgroundColor: '#fbebe9',
+                            }
+                          : {
+                              border: '1px solid #e0e0e0',
+                            }
+                      "
+                    >
+                      <div class="d-flex align-center">
+                        <v-icon
+                          size="24"
+                          :color="
+                            selectedDummyDeliveryOption === 'basic'
+                              ? 'red-darken-4'
+                              : 'grey-darken-1'
+                          "
+                          class="mr-3"
+                        >
+                          mdi-truck-delivery-outline
+                        </v-icon>
+                        <div>
+                          <div
+                            class="font-weight-bold text-subtitle-2 text-black"
+                          >
+                            Basic Delivery
+                          </div>
+                          <div class="text-caption text-grey-darken-1">
+                            By 12:30 pm
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        class="font-weight-bold text-subtitle-2 text-blue-darken-3"
+                      >
+                        S$ 7.80
+                      </div>
+                    </div>
+
+                    <div
+                      @click="selectedDummyDeliveryOption = 'no_hurry'"
+                      class="d-flex align-center justify-space-between pa-3 rounded-lg cursor-pointer transition-all elevation-1 bg-white"
+                      :style="
+                        selectedDummyDeliveryOption === 'no_hurry'
+                          ? {
+                              border: '1.5px solid #a03022',
+                              backgroundColor: '#fbebe9',
+                            }
+                          : {
+                              border: '1px solid #e0e0e0',
+                            }
+                      "
+                    >
+                      <div class="d-flex align-center">
+                        <v-icon
+                          size="24"
+                          :color="
+                            selectedDummyDeliveryOption === 'no_hurry'
+                              ? 'red-darken-4'
+                              : 'grey-darken-1'
+                          "
+                          class="mr-3"
+                        >
+                          mdi-walk
+                        </v-icon>
+                        <div>
+                          <div
+                            class="font-weight-bold text-subtitle-2 text-black"
+                          >
+                            No Hurry Delivery
+                          </div>
+                          <div class="text-caption text-grey-darken-1">
+                            By 01:00 pm
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        class="font-weight-bold text-subtitle-2 text-blue-darken-3"
+                      >
+                        S$ 6.50
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </v-col>
+              <v-col v-if="step == 4" class="pa-5">
                 <div class="my-3 text-h6 d-flex justify-space-between">
                   <span>Review Order</span>
                   <v-btn
                     prepend-icon="mdi-arrow-left"
-                    @click="step = 4"
+                    @click="step = 3"
                     color="grey"
                     variant="flat"
                     >Back</v-btn
@@ -1443,12 +1529,12 @@
                   </div>
                 </v-card>
               </v-col>
-              <v-col v-if="step == 6" class="pa-5">
+              <v-col v-if="step == 5" class="pa-5">
                 <div class="my-3 text-h6 d-flex justify-space-between">
                   <span>Payment Options</span>
                   <v-btn
                     prepend-icon="mdi-arrow-left"
-                    @click="step = 5"
+                    @click="step = 4"
                     color="grey"
                     variant="flat"
                     >Back</v-btn
@@ -1517,14 +1603,14 @@
                   </div>
                 </MazRadioButtons>
               </v-col>
-              <v-col v-if="step == 7" class="pa-5">
+              <v-col v-if="step == 6" class="pa-5">
                 <div class="mt-3 mb-6 text-h6 d-flex justify-space-between">
                   <span
                     >Pay using {{ orders?.payment_type?.payment_name }}</span
                   >
                   <v-btn
                     prepend-icon="mdi-arrow-left"
-                    @click="step = 6"
+                    @click="step = 5"
                     color="grey"
                     variant="flat"
                     >Back</v-btn
@@ -1612,6 +1698,172 @@
                   >
                 </div>
               </v-col>
+              <v-col v-if="step == 99" class="pa-5">
+                <div class="my-3 text-h6 d-flex justify-space-between">
+                  <span class="font-weight-bold text-blue-darken-2"
+                    >Delivery Schedule</span
+                  >
+                  <v-btn
+                    prepend-icon="mdi-arrow-left"
+                    @click="step = 2"
+                    color="grey"
+                    variant="flat"
+                    >Back</v-btn
+                  >
+                </div>
+                <p class="text-red-darken-4 font-weight-bold mt-2">
+                  {{ currentTime }}
+                </p>
+                <!-- <p class="font-weight-bold text-red-darken-4 mb-6">
+                You Selected
+                </p> -->
+                <div style="border: 1.5px solid #daf4fd" class="px-4 py-3 my-4">
+                  <div class="d-flex justify-space-between mb-3">
+                    <strong>{{ selectedDeliveryObject?.label }}</strong>
+                    <span v-if="selectedDeliveryObject?.price" class="price"
+                      >{{ selectedCountry.currency_symbol }}
+                      {{ selectedDeliveryObject?.price.toFixed(2) }}</span
+                    >
+                  </div>
+
+                  <div class="">
+                    <strong
+                      v-if="selectedDeliveryObject?.same_day == 'S'"
+                      class="text-red font-weight-bold font-sm"
+                      >Cut off Time ({{
+                        selectedDeliveryObject?.cut_off
+                      }})</strong
+                    >
+                    <template v-else>
+                      <span class="text-red font-weight-bold font-sm">{{
+                        selectedDeliveryObject?.description_1
+                      }}</span>
+                      <span class="text-red font-weight-bold font-sm">{{
+                        selectedDeliveryObject?.description_2
+                      }}</span>
+                    </template>
+                  </div>
+                </div>
+                <div
+                  class="w-75 mt-4"
+                  v-if="selectedDeliveryObject?.same_day == 'A'"
+                >
+                  <!-- v-if="selectedDelivery == 5 || selectedDelivery == 6" -->
+                  <!-- <VueDatePicker
+                  style="font-size: 12px !important"
+                  class="text-caption mb-4"
+                  :disabled-week-days="selectedDeliveryObject?.allowedDays"
+                  v-model="selectedDate"
+                  :format="format"
+                  :min-date="
+                    new Date(new Date().setDate(new Date().getDate() + 1))
+                  "
+                  placeholder="Select Advance Delivery"
+                  /> -->
+                  <v-dialog v-model="dialog" width="300">
+                    <template #activator="{ props }">
+                      <v-btn
+                        class="w-100 text-left text-blue-darken-2"
+                        variant="outlined"
+                        color="primary"
+                        v-bind="props"
+                      >
+                        <span v-if="!selectedDate">
+                          Select Advance Delivery
+                        </span>
+                        <span v-else>{{ format(selectedDate) }}</span>
+                      </v-btn>
+                    </template>
+
+                    <v-card height="550">
+                      <v-card-title>Select a Date</v-card-title>
+                      <v-card-text>
+                        <VueDatePicker
+                          v-model="selectedDate"
+                          :format="format"
+                          :min-date="tomorrow"
+                          placeholder="Select Advance Delivery"
+                          style="font-size: 12px !important"
+                          class="text-caption mb-4"
+                          :disabled-week-days="
+                            selectedDeliveryObject?.allowedDays
+                          "
+                          :enable-time-picker="false"
+                        />
+                      </v-card-text>
+                      <v-card-actions>
+                        <v-spacer />
+                        <v-btn text @click="cancelDate">Cancel</v-btn>
+                        <v-btn text @click="confirmDate">OK</v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </v-dialog>
+                  <v-select
+                    clearable
+                    density="compact"
+                    placeholder="Select Time Slot"
+                    v-model="selectedTimeSlot"
+                    :items="timeSlots"
+                    class="border-sm text-blue-darken-2 mt-4"
+                    variant="outlined"
+                    item-title="slot_from_to"
+                    item-value="slot_from_to"
+                  >
+                    <template #item="{ props, item }">
+                      <p class="mb-2 text-sm cursor-pointer" v-bind="props">
+                        {{ item.raw.slot_from_to }}
+                        <span
+                          v-if="item.raw.description"
+                          class="font-weight-bold"
+                          >({{ item.raw.description }})</span
+                        >
+                      </p>
+                    </template>
+                  </v-select>
+                </div>
+                <template v-else>
+                  <!-- <p class="font-weight-bold text-red-darken-4 mt-10 mb-6">
+                  This is your Delivery Schedule
+                  </p> -->
+                  <div class="d-flex justify-start align-center ga-8">
+                    <div>
+                      <label class="font-weight-bold text-caption"
+                        >Today
+                        <span class="text-blue-darken-2"
+                          >({{ selectedDeliveryObject?.today_day }})</span
+                        ></label
+                      >
+                      <MazInput
+                        class="mt-1 text-blue-darken-2 font-weight-bold"
+                        v-model="selectedDeliveryObject.today_date"
+                        readonly
+                      />
+                    </div>
+                    <div>
+                      <label class="font-weight-bold text-caption"
+                        >Approx Delivery Time</label
+                      >
+                      <MazInput
+                        class="mt-1 text-blue-darken-2 font-weight-bold"
+                        v-model="selectedDeliveryObject.time_slot"
+                        readonly
+                      />
+                    </div>
+                  </div>
+                </template>
+                <div class="mt-12">
+                  <label class="text-red-darken-4 font-weight-bold"
+                    >Delivery Order Instructions</label
+                  >
+                  <p class="text-caption">(Do not type address here)</p>
+                  <MazTextarea
+                    class="mt-1"
+                    rows="4"
+                    v-model="deliveryScheduleInstruction"
+                    @update:model-value="changeDeliveryScheduleInstruction"
+                  />
+                </div>
+              </v-col>
             </v-row>
           </div>
 
@@ -1648,24 +1900,24 @@
                 size="large"
                 >Delivery Schedule</v-btn
               >
-              <v-btn
+              <!-- <v-btn
                 v-else-if="step == 3"
                 @click="whereToDeliver()"
                 color="#ff9800"
                 variant="flat"
                 size="large"
                 >Where to Deliver?</v-btn
-              >
+              > -->
               <v-btn
-                v-else-if="step == 4"
-                @click="nextStep(5)"
+                v-else-if="step == 3"
+                @click="nextStep(4)"
                 color="#ff9800"
                 variant="flat"
                 size="large"
                 >Review Order</v-btn
               >
               <v-btn
-                v-else-if="step == 5"
+                v-else-if="step == 4"
                 @click="confirmOrder2 = true"
                 color="#ff9800"
                 variant="flat"
@@ -1673,8 +1925,8 @@
                 >Confirm Order</v-btn
               >
               <v-btn
-                v-else-if="step == 6"
-                @click="nextStep(7)"
+                v-else-if="step == 5"
+                @click="nextStep(6)"
                 color="#ff9800"
                 variant="flat"
                 size="large"
@@ -1688,7 +1940,7 @@
                 size="large"
                 >CONFIRM ORDER</v-btn
               >
-              <div v-if="step == 5" class="text-caption">
+              <div v-if="step == 6" class="text-caption">
                 <p>Change your mind?</p>
                 <div
                   class="d-flex flex-column flex-md-row align-start align-md-center ga-0 ga-md-2 mt-2 mt-md-0"
@@ -2346,6 +2598,7 @@ const props = defineProps({
 const emit = defineEmits(["update:viewCart"]);
 
 const currentTime = ref("");
+const currentHour = ref("");
 const searchRef = ref(null);
 const openDialog = ref(false);
 const informationModal = ref(false);
@@ -2414,7 +2667,9 @@ const onAddressSelected = (selectedItem) => {
   if (selectedItem) {
     addressForm.full_address = selectedItem.ADDRESS;
     if (selectedItem.BUILDING && selectedItem.BUILDING !== "NIL") {
-      addressForm.location_name = selectedItem.BUILDING;
+      addressForm.building = selectedItem.BUILDING;
+    } else {
+      addressForm.building = "";
     }
   }
 };
@@ -2532,6 +2787,7 @@ const addressForm = reactive({
   //latitude: "",
   //longitude: "",
   dwelling_id: null,
+  building: "",
 });
 
 const dwellingTypes = ref([]);
@@ -3381,7 +3637,7 @@ const nextStep = (value) => {
 
       return;
     }
-  } else if (value == 3) {
+  } else if (value == 4) {
     snackbar.value = false;
     message.value = {
       text: "",
@@ -3841,6 +4097,7 @@ const updateTime = () => {
   const time = singaporeTime.format("HH:mm:ss"); // e.g., 16:49
 
   currentTime.value = `${day} (Today) | ${date} | ${time}`;
+  currentHour.value = time;
 };
 
 onMounted(() => {
