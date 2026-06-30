@@ -967,6 +967,13 @@
                         size="small"
                       ></v-btn>
                     </v-col>
+                    <v-col cols="12">
+                      <p class="font-weight-bold">
+                        Unit # :
+                        <span class="text-blue-darken-4 mr-4">13-03</span>
+                        Bayshore Park
+                      </p>
+                    </v-col>
                   </v-row>
                 </div>
 
@@ -2663,9 +2670,39 @@ const searchResults = ref([]);
 const isLoadingAddress = ref(false);
 let searchTimeout = null;
 
+const formatAddressToTitleCase = (item) => {
+  const toTitleCase = (str) => {
+    if (!str || str === "NIL") return "";
+    return str.replace(
+      /\w\S*/g,
+      (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(),
+    );
+  };
+
+  const blk = item.BLK_NO && item.BLK_NO !== "NIL" ? item.BLK_NO : "";
+  const road = toTitleCase(item.ROAD_NAME);
+  const building = toTitleCase(item.BUILDING);
+  const postal = item.POSTAL && item.POSTAL !== "NIL" ? item.POSTAL : "";
+
+  let formatted = [];
+
+  // Baris 1: Blk No + Road Name
+  const line1 = `${blk} ${road}`.trim();
+  if (line1) formatted.push(line1);
+
+  // Baris 2: Building
+  if (building) formatted.push(building);
+
+  // Baris 3: Singapore + Postal Code
+  const line3 = `Singapore ${postal}`.trim();
+  if (line3 !== "Singapore") formatted.push(line3);
+
+  return formatted.join("\n");
+};
+
 const onAddressSelected = (selectedItem) => {
   if (selectedItem) {
-    addressForm.full_address = selectedItem.ADDRESS;
+    addressForm.full_address = formatAddressToTitleCase(selectedItem);
     addressForm.blk_no = selectedItem.BLK_NO;
     addressForm.street_name = selectedItem.ROAD_NAME;
     addressForm.postal_code = selectedItem.POSTAL;
@@ -3072,11 +3109,12 @@ const openAddressDialog = () => {
   addressDialog.value = true;
 };
 
-
 const resetForm = () => {
   // addressForm.main_address = "";
   addressForm.full_address = "";
   addressForm.unit = "";
+  addressForm.building = "";
+  addressForm.dwelling_id = null;
   // addressForm.postal_code = "";
   // addressForm.town = "";
   // addressForm.city = "";
@@ -3084,6 +3122,7 @@ const resetForm = () => {
   // addressForm.condo_name = "";
   // addressForm.landmark = "";
   addressForm.location_name = "";
+  search.value = "";
 };
 
 // const formatCurrency = (amount) =>
@@ -3991,7 +4030,6 @@ watch(selectedCountry, async () => {
     getCartData();
   }
 });
-
 
 watch(cart, async (newCart) => {
   // console.log(newCart);
