@@ -2666,6 +2666,14 @@ let searchTimeout = null;
 const onAddressSelected = (selectedItem) => {
   if (selectedItem) {
     addressForm.full_address = selectedItem.ADDRESS;
+    addressForm.blk_no = selectedItem.BLK_NO;
+    addressForm.street_name = selectedItem.ROAD_NAME;
+    addressForm.postal_code = selectedItem.POSTAL;
+    addressForm.x_coordinate = selectedItem.X;
+    addressForm.y_coordinate = selectedItem.Y;
+    addressForm.latitude = selectedItem.LATITUDE;
+    addressForm.longitude = selectedItem.LONGITUDE;
+
     if (selectedItem.BUILDING && selectedItem.BUILDING !== "NIL") {
       addressForm.building = selectedItem.BUILDING;
     } else {
@@ -2788,6 +2796,15 @@ const addressForm = reactive({
   //longitude: "",
   dwelling_id: null,
   building: "",
+  country_id: 1,
+  city_id: 1,
+  blk_no: "",
+  postal_code: "",
+  street_name: "",
+  x_coordinate: "",
+  y_coordinate: "",
+  latitude: "",
+  longitude: "",
 });
 
 const dwellingTypes = ref([]);
@@ -3055,87 +3072,6 @@ const openAddressDialog = () => {
   addressDialog.value = true;
 };
 
-const initAutocomplete = async () => {
-  // const googleMapsApiKey = 'AIzaSyDepjJJsj2zb9pi5j-9G0beqBTtTtfYhno';
-  const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-  const loader = new Loader({
-    apiKey: googleMapsApiKey, // Replace with your actual API key
-    libraries: ["places"],
-  });
-
-  await loader.load();
-
-  nextTick(() => {
-    if (searchRef.value) {
-      const nativeInput = searchRef.value.$el.querySelector("input");
-      if (!nativeInput) {
-        console.error("❌ Could not find the actual input inside MazInput!");
-        return;
-      }
-
-      autocomplete = new google.maps.places.Autocomplete(nativeInput, {
-        componentRestrictions: { country: "SG" }, // Singapore only
-        types: ["address"],
-        types: ["geocode"],
-        types: ["establishment"],
-      });
-
-      autocomplete.addListener("place_changed", () => {
-        const place = autocomplete.getPlace();
-        if (place.geometry) {
-          // var placeName = place.name;
-          var streetName = "";
-          var route = "";
-          for (let i = 0; i < place.address_components.length; i++) {
-            const component = place.address_components[i];
-
-            // Check the types to determine what kind of address component it is
-            if (component.types.includes("street_number")) {
-              streetName = component.long_name;
-            }
-            if (component.types.includes("route")) {
-              route = component.long_name;
-            }
-
-            // if (component.types.includes("locality")) {
-            //   addressForm.city = component.long_name; // City
-            // }
-            // if (component.types.includes("neighborhood")) {
-            //   addressForm.town = component.long_name; // Town
-            // }
-            // if (component.types.includes("country")) {
-            //   addressForm.country = component.long_name; // Country
-            // }
-            // if (component.types.includes("postal_code")) {
-            //   addressForm.postal_code = component.long_name; // Postal Code
-            // }
-            // else {
-            //   addressForm.postal_code = "";
-            // }
-          }
-
-          // var wrappedAddress = addressForm.city + " " + addressForm.postal_code;
-          // var mainAddress = [placeName, streetName, route]
-          //   .filter(Boolean)
-          //   .join(" ");
-          var fullSingleLine = streetName + " " + route;
-          var fullAddress = fullSingleLine;
-          // var fullAddress = [fullSingleLine]
-          //   .filter(Boolean)
-          //   .join("\n");
-
-          // addressForm.main_address = mainAddress;
-          addressForm.full_address = fullAddress;
-          // addressForm.condo_name = placeName;
-          // addressForm.latitude = place.geometry.location.lat();
-          // addressForm.longitude = place.geometry.location.lng();
-        }
-      });
-    } else {
-      console.error("Invalid input element:", searchRef.value);
-    }
-  });
-};
 
 const resetForm = () => {
   // addressForm.main_address = "";
@@ -3722,8 +3658,25 @@ const getAddress = async () => {
 const saveAddress = async () => {
   savingAddress.value = true;
   try {
+    const payload = {
+      full_address: addressForm.full_address,
+      location_name: addressForm.location_name,
+      dwelling_id: addressForm.dwelling_id,
+      unit_number: addressForm.unit,
+      country_id: addressForm.country_id,
+      city_id: addressForm.city_id,
+      blk_no: addressForm.blk_no,
+      condo_name: addressForm.building,
+      postal_code: addressForm.postal_code,
+      street_name: addressForm.street_name,
+      x_coordinate: addressForm.x_coordinate,
+      y_coordinate: addressForm.y_coordinate,
+      latitude: addressForm.latitude,
+      longitude: addressForm.longitude,
+    };
+
     if (!isEditAddressForm.value) {
-      const response = await axios.post(`/save-address`, addressForm, {
+      const response = await axios.post(`/save-address-biryani-run`, payload, {
         headers: {
           Authorization: `Bearer ${authToken}`,
         },
@@ -3747,7 +3700,7 @@ const saveAddress = async () => {
       // console.log("isEditAddressForm", addressForm);
       const response = await axios.put(
         `/update-address/` + addressID.value,
-        addressForm,
+        payload,
         {
           headers: {
             Authorization: `Bearer ${authToken}`,
@@ -4039,11 +3992,6 @@ watch(selectedCountry, async () => {
   }
 });
 
-watch(addressDialog, (isOpen) => {
-  if (isOpen) {
-    initAutocomplete();
-  }
-});
 
 watch(cart, async (newCart) => {
   // console.log(newCart);
