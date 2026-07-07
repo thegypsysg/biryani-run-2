@@ -127,7 +127,7 @@
                         class="bg-blue-lighten-5 text-blue-darken-3 rounded-pill px-3 py-1 text-caption font-weight-bold cursor-pointer"
                         @click="isRestaurant = true"
                       >
-                        Add more Items
+                        Restaurant Menu
                       </div>
                       <div
                         class="bg-red-lighten-5 text-red-darken-3 rounded-pill px-3 py-1 text-caption font-weight-bold cursor-pointer"
@@ -713,10 +713,14 @@
                     block
                     >Add New</v-btn
                   >
-                  <v-dialog v-model="addressDialog" max-width="700">
+                  <v-dialog
+                    v-model="addressDialog"
+                    :max-width="!isSmall ? 500 : undefined"
+                    :fullscreen="isSmall"
+                  >
                     <v-card>
                       <div
-                        class="d-flex align-center justify-space-between pa-4 border-b"
+                        class="d-flex align-center justify-space-between px-md-5 px-2 py-4 border-b"
                       >
                         <div>
                           <strong>Add New Address</strong>
@@ -727,7 +731,7 @@
                           >
                         </div>
                       </div>
-                      <div class="pa-5 d-flex flex-column ga-3">
+                      <div class="px-md-5 px-2 py-5 d-flex flex-column ga-3">
                         <v-row>
                           <v-col cols="12">
                             <v-autocomplete
@@ -754,51 +758,29 @@
                               </template>
                             </v-autocomplete>
                           </v-col>
-                          <v-col cols="12">
-                            <div>
-                              <p class="text-grey-darken-1 font-weight-bold">
-                                Full Address
-                              </p>
-                              <p
-                                class="text-blue-darken-1 text-caption font-weight-bold"
-                              >
-                                * Please update your exact Address below
-                              </p>
-                              <MazTextarea
-                                class="mt-1"
-                                rows="4"
-                                v-model="addressForm.full_address"
-                                placeholder="Your Full Address"
-                              />
-                            </div>
-                          </v-col>
                           <v-col cols="12" v-if="dwellingTypes.length > 0">
                             <p class="text-grey-darken-1 font-weight-bold mb-2">
                               Dwelling Type
                             </p>
-                            <div
-                              class="d-flex flex-wrap align-center"
-                              style="gap: 8px"
-                            >
+                            <div class="d-flex align-center" style="gap: 5px">
                               <v-btn
                                 v-for="dwelling in dwellingTypes.slice(0, 3)"
                                 :key="dwelling.dwelling_id"
                                 :color="
                                   addressForm.dwelling_id ===
                                   dwelling.dwelling_id
-                                    ? '#a03022'
+                                    ? 'blue-darken-1'
                                     : 'indigo-darken-1'
                                 "
-                                variant="outlined"
-                                rounded="pill"
-                                size="small"
-                                class="text-none font-weight-bold text-black"
-                                :style="
+                                :variant="
                                   addressForm.dwelling_id ===
                                   dwelling.dwelling_id
-                                    ? 'border: 2px solid #a03022 !important;'
-                                    : 'border: 1px solid #3F51B5 !important;'
+                                    ? 'flat'
+                                    : 'outlined'
                                 "
+                                rounded="pill"
+                                size="small"
+                                class="text-none text-caption font-weight-bold"
                                 @click="
                                   addressForm.dwelling_id = dwelling.dwelling_id
                                 "
@@ -812,18 +794,17 @@
                                     v-bind="props"
                                     :color="
                                       selectedDwellingName !== 'More'
-                                        ? '#a03022'
+                                        ? 'blue-darken-1'
                                         : 'grey-lighten-1'
                                     "
-                                    variant="outlined"
+                                    :variant="
+                                      selectedDwellingName !== 'More'
+                                        ? 'flat'
+                                        : 'outlined'
+                                    "
                                     rounded="pill"
                                     size="small"
-                                    class="text-none font-weight-bold text-black"
-                                    :style="
-                                      selectedDwellingName !== 'More'
-                                        ? 'border: 2px solid #a03022 !important;'
-                                        : 'border: 1px solid #BDBDBD !important;'
-                                    "
+                                    class="text-none font-weight-bold"
                                     append-icon="mdi-chevron-down"
                                   >
                                     {{ selectedDwellingName }}
@@ -842,7 +823,7 @@
                                       :class="
                                         addressForm.dwelling_id ===
                                         dwelling.dwelling_id
-                                          ? 'text-red font-weight-bold'
+                                          ? 'text-blue-darken-1 font-weight-bold'
                                           : ''
                                       "
                                     >
@@ -853,31 +834,110 @@
                               </v-menu>
                             </div>
                           </v-col>
-                          <v-col cols="6">
+                          <v-col cols="12">
+                            <div>
+                              <p class="text-grey-darken-1 font-weight-bold">
+                                Full Address
+                              </p>
+                              <!-- <p
+                                class="text-blue-darken-1 text-caption font-weight-bold"
+                              >
+                                * Please update your exact Address below
+                              </p> -->
+                              <MazTextarea
+                                class="mt-1"
+                                rows="4"
+                                v-model="addressForm.full_address"
+                                placeholder="Your Full Address"
+                              />
+                            </div>
+                          </v-col>
+                          <v-col
+                            v-if="
+                              addressForm.dwelling_id != 3 &&
+                              addressForm.dwelling_id != 7 &&
+                              addressForm.dwelling_id != 8
+                            "
+                            cols="6"
+                          >
                             <p class="text-grey-darken-1 font-weight-bold">
-                              Unit #
+                              # Floor - Unit No
                             </p>
                             <MazInput
                               class="mt-1 mb-2"
                               v-model="addressForm.unit"
-                              placeholder="Unit"
                             />
                           </v-col>
-                          <v-col cols="6">
+                          <v-col v-if="addressForm.dwelling_id == 8" cols="6">
                             <p class="text-grey-darken-1 font-weight-bold">
-                              Building / Condo Name
+                              Room Number
+                            </p>
+                            <MazInput
+                              class="mt-1 mb-2"
+                              v-model="addressForm.unit"
+                            />
+                          </v-col>
+                          <v-col
+                            v-if="
+                              addressForm.dwelling_id != 3 &&
+                              addressForm.dwelling_id != 7 &&
+                              addressForm.dwelling_id != 8
+                            "
+                            cols="6"
+                          >
+                            <p class="text-grey-darken-1 font-weight-bold">
+                              Lift Lobby
                             </p>
                             <MazInput
                               class="mt-1 mb-2"
                               v-model="addressForm.building"
-                              placeholder="Building / Condo Name"
+                              placeholder="Lobby A or 1"
                             />
                           </v-col>
-                          <v-col cols="6">
+                          <v-col cols="12">
+                            <template v-if="addressForm.dwelling_id == 1">
+                              <p class="text-grey-darken-1 font-weight-bold">
+                                Precinct / Estate / Cluster Name
+                              </p>
+                              <MazInput
+                                disabled
+                                class="mt-1 mb-2"
+                                v-model="addressForm.building"
+                              />
+                            </template>
+                            <template v-else-if="addressForm.dwelling_id == 2">
+                              <p class="text-grey-darken-1 font-weight-bold">
+                                Condo Name
+                              </p>
+                              <MazInput
+                                class="mt-1 mb-2"
+                                v-model="addressForm.building"
+                                disabled
+                              />
+                            </template>
+                            <template
+                              v-else-if="
+                                addressForm.dwelling_id == 4 ||
+                                addressForm.dwelling_id == 5 ||
+                                addressForm.dwelling_id == 6 ||
+                                addressForm.dwelling_id == 9
+                              "
+                            >
+                              <p class="text-grey-darken-1 font-weight-bold">
+                                Building Name
+                              </p>
+                              <MazInput
+                                class="mt-1 mb-2"
+                                v-model="addressForm.building"
+                                disabled
+                              />
+                            </template>
+                          </v-col>
+                          <v-col cols="12">
                             <p class="text-grey-darken-1 font-weight-bold">
                               Location Name
                             </p>
-                            <v-select
+                            <v-combobox
                               class="mt-1"
                               v-model="addressForm.location_name"
                               :items="locationNames"
@@ -885,7 +945,7 @@
                               density="compact"
                               variant="outlined"
                               hide-details
-                            ></v-select>
+                            ></v-combobox>
                           </v-col>
                         </v-row>
 
@@ -970,8 +1030,10 @@
                     <v-col cols="12">
                       <p class="font-weight-bold">
                         Unit # :
-                        <span class="text-blue-darken-4 mr-4">13-03</span>
-                        Bayshore Park
+                        <span class="text-blue-darken-4 mr-4">{{
+                          option?.unit_number
+                        }}</span>
+                        {{ option?.building_no }} {{ option?.building_name }}
                       </p>
                     </v-col>
                   </v-row>
@@ -1905,7 +1967,7 @@
                 color="#ff9800"
                 variant="flat"
                 size="large"
-                >Delivery Schedule</v-btn
+                >Delivery Options</v-btn
               >
               <!-- <v-btn
                 v-else-if="step == 3"
@@ -2670,15 +2732,15 @@ const searchResults = ref([]);
 const isLoadingAddress = ref(false);
 let searchTimeout = null;
 
-const formatAddressToTitleCase = (item) => {
-  const toTitleCase = (str) => {
-    if (!str || str === "NIL") return "";
-    return str.replace(
-      /\w\S*/g,
-      (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(),
-    );
-  };
+const toTitleCase = (str) => {
+  if (!str || str === "NIL") return "";
+  return str.replace(
+    /\w\S*/g,
+    (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(),
+  );
+};
 
+const formatAddressToTitleCase = (item) => {
   const blk = item.BLK_NO && item.BLK_NO !== "NIL" ? item.BLK_NO : "";
   const road = toTitleCase(item.ROAD_NAME);
   const building = toTitleCase(item.BUILDING);
@@ -2704,7 +2766,7 @@ const onAddressSelected = (selectedItem) => {
   if (selectedItem) {
     addressForm.full_address = formatAddressToTitleCase(selectedItem);
     addressForm.blk_no = selectedItem.BLK_NO;
-    addressForm.street_name = selectedItem.ROAD_NAME;
+    addressForm.street_name = toTitleCase(selectedItem.ROAD_NAME);
     addressForm.postal_code = selectedItem.POSTAL;
     addressForm.x_coordinate = selectedItem.X;
     addressForm.y_coordinate = selectedItem.Y;
@@ -2712,7 +2774,7 @@ const onAddressSelected = (selectedItem) => {
     addressForm.longitude = selectedItem.LONGITUDE;
 
     if (selectedItem.BUILDING && selectedItem.BUILDING !== "NIL") {
-      addressForm.building = selectedItem.BUILDING;
+      addressForm.building = toTitleCase(selectedItem.BUILDING);
     } else {
       addressForm.building = "";
     }
@@ -2858,6 +2920,36 @@ const selectedDwellingName = computed(() => {
   return isFirstThree ? "More" : activeDwelling.dwelling_name;
 });
 
+watch(
+  () => addressForm.dwelling_id,
+  (newVal) => {
+    const activeDwelling = dwellingTypes.value.find(
+      (d) => d.dwelling_id === newVal,
+    );
+    if (
+      activeDwelling &&
+      (activeDwelling.dwelling_name.toUpperCase() === "HDB" ||
+        activeDwelling.dwelling_name.toUpperCase() === "CONDO")
+    ) {
+      if (addressForm.full_address) {
+        let lines = addressForm.full_address.split("\n");
+        if (lines.length > 0 && !lines[0].startsWith("Block ")) {
+          lines[0] = "Block " + lines[0];
+          addressForm.full_address = lines.join("\n");
+        }
+      }
+    } else {
+      if (addressForm.full_address) {
+        let lines = addressForm.full_address.split("\n");
+        if (lines.length > 0 && lines[0].startsWith("Block ")) {
+          lines[0] = lines[0].substring(6);
+          addressForm.full_address = lines.join("\n");
+        }
+      }
+    }
+  },
+);
+
 watch(addressDialog, async (isOpen) => {
   if (isOpen) {
     if (dwellingTypes.value.length === 0) {
@@ -2903,6 +2995,9 @@ const addressesOptions = computed(() => {
     // landmark: address.landmark,
     location_name: address.location_name,
     primary_address: address.primary_address,
+    unit_number: address.unit_number,
+    building_no: address.building_no,
+    building_name: address.building_name,
   }));
 });
 
@@ -3620,15 +3715,16 @@ const nextStep = (value) => {
     };
     console.log(selectedDelivery.value, cart.value[0]?.dc_id);
 
-    if (selectedDelivery.value == null) {
-      // snackbar.value = true;
-      // message.value = {
-      //   text: "Please select a delivery option first.",
-      //   color: "error",
-      // };
-      store.commit("setIsEmptyDelivery", true);
-      return;
-    } else if (selectedDelivery.value != cart.value[0]?.dc_id) {
+    // if (selectedDelivery.value == null) {
+    //   // snackbar.value = true;
+    //   // message.value = {
+    //   //   text: "Please select a delivery option first.",
+    //   //   color: "error",
+    //   // };
+    //   store.commit("setIsEmptyDelivery", true);
+    //   return;
+    // } else
+    if (selectedDelivery.value != cart.value[0]?.dc_id) {
       console.log("execute");
       selectedDate.value = null;
       selectedTimeSlot.value = null;
@@ -3704,7 +3800,7 @@ const saveAddress = async () => {
       unit_number: addressForm.unit,
       country_id: addressForm.country_id,
       city_id: addressForm.city_id,
-      blk_no: addressForm.blk_no,
+      building_no: addressForm.blk_no,
       condo_name: addressForm.building,
       postal_code: addressForm.postal_code,
       street_name: addressForm.street_name,
