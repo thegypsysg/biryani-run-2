@@ -902,7 +902,7 @@
                               <MazInput
                                 disabled
                                 class="mt-1 mb-2"
-                                v-model="addressForm.building"
+                                v-model="addressForm.precinct"
                               />
                             </template>
                             <template v-else-if="addressForm.dwelling_id == 2">
@@ -1137,219 +1137,204 @@
                   </div>
                 </MazRadioButtons> -->
 
-                <!-- NEW UI -->
-                <div class="d-flex justify-space-between align-center mt-8">
-                  <div
-                    class="d-flex align-center text-grey-darken-3 text-caption font-weight-bold"
-                  >
-                    <v-icon size="16" color="grey-darken-2" class="mr-1"
-                      >mdi-map-marker-outline</v-icon
-                    >
-                    <p>
-                      Total Distance :
-                      <span class="text-red-darken-4"> 3.26 </span> kms away
-                    </p>
-                  </div>
-                  <p class="text-red-darken-4 text-caption font-weight-bold">
-                    {{ currentHour }}
-                  </p>
+                <div
+                  class="w-100 d-flex justify-center align-center"
+                  v-if="isLoadingBiryaniRunAddress"
+                >
+                  <v-progress-circular
+                    indeterminate
+                    :size="50"
+                    :width="4"
+                    color="primary"
+                  ></v-progress-circular>
                 </div>
+                <template v-else>
+                  <!-- NEW UI -->
+                  <div class="d-flex justify-space-between align-start mt-8">
+                    <div class="w-50 text-caption">
+                      <v-row>
+                        <v-col cols="12">
+                          <span class="font-weight-bold">Delivery To</span>
+                        </v-col>
+                        <v-col cols="7" md="8">
+                          <strong>{{ filteredAddress?.location_name }}</strong>
+                        </v-col>
+                        <v-col
+                          col="5"
+                          md="4"
+                          class="justify-end text-blue-lighten-1 cursor-pointer"
+                        >
+                          <strong @click="step = 2">Change</strong>
+                        </v-col>
+                      </v-row>
 
-                <div class="mb-3 mt-8">
-                  <div class="d-flex align-center justify-space-between mb-2">
-                    <span
-                      class="font-weight-bold text-grey-darken-3 text-subtitle-2"
-                      >When</span
+                      <v-divider
+                        :thickness="2"
+                        class="mt-2 mb-2 border-opacity-15"
+                      />
+                      <v-row class="d-flex align-center">
+                        <v-col cols="9">
+                          <p
+                            v-if="filteredAddress?.full_address"
+                            v-html="formatInfo(filteredAddress.full_address)"
+                          />
+                        </v-col>
+                        <v-col cols="12">
+                          <p class="font-weight-bold">
+                            Unit # :
+                            <span class="text-blue-darken-4 mr-4">{{
+                              filteredAddress?.unit_number
+                            }}</span>
+                            {{ filteredAddress?.building_no }}
+                            {{ filteredAddress?.building_name }}
+                          </p>
+                        </v-col>
+                      </v-row>
+                    </div>
+                    <div
+                      class="text-grey-darken-3 text-caption text-right font-weight-bold w-50"
                     >
-                    <span class="text-caption text-grey">Select Date</span>
+                      <p>
+                        <v-icon size="16" color="grey-darken-2" class="mr-1"
+                          >mdi-map-marker-outline</v-icon
+                        >
+                        Total Distance :
+                      </p>
+                      <p>
+                        <span class="text-red-darken-4">
+                          {{ filteredAddress?.distance }}
+                        </span>
+                        kms away
+                      </p>
+                    </div>
                   </div>
 
-                  <div
-                    class="d-flex gap-2 overflow-x-auto pb-2 hide-scrollbar"
-                    style="gap: 8px"
-                  >
-                    <div
-                      v-for="d in [
-                        'Wed 17',
-                        'Thu 18',
-                        'Fri 19',
-                        'Sat 20',
-                        'Sun 21',
-                        'Mon 22',
-                        'Tue 23',
-                      ]"
-                      :key="d"
-                      @click="selectedDummyDate = d"
-                      class="d-flex flex-column align-center justify-center rounded-lg cursor-pointer px-3 py-2 flex-shrink-0"
-                      :style="
-                        selectedDummyDate === d
-                          ? {
-                              backgroundColor: '#a03022',
-                              color: '#ffffff',
-                              border: '1.5px solid #a03022',
-                              minWidth: '60px',
-                            }
-                          : {
-                              backgroundColor: '#ffffff',
-                              color: '#757575',
-                              border: '1px solid #e0e0e0',
-                              minWidth: '60px',
-                            }
-                      "
-                    >
-                      <span class="text-caption font-weight-medium">{{
-                        d.split(" ")[0]
-                      }}</span>
+                  <div class="mb-3 mt-8">
+                    <div class="d-flex align-center justify-space-between mb-2">
                       <span
-                        class="text-subtitle-1 font-weight-bold"
-                        style="line-height: 1.1"
-                        >{{ d.split(" ")[1] }}</span
+                        class="font-weight-bold text-grey-darken-3 text-subtitle-2"
+                        >When</span
                       >
-                    </div>
-                  </div>
-                </div>
-
-                <div class="mb-3 mt-8">
-                  <div
-                    class="font-weight-bold text-subtitle-2 text-grey-darken-3 mb-2"
-                  >
-                    Delivery Options
-                  </div>
-
-                  <div class="d-flex flex-column" style="gap: 8px">
-                    <div
-                      @click="selectedDummyDeliveryOption = 'priority'"
-                      class="d-flex align-center justify-space-between pa-3 rounded-lg cursor-pointer transition-all elevation-1 bg-white"
-                      :style="
-                        selectedDummyDeliveryOption === 'priority'
-                          ? {
-                              border: '1.5px solid #a03022',
-                              backgroundColor: '#fbebe9',
-                            }
-                          : {
-                              border: '1px solid #e0e0e0',
-                            }
-                      "
-                    >
-                      <div class="d-flex align-center">
-                        <v-icon
-                          size="24"
-                          :color="
-                            selectedDummyDeliveryOption === 'priority'
-                              ? 'red-darken-4'
-                              : 'grey-darken-1'
-                          "
-                          class="mr-3"
-                        >
-                          mdi-clock-fast
-                        </v-icon>
-                        <div>
-                          <div
-                            class="font-weight-bold text-subtitle-2 text-black"
-                          >
-                            Priority Delivery
-                          </div>
-                          <div class="text-caption text-grey-darken-1">
-                            By 12:00 pm
-                          </div>
-                        </div>
-                      </div>
-                      <div
-                        class="font-weight-bold text-subtitle-2 text-blue-darken-3"
-                      >
-                        S$ 9.20
-                      </div>
+                      <span class="text-caption text-grey">Select Date</span>
                     </div>
 
                     <div
-                      @click="selectedDummyDeliveryOption = 'basic'"
-                      class="d-flex align-center justify-space-between pa-3 rounded-lg cursor-pointer transition-all elevation-1 bg-white"
-                      :style="
-                        selectedDummyDeliveryOption === 'basic'
-                          ? {
-                              border: '1.5px solid #a03022',
-                              backgroundColor: '#fbebe9',
-                            }
-                          : {
-                              border: '1px solid #e0e0e0',
-                            }
-                      "
+                      class="d-flex ga-2 overflow-x-auto pb-2 hide-scrollbar"
                     >
-                      <div class="d-flex align-center">
-                        <v-icon
-                          size="24"
-                          :color="
-                            selectedDummyDeliveryOption === 'basic'
-                              ? 'red-darken-4'
-                              : 'grey-darken-1'
-                          "
-                          class="mr-3"
-                        >
-                          mdi-truck-delivery-outline
-                        </v-icon>
-                        <div>
-                          <div
-                            class="font-weight-bold text-subtitle-2 text-black"
-                          >
-                            Basic Delivery
-                          </div>
-                          <div class="text-caption text-grey-darken-1">
-                            By 12:30 pm
-                          </div>
-                        </div>
-                      </div>
                       <div
-                        class="font-weight-bold text-subtitle-2 text-blue-darken-3"
+                        v-for="d in sevenDaysList"
+                        :key="d"
+                        @click="selectedDummyDate = d"
+                        class="d-flex flex-column align-center justify-center rounded-lg cursor-pointer px-2 py-1 px-md-4 py-md-2 flex-shrink-0"
+                        :style="
+                          selectedDummyDate === d
+                            ? {
+                                backgroundColor: '#a03022',
+                                color: '#ffffff',
+                                border: '1.5px solid #a03022',
+                              }
+                            : {
+                                backgroundColor: '#ffffff',
+                                color: '#757575',
+                                border: '1px solid #e0e0e0',
+                              }
+                        "
                       >
-                        S$ 7.80
-                      </div>
-                    </div>
-
-                    <div
-                      @click="selectedDummyDeliveryOption = 'no_hurry'"
-                      class="d-flex align-center justify-space-between pa-3 rounded-lg cursor-pointer transition-all elevation-1 bg-white"
-                      :style="
-                        selectedDummyDeliveryOption === 'no_hurry'
-                          ? {
-                              border: '1.5px solid #a03022',
-                              backgroundColor: '#fbebe9',
-                            }
-                          : {
-                              border: '1px solid #e0e0e0',
-                            }
-                      "
-                    >
-                      <div class="d-flex align-center">
-                        <v-icon
-                          size="24"
-                          :color="
-                            selectedDummyDeliveryOption === 'no_hurry'
-                              ? 'red-darken-4'
-                              : 'grey-darken-1'
-                          "
-                          class="mr-3"
+                        <span class="text-caption font-weight-medium">{{
+                          d.split(" ")[0]
+                        }}</span>
+                        <span
+                          class="text-caption font-weight-bold"
+                          style="line-height: 1.1"
+                          >{{ d.split(" ")[1] }}</span
                         >
-                          mdi-walk
-                        </v-icon>
-                        <div>
-                          <div
-                            class="font-weight-bold text-subtitle-2 text-black"
-                          >
-                            No Hurry Delivery
-                          </div>
-                          <div class="text-caption text-grey-darken-1">
-                            By 01:00 pm
-                          </div>
-                        </div>
-                      </div>
-                      <div
-                        class="font-weight-bold text-subtitle-2 text-blue-darken-3"
-                      >
-                        S$ 6.50
                       </div>
                     </div>
                   </div>
-                </div>
+
+                  <div class="mb-3 mt-8">
+                    <div
+                      class="d-flex justify-start ga-10 font-weight-bold text-subtitle-2 text-grey-darken-3 mb-2"
+                    >
+                      <span>Delivery Options</span>
+                      <p
+                        class="text-red-darken-4 text-caption font-weight-bold"
+                      >
+                        {{ currentHour }}
+                      </p>
+                    </div>
+
+                    <div class="d-flex flex-column" style="gap: 8px">
+                      <div
+                        v-if="isLoadingDeliveryTiers"
+                        class="d-flex justify-center pa-4"
+                      >
+                        <v-progress-circular
+                          indeterminate
+                          color="primary"
+                        ></v-progress-circular>
+                      </div>
+                      <template v-else>
+                        <div
+                          v-for="tier in deliveryTiersList"
+                          :key="tier.dt_id"
+                          @click="selectedDummyDeliveryOption = tier.dt_id"
+                          class="d-flex align-center justify-space-between pa-3 rounded-lg cursor-pointer transition-all elevation-1 bg-white"
+                          :style="
+                            selectedDummyDeliveryOption === tier.dt_id
+                              ? {
+                                  border: '1.5px solid #a03022',
+                                  backgroundColor: '#fbebe9',
+                                }
+                              : {
+                                  border: '1px solid #e0e0e0',
+                                }
+                          "
+                        >
+                          <div class="d-flex align-center ga-2">
+                            <img
+                              v-if="tier.icon_image"
+                              :src="tier.icon_image"
+                              style="
+                                width: 24px;
+                                height: 24px;
+                                object-fit: contain;
+                              "
+                              class="mr-3"
+                              alt="icon"
+                            />
+                            <v-icon
+                              size="24"
+                              :color="
+                                selectedDummyDeliveryOption === tier.dt_id
+                                  ? 'red-darken-4'
+                                  : 'grey-darken-1'
+                              "
+                              v-else
+                            >
+                              {{ getDeliveryIcon(tier.delivery_tier_name) }}
+                            </v-icon>
+                            <div>
+                              <div
+                                class="font-weight-bold text-subtitle-2 text-black"
+                              >
+                                {{ tier.delivery_tier_name }}
+                              </div>
+                              <div class="text-caption text-grey-darken-1">
+                                By {{ tier.delivery_by }}
+                              </div>
+                            </div>
+                          </div>
+                          <div
+                            class="font-weight-bold text-subtitle-2 text-blue-darken-3"
+                          >
+                            S$ {{ tier.base_price }}
+                          </div>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                </template>
               </v-col>
               <v-col v-if="step == 4" class="pa-5">
                 <div class="my-3 text-h6 d-flex justify-space-between">
@@ -2675,9 +2660,58 @@ const informationModalContent = ref("");
 const informationModalTitle = ref("");
 const cancelOrderDialog = ref(false);
 const deliveryType = ref("delivery"); // 'pickup' or 'delivery'
-const selectedDummyDate = ref("Wed 17");
+const sevenDaysList = computed(() => {
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    days.push(moment().tz("Asia/Singapore").add(i, "days").format("ddd DD"));
+  }
+  return days;
+});
+const selectedDummyDate = ref(moment().tz("Asia/Singapore").format("ddd DD"));
 const selectedDummyAddressChip = ref("Home");
-const selectedDummyDeliveryOption = ref("basic");
+const selectedDummyDeliveryOption = ref(null);
+const deliveryTiersList = ref([]);
+const isLoadingDeliveryTiers = ref(false);
+
+const getDeliveryIcon = (name) => {
+  const lowerName = (name || "").toLowerCase();
+  if (
+    lowerName.includes("instant") ||
+    lowerName.includes("priority") ||
+    lowerName.includes("flash")
+  ) {
+    return "mdi-clock-fast";
+  } else if (
+    lowerName.includes("no hurry") ||
+    lowerName.includes("saver") ||
+    lowerName.includes("walk") ||
+    lowerName.includes("relaxed")
+  ) {
+    return "mdi-walk";
+  }
+  return "mdi-truck-delivery-outline";
+};
+
+const getDeliveryTiers = async () => {
+  isLoadingDeliveryTiers.value = true;
+  try {
+    const response = await axios.get("/list-delivery-tiers/7", {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    const data = response.data?.data;
+    deliveryTiersList.value = Array.isArray(data) ? data : [];
+    if (
+      deliveryTiersList.value.length > 0 &&
+      !selectedDummyDeliveryOption.value
+    ) {
+      selectedDummyDeliveryOption.value = deliveryTiersList.value[0].dt_id;
+    }
+  } catch (error) {
+    console.error("Error fetching delivery tiers:", error);
+  } finally {
+    isLoadingDeliveryTiers.value = false;
+  }
+};
 const payLater = ref(false);
 const havePaid = ref(false);
 const confirmOrder = ref(false);
@@ -2730,6 +2764,7 @@ const paymentOptions2 = ref([
 const search = ref("");
 const searchResults = ref([]);
 const isLoadingAddress = ref(false);
+const isLoadingBiryaniRunAddress = ref(false);
 let searchTimeout = null;
 
 const toTitleCase = (str) => {
@@ -3692,21 +3727,6 @@ const nextStep = (value) => {
       text: "",
       color: "success",
     };
-
-    if (!selectedAddress.value) {
-      snackbar.value = true;
-      message.value = {
-        text: "You must select address",
-        color: "error",
-      };
-      return;
-    }
-
-    if (addresses.value.length == 0) {
-      isEmptyAddress.value = true;
-
-      return;
-    }
   } else if (value == 4) {
     snackbar.value = false;
     message.value = {
@@ -3736,6 +3756,20 @@ const nextStep = (value) => {
 
       return;
     }
+  } else if (value == 3) {
+    if (addresses.value.length == 0) {
+      isEmptyAddress.value = true;
+
+      return;
+    } else if (!selectedAddress.value) {
+      snackbar.value = true;
+      message.value = {
+        text: "You must select address",
+        color: "error",
+      };
+      return;
+    }
+    getBiryaniRunAddress();
   }
   step.value = value;
 };
@@ -3753,6 +3787,35 @@ const toggleAddressDetails = (ga_id) => {
     ] = false; // close other opened details
   }
   addressExpanded.value[ga_id] = !addressExpanded.value[ga_id]; // Toggle true/false
+};
+
+const biryaniRunAddresses = ref([]);
+const filteredAddress = computed(() => {
+  return (
+    biryaniRunAddresses.value.find(
+      (item) => item.ga_id === selectedAddress.value,
+    ) || null
+  );
+});
+
+const getBiryaniRunAddress = async () => {
+  isLoadingBiryaniRunAddress.value = true;
+  try {
+    const restaurantId = cart.value[0]?.restaurant_id;
+    if (!restaurantId) return;
+    const response = await axios.get(
+      `/get-address-biryani-run/${restaurantId}`,
+      {
+        headers: { Authorization: `Bearer ${authToken}` },
+      },
+    );
+    const data = response.data?.data;
+    biryaniRunAddresses.value = Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error("Error fetching biryani run addresses:", error);
+  } finally {
+    isLoadingBiryaniRunAddress.value = false;
+  }
 };
 
 const getAddress = async () => {
@@ -4147,6 +4210,7 @@ watch(
     if (newValue) {
       getRestaurantDish(cart.value[0]?.restaurant_id);
       getMenuCategories(cart.value[0]?.restaurant_id);
+      //getBiryaniRunAddress();
       // console.log(
       //   "open cart",
       //   store.state.selectedDelivery ||
@@ -4191,8 +4255,10 @@ onMounted(() => {
   ) {
     // getTaxAmount();
     getAddress();
+    //getBiryaniRunAddress();
     // getPaymentTypes();
     getTimeSlots();
+    getDeliveryTiers();
     // getPlatformFee();
     // getCartData();
   }
