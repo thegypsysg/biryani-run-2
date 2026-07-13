@@ -2692,10 +2692,10 @@ const getDeliveryIcon = (name) => {
   return "mdi-truck-delivery-outline";
 };
 
-const getDeliveryTiers = async () => {
+const getDeliveryTiers = async (restaurantId) => {
   isLoadingDeliveryTiers.value = true;
   try {
-    const response = await axios.get("/list-delivery-tiers/7", {
+    const response = await axios.get(`/list-delivery-tiers/7/${restaurantId}`, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
     const data = response.data?.data;
@@ -4210,6 +4210,7 @@ watch(
     if (newValue) {
       getRestaurantDish(cart.value[0]?.restaurant_id);
       getMenuCategories(cart.value[0]?.restaurant_id);
+      getDeliveryTiers(cart.value[0]?.restaurant_id);
       //getBiryaniRunAddress();
       // console.log(
       //   "open cart",
@@ -4258,7 +4259,6 @@ onMounted(() => {
     //getBiryaniRunAddress();
     // getPaymentTypes();
     getTimeSlots();
-    getDeliveryTiers();
     // getPlatformFee();
     // getCartData();
   }
