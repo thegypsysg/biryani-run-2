@@ -1151,60 +1151,143 @@
                 <template v-else>
                   <!-- NEW UI -->
                   <div class="d-flex justify-space-between align-start mt-8">
-                    <div class="w-50 text-caption">
-                      <v-row>
-                        <v-col cols="12">
-                          <span class="font-weight-bold">Delivery To</span>
-                        </v-col>
-                        <v-col cols="7" md="8">
-                          <strong>{{ filteredAddress?.location_name }}</strong>
-                        </v-col>
-                        <v-col
-                          col="5"
-                          md="4"
-                          class="justify-end text-blue-lighten-1 cursor-pointer"
-                        >
-                          <strong @click="step = 2">Change</strong>
-                        </v-col>
-                      </v-row>
+                    <!-- Left Column -->
+                    <div class="w-50 text-caption text-left">
+                      <!-- Row 1: Delivery To -->
+                      <div
+                        class="font-weight-bold text-subtitle-2 mb-2 text-grey-darken-3"
+                      >
+                        Delivery To
+                      </div>
 
-                      <v-divider
-                        :thickness="2"
-                        class="mt-2 mb-2 border-opacity-15"
-                      />
-                      <v-row class="d-flex align-center">
-                        <v-col cols="9">
-                          <p
-                            v-if="filteredAddress?.full_address"
-                            v-html="formatInfo(filteredAddress.full_address)"
-                          />
-                        </v-col>
-                        <v-col cols="12">
-                          <p class="font-weight-bold">
-                            Unit # :
-                            <span class="text-blue-darken-4 mr-4">{{
-                              filteredAddress?.unit_number
-                            }}</span>
-                            {{ filteredAddress?.building_no }}
-                            {{ filteredAddress?.building_name }}
-                          </p>
-                        </v-col>
-                      </v-row>
-                    </div>
-                    <div
-                      class="text-grey-darken-3 text-caption text-right font-weight-bold w-50"
-                    >
-                      <p>
-                        <v-icon size="16" color="grey-darken-2" class="mr-1"
-                          >mdi-map-marker-outline</v-icon
+                      <!-- Row 2: Location Name & Change -->
+                      <div
+                        class="d-flex justify-space-between align-center mb-1"
+                      >
+                        <strong
+                          class="text-subtitle-1 text-black font-weight-black"
+                          >{{ filteredAddress?.location_name }}</strong
                         >
-                        Total Distance :
+                        <span
+                          class="text-blue-lighten-1 cursor-pointer font-weight-bold"
+                          @click="step = 2"
+                          >Change</span
+                        >
+                      </div>
+
+                      <!-- Divider -->
+                      <v-divider
+                        :thickness="1"
+                        class="mt-1 mb-2 border-opacity-15"
+                      />
+
+                      <!-- Row 3: Full Address -->
+                      <div class="mb-2">
+                        <p
+                          v-if="filteredAddress?.full_address"
+                          v-html="formatInfo(filteredAddress.full_address)"
+                          class="text-grey-darken-3 font-weight-medium"
+                          style="line-height: 1.4"
+                        />
+                      </div>
+
+                      <!-- Row 4: Unit # -->
+                      <div>
+                        <p class="font-weight-bold text-grey-darken-4">
+                          Unit # :
+                          <span class="text-blue-darken-4 mr-2">{{
+                            filteredAddress?.unit_number
+                          }}</span>
+                          {{ filteredAddress?.building_no }}
+                          {{ filteredAddress?.building_name }}
+                        </p>
+                      </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div
+                      class="w-50 text-caption text-right d-flex flex-column align-end"
+                    >
+                      <!-- Total Distance -->
+                      <div class="mb-3">
+                        <p class="text-grey-darken-3 font-weight-bold mb-1">
+                          <v-icon size="16" color="grey-darken-2" class="mr-1"
+                            >mdi-map-marker-outline</v-icon
+                          >
+                          Total Distance :
+                        </p>
+                        <p class="text-black">
+                          <span class="font-weight-bold text-red-darken-4">{{
+                            filteredAddress?.distance
+                          }}</span>
+                          kms away
+                        </p>
+                      </div>
+
+                      <!-- Extra Kms -->
+                      <div class="mb-3" v-if="extraRateInfo">
+                        <p class="text-grey-darken-3 font-weight-bold mb-1">
+                          Extra Kms
+                        </p>
+                        <p class="text-black">
+                          <span class="font-weight-bold text-red-darken-4">{{
+                            Number(extraRateInfo.extraDistance).toFixed(2)
+                          }}</span>
+                          kms
+                        </p>
+                      </div>
+
+                      <!-- Rate Per Kms -->
+                      <div v-if="extraRateInfo">
+                        <p class="text-grey-darken-3 font-weight-bold mb-1">
+                          Rate Per Kms
+                        </p>
+                        <p>
+                          <span
+                            class="font-weight-bold text-red-darken-4 mr-4"
+                            >{{ extraRateInfo.per_km_rate_non_peak }}</span
+                          >
+                          <span class="font-weight-bold text-red-darken-4">{{
+                            extraRateInfo.per_km_rate_peak
+                          }}</span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="w-100 d-flex justify-space-between align-end">
+                    <!-- Row 5: Peak Rate Info (Bottom Left) -->
+                    <div v-if="peakNonPeakInfo">
+                      <span
+                        class="text-blue-darken-1 font-weight-black text-body-2"
+                        >{{ peakNonPeakInfo.rate_name }}</span
+                      >
+                      <span
+                        class="text-grey-darken-1 font-weight-black text-body-2 mx-1"
+                        >|</span
+                      >
+                      <span
+                        class="text-green-darken-2 font-weight-black text-body-2"
+                        >{{ peakNonPeakInfo.base_fee }} x
+                        {{ peakNonPeakInfo.surge_multiplier }}</span
+                      >
+                    </div>
+                    <!-- Surge Pricing -->
+                    <div v-if="peakNonPeakInfo">
+                      <p
+                        class="text-green-darken-2 font-weight-black text-subtitle-2 mb-1"
+                      >
+                        {{ peakNonPeakInfo.display_message }}
                       </p>
-                      <p>
-                        <span class="text-red-darken-4">
-                          {{ filteredAddress?.distance }}
-                        </span>
-                        kms away
+                      <p
+                        class="text-purple-darken-3 font-weight-black text-subtitle-1"
+                      >
+                        S$
+                        {{
+                          (
+                            parseFloat(peakNonPeakInfo.base_fee || 0) *
+                            parseFloat(peakNonPeakInfo.surge_multiplier || 1)
+                          ).toFixed(2)
+                        }}
                       </p>
                     </div>
                   </div>
@@ -3797,6 +3880,43 @@ const filteredAddress = computed(() => {
     ) || null
   );
 });
+
+const extraRateInfo = ref(null);
+const peakNonPeakInfo = ref(null);
+
+const fetchExtraPerKmRate = async (distance) => {
+  if (!distance) return;
+  try {
+    const response = await axios.get(`/get-extra-per-km-rate/${distance}`, {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    extraRateInfo.value = response.data?.data;
+  } catch (error) {
+    console.error("Error fetching extra per km rate:", error);
+  }
+};
+
+const fetchPeakNonPeakInfo = async () => {
+  try {
+    const response = await axios.get(`/get-peak-non-peak-info`, {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    peakNonPeakInfo.value = response.data?.data;
+  } catch (error) {
+    console.error("Error fetching peak non peak info:", error);
+  }
+};
+
+watch(
+  filteredAddress,
+  (newAddress) => {
+    if (newAddress && newAddress.distance) {
+      fetchExtraPerKmRate(newAddress.distance);
+      fetchPeakNonPeakInfo();
+    }
+  },
+  { immediate: true },
+);
 
 const getBiryaniRunAddress = async () => {
   isLoadingBiryaniRunAddress.value = true;
