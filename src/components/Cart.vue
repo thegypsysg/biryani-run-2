@@ -1244,12 +1244,15 @@
                         </p>
                         <p>
                           <span
+                            v-if="peakNonPeakInfo?.peak_non_peak == 'NP'"
                             class="font-weight-bold text-red-darken-4 mr-4"
                             >{{ extraRateInfo.per_km_rate_non_peak }}</span
                           >
-                          <span class="font-weight-bold text-red-darken-4">{{
-                            extraRateInfo.per_km_rate_peak
-                          }}</span>
+                          <span
+                            v-else-if="peakNonPeakInfo?.peak_non_peak == 'P'"
+                            class="font-weight-bold text-red-darken-4"
+                            >{{ extraRateInfo.per_km_rate_peak }}</span
+                          >
                         </p>
                       </div>
                     </div>
@@ -1411,7 +1414,7 @@
                           <div
                             class="font-weight-bold text-subtitle-2 text-blue-darken-3"
                           >
-                            S$ {{ tier.base_price }}
+                            S$ {{ getCalculatedDeliveryPrice(tier.dt_id) }}
                           </div>
                         </div>
                       </template>
@@ -3905,6 +3908,21 @@ const fetchPeakNonPeakInfo = async () => {
   } catch (error) {
     console.error("Error fetching peak non peak info:", error);
   }
+};
+
+const getCalculatedDeliveryPrice = (dt_id) => {
+  if (!peakNonPeakInfo.value || !peakNonPeakInfo.value.delivery_tiers) {
+    return "0.00";
+  }
+  const tierData = peakNonPeakInfo.value.delivery_tiers.find(
+    (t) => t.dt_id === dt_id,
+  );
+  if (tierData) {
+    const totalCharges = parseFloat(tierData.total_delivery_charges || 0);
+    const nonStackFee = parseFloat(tierData.non_stack_fee || 0);
+    return (totalCharges + nonStackFee).toFixed(2);
+  }
+  return "0.00";
 };
 
 watch(
