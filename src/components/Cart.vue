@@ -1261,15 +1261,15 @@
                     <!-- Row 5: Peak Rate Info (Bottom Left) -->
                     <div v-if="peakNonPeakInfo">
                       <span
-                        class="text-blue-darken-1 font-weight-black text-body-2"
+                        class="text-blue-darken-1 font-weight-black text-caption"
                         >{{ peakNonPeakInfo.rate_name }}</span
                       >
                       <span
-                        class="text-grey-darken-1 font-weight-black text-body-2 mx-1"
+                        class="text-grey-darken-1 font-weight-black text-caption mx-1"
                         >|</span
                       >
                       <span
-                        class="text-green-darken-2 font-weight-black text-body-2"
+                        class="text-green-darken-2 font-weight-black text-caption"
                         >{{ peakNonPeakInfo.base_fee }} x
                         {{ peakNonPeakInfo.surge_multiplier }}</span
                       >
@@ -1277,12 +1277,12 @@
                     <!-- Surge Pricing -->
                     <div v-if="peakNonPeakInfo">
                       <p
-                        class="text-green-darken-2 font-weight-black text-subtitle-2 mb-1"
+                        class="text-green-darken-2 font-weight-black text-caption mb-1"
                       >
                         {{ peakNonPeakInfo.display_message }}
                       </p>
                       <p
-                        class="text-purple-darken-3 font-weight-black text-subtitle-1"
+                        class="text-purple-darken-3 font-weight-black text-body-2"
                       >
                         S$
                         {{
@@ -1292,6 +1292,37 @@
                           ).toFixed(2)
                         }}
                       </p>
+                    </div>
+                  </div>
+                  <div class="w-100">
+                    <div v-if="extraRateInfo">
+                      <span
+                        class="text-red-darken-4 font-weight-black text-caption"
+                        >Extra Kms Total :
+                      </span>
+
+                      <span
+                        class="text-red-darken-1 font-weight-black text-caption"
+                        >{{ Number(extraRateInfo.extraDistance).toFixed(2) }} x
+                        {{
+                          peakNonPeakInfo?.peak_non_peak == "NP"
+                            ? extraRateInfo.per_km_rate_non_peak
+                            : extraRateInfo.per_km_rate_peak
+                        }}</span
+                      >
+                      =
+                      <span
+                        class="text-red-darken-1 font-weight-black text-caption"
+                        >S$
+                        {{
+                          (
+                            Number(extraRateInfo.extraDistance) *
+                            (peakNonPeakInfo?.peak_non_peak == "NP"
+                              ? extraRateInfo.per_km_rate_non_peak
+                              : extraRateInfo.per_km_rate_peak)
+                          ).toFixed(2)
+                        }}</span
+                      >
                     </div>
                   </div>
 
@@ -1406,8 +1437,46 @@
                               >
                                 {{ tier.delivery_tier_name }}
                               </div>
-                              <div class="text-caption text-grey-darken-1">
-                                By {{ tier.delivery_by }}
+                              <div class="d-flex">
+                                <span class="text-caption text-grey-darken-1">
+                                  By {{ tier.delivery_by }}
+                                </span>
+                                <div
+                                  style="font-size: 11px"
+                                  class="text-green-darken-1"
+                                >
+                                  (
+                                  <span>
+                                    S$
+                                    {{
+                                      (
+                                        parseFloat(
+                                          peakNonPeakInfo.base_fee || 0,
+                                        ) *
+                                        parseFloat(
+                                          peakNonPeakInfo.surge_multiplier || 1,
+                                        )
+                                      ).toFixed(2)
+                                    }}</span
+                                  >
+                                  +
+                                  <span>
+                                    S$
+                                    {{
+                                      (
+                                        Number(extraRateInfo.extraDistance) *
+                                        (peakNonPeakInfo?.peak_non_peak == "NP"
+                                          ? extraRateInfo.per_km_rate_non_peak
+                                          : extraRateInfo.per_km_rate_peak)
+                                      ).toFixed(2)
+                                    }}</span
+                                  >
+                                  +
+                                  <span>
+                                    S$ {{ getNonStackFee(tier.dt_id) }}
+                                  </span>
+                                  )
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -3899,11 +3968,14 @@ const fetchExtraPerKmRate = async (distance) => {
   }
 };
 
-const fetchPeakNonPeakInfo = async () => {
+const fetchPeakNonPeakInfo = async (restaurantId) => {
   try {
-    const response = await axios.get(`/get-peak-non-peak-info`, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await axios.get(
+      `/get-peak-non-peak-info/${restaurantId}`,
+      {
+        headers: { Authorization: `Bearer ${authToken}` },
+      },
+    );
     peakNonPeakInfo.value = response.data?.data;
   } catch (error) {
     console.error("Error fetching peak non peak info:", error);
@@ -3925,12 +3997,26 @@ const getCalculatedDeliveryPrice = (dt_id) => {
   return "0.00";
 };
 
+const getNonStackFee = (dt_id) => {
+  if (!peakNonPeakInfo.value || !peakNonPeakInfo.value.delivery_tiers) {
+    return "0.00";
+  }
+  const tierData = peakNonPeakInfo.value.delivery_tiers.find(
+    (t) => t.dt_id === dt_id,
+  );
+  if (tierData) {
+    const nonStackFee = parseFloat(tierData.non_stack_fee || 0);
+    return nonStackFee.toFixed(2);
+  }
+  return "0.00";
+};
+
 watch(
   filteredAddress,
   (newAddress) => {
     if (newAddress && newAddress.distance) {
       fetchExtraPerKmRate(newAddress.distance);
-      fetchPeakNonPeakInfo();
+      fetchPeakNonPeakInfo(cart.value[0]?.restaurant_id);
     }
   },
   { immediate: true },
