@@ -1451,10 +1451,11 @@
                                     {{
                                       (
                                         parseFloat(
-                                          peakNonPeakInfo.base_fee || 0,
+                                          peakNonPeakInfo?.base_fee || 0,
                                         ) *
                                         parseFloat(
-                                          peakNonPeakInfo.surge_multiplier || 1,
+                                          peakNonPeakInfo?.surge_multiplier ||
+                                            1,
                                         )
                                       ).toFixed(2)
                                     }}</span
@@ -1464,16 +1465,16 @@
                                     S$
                                     {{
                                       (
-                                        Number(extraRateInfo.extraDistance) *
+                                        Number(extraRateInfo?.extraDistance) *
                                         (peakNonPeakInfo?.peak_non_peak == "NP"
-                                          ? extraRateInfo.per_km_rate_non_peak
-                                          : extraRateInfo.per_km_rate_peak)
+                                          ? extraRateInfo?.per_km_rate_non_peak
+                                          : extraRateInfo?.per_km_rate_peak)
                                       ).toFixed(2)
                                     }}</span
                                   >
                                   +
                                   <span>
-                                    S$ {{ getNonStackFee(tier.dt_id) }}
+                                    S$ {{ getNonStackFee(tier?.dt_id) }}
                                   </span>
                                   )
                                 </div>
@@ -1483,7 +1484,25 @@
                           <div
                             class="font-weight-bold text-subtitle-2 text-blue-darken-3"
                           >
-                            S$ {{ getCalculatedDeliveryPrice(tier.dt_id) }}
+                            S$
+                            {{
+                              (
+                                parseFloat(peakNonPeakInfo?.base_fee || 0) *
+                                  parseFloat(
+                                    peakNonPeakInfo?.surge_multiplier || 1,
+                                  ) +
+                                Number(extraRateInfo?.extraDistance || 0) *
+                                  (peakNonPeakInfo?.peak_non_peak == "NP"
+                                    ? Number(
+                                        extraRateInfo?.per_km_rate_non_peak ||
+                                          0,
+                                      )
+                                    : Number(
+                                        extraRateInfo?.per_km_rate_peak || 0,
+                                      )) +
+                                Number(getNonStackFee(tier?.dt_id) || 0)
+                              ).toFixed(2)
+                            }}
                           </div>
                         </div>
                       </template>
