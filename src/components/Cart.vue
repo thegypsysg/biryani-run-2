@@ -1369,6 +1369,25 @@
                     </div>
                   </div>
 
+                  <div class="mb-3 mt-8" v-if="selectedDummyDate !== sevenDaysList[0]">
+                    <div class="font-weight-black text-subtitle-1 mb-4">
+                      Order for
+                    </div>
+                    <div class="font-weight-bold text-subtitle-2 mb-2">
+                      {{ formattedSelectedFullDate }}
+                    </div>
+                    <v-select
+                      v-model="selectedDeliveryRate"
+                      :items="deliveryRates"
+                      item-title="rate_name"
+                      item-value="dr_id"
+                      placeholder="--- Select ---"
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                    ></v-select>
+                  </div>
+
                   <div class="mb-3 mt-8">
                     <div
                       class="d-flex justify-start ga-10 font-weight-bold text-subtitle-2 text-grey-darken-3 mb-2"
@@ -1656,7 +1675,7 @@
                           {{ selectedCountry.currency_symbol }}
                         </td>
                         <td colspan="2" class="text-end">
-                          {{ selectedDeliveryPrice.toFixed(2) }}
+                          {{ cart[0]?.delivery_charges }}
                         </td>
                       </tr>
 
@@ -2247,7 +2266,7 @@
                           <td>Delivery Charges</td>
                           <td>{{ selectedCountry.currency_symbol }}</td>
                           <td class="text-end">
-                            {{ selectedDeliveryPrice.toFixed(2) }}
+                            {{ cart[0]?.delivery_charges }}
                           </td>
                         </tr>
 
@@ -2847,6 +2866,17 @@ const selectedDummyDeliveryOption = ref(null);
 const deliveryTiersList = ref([]);
 const isLoadingDeliveryTiers = ref(false);
 
+const deliveryRates = ref([]);
+const selectedDeliveryRate = ref(null);
+
+const formattedSelectedFullDate = computed(() => {
+  const index = sevenDaysList.value.findIndex((d) => d === selectedDummyDate.value);
+  if (index !== -1) {
+    return moment().tz("Asia/Singapore").add(index, "days").format("dddd , Do MMMM YYYY");
+  }
+  return "";
+});
+
 const getDeliveryIcon = (name) => {
   const lowerName = (name || "").toLowerCase();
   if (
@@ -2884,6 +2914,15 @@ const getDeliveryTiers = async (restaurantId) => {
     console.error("Error fetching delivery tiers:", error);
   } finally {
     isLoadingDeliveryTiers.value = false;
+  }
+};
+
+const getDeliveryRates = async () => {
+  try {
+    const response = await axios.get('/list-delivery-rates');
+    deliveryRates.value = response.data?.data || [];
+  } catch (error) {
+    console.error("Error fetching delivery rates:", error);
   }
 };
 const payLater = ref(false);
@@ -3287,13 +3326,16 @@ const finalCartTotal = computed(() => {
   if (cart.value && cart.value.length > 0) {
     serviceFee = Number(cart.value[0]?.service_fee) || 0;
   }
-  return (
-    sub +
-    delivery +
-    platform +
-    serviceFee +
-    ((sub + delivery + 0.5) * tax) / 100
-  ).toFixed(2);
+  const result = cart.value[0]?.final_amount
+    ? cart.value[0]?.final_amount
+    : (
+        sub +
+        delivery +
+        platform +
+        serviceFee +
+        ((sub + delivery + 0.5) * tax) / 100
+      ).toFixed(2);
+  return result;
 });
 
 // Get cart items
@@ -3876,7 +3918,7 @@ const cancelOrder = async () => {
   }
 };
 
-const nextStep = (value) => {
+const nextStep = async (value) => {
   if (value === 7) {
     snackbar.value = false;
     message.value = {
@@ -3928,6 +3970,43 @@ const nextStep = (value) => {
     if (authToken == "null") {
       store.commit("setIsNotLoggedIn", true);
 
+      return;
+    }
+
+    try {
+      const index = sevenDaysList.value.findIndex(
+        (d) => d === selectedDummyDate.value,
+      );
+      const formattedDate = moment()
+        .tz("Asia/Singapore")
+        .add(index !== -1 ? index : 0, "days")
+        .format("DD/MM/YYYY");
+
+      const payload = {
+        cart_id: cart.value[0]?.cart_id,
+        dt_id: selectedDummyDeliveryOption.value,
+        total_distance: filteredAddress.value?.distance
+          ? Number(filteredAddress.value.distance)
+          : 0,
+        delivery_date: formattedDate,
+      };
+
+      const response = await axios.post(
+        "/update-cart-master-delivery-info",
+        payload,
+        {
+          headers: { Authorization: `Bearer ${authToken}` },
+        },
+      );
+      console.log(response.data.message);
+      getCartData();
+    } catch (error) {
+      console.error("Error updating cart master delivery info:", error);
+      snackbar.value = true;
+      message.value = {
+        text: "Failed to update delivery info",
+        color: "error",
+      };
       return;
     }
   } else if (value == 3) {
@@ -4454,6 +4533,7 @@ watch(
       getRestaurantDish(cart.value[0]?.restaurant_id);
       getMenuCategories(cart.value[0]?.restaurant_id);
       getDeliveryTiers(cart.value[0]?.restaurant_id);
+      getDeliveryRates();
       //getBiryaniRunAddress();
       // console.log(
       //   "open cart",
