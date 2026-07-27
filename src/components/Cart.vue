@@ -131,7 +131,7 @@
                       </div>
                       <div
                         class="bg-red-lighten-5 text-red-darken-3 rounded-pill px-3 py-1 text-caption font-weight-bold cursor-pointer"
-                        @click="store.dispatch('clearCart')"
+                        @click="handleClearCart"
                       >
                         Clear Items
                       </div>
@@ -1149,8 +1149,16 @@
                   ></v-progress-circular>
                 </div>
                 <template v-else>
+                  <div
+                    class="mt-4 mb-2 d-flex w-100 justify-center align-center"
+                  >
+                    <p class="text-subtitle-2 font-weight-bold">
+                      <span class="text-green-lighten-1">Open Now</span> |
+                      Closes in <span class="text-red-darken-2">3 hrs</span>
+                    </p>
+                  </div>
                   <!-- NEW UI -->
-                  <div class="d-flex justify-space-between align-start mt-8">
+                  <div class="d-flex justify-space-between align-start">
                     <!-- Left Column -->
                     <div class="w-50 text-caption text-left">
                       <!-- Row 1: Delivery To -->
@@ -1369,7 +1377,10 @@
                     </div>
                   </div>
 
-                  <div class="mb-3 mt-8" v-if="selectedDummyDate !== sevenDaysList[0]">
+                  <div
+                    class="mb-3 mt-8"
+                    v-if="selectedDummyDate !== sevenDaysList[0]"
+                  >
                     <div class="font-weight-black text-subtitle-1 mb-4">
                       Order for
                     </div>
@@ -2870,9 +2881,14 @@ const deliveryRates = ref([]);
 const selectedDeliveryRate = ref(null);
 
 const formattedSelectedFullDate = computed(() => {
-  const index = sevenDaysList.value.findIndex((d) => d === selectedDummyDate.value);
+  const index = sevenDaysList.value.findIndex(
+    (d) => d === selectedDummyDate.value,
+  );
   if (index !== -1) {
-    return moment().tz("Asia/Singapore").add(index, "days").format("dddd , Do MMMM YYYY");
+    return moment()
+      .tz("Asia/Singapore")
+      .add(index, "days")
+      .format("dddd , Do MMMM YYYY");
   }
   return "";
 });
@@ -2919,7 +2935,7 @@ const getDeliveryTiers = async (restaurantId) => {
 
 const getDeliveryRates = async () => {
   try {
-    const response = await axios.get('/list-delivery-rates');
+    const response = await axios.get("/list-delivery-rates");
     deliveryRates.value = response.data?.data || [];
   } catch (error) {
     console.error("Error fetching delivery rates:", error);
@@ -3477,6 +3493,15 @@ const resetForm = () => {
 //     currency: "USD",
 //   }).format(amount);
 
+const handleClearCart = async () => {
+  try {
+    await store.dispatch("clearCart");
+    emit("update:viewCart", false);
+  } catch (error) {
+    console.error("Error clearing cart:", error);
+  }
+};
+
 // Remove item from cart
 const handleRemoveFromCart = (product) => {
   const data = {
@@ -3972,43 +3997,6 @@ const nextStep = async (value) => {
 
       return;
     }
-
-    try {
-      const index = sevenDaysList.value.findIndex(
-        (d) => d === selectedDummyDate.value,
-      );
-      const formattedDate = moment()
-        .tz("Asia/Singapore")
-        .add(index !== -1 ? index : 0, "days")
-        .format("DD/MM/YYYY");
-
-      const payload = {
-        cart_id: cart.value[0]?.cart_id,
-        dt_id: selectedDummyDeliveryOption.value,
-        total_distance: filteredAddress.value?.distance
-          ? Number(filteredAddress.value.distance)
-          : 0,
-        delivery_date: formattedDate,
-      };
-
-      const response = await axios.post(
-        "/update-cart-master-delivery-info",
-        payload,
-        {
-          headers: { Authorization: `Bearer ${authToken}` },
-        },
-      );
-      console.log(response.data.message);
-      getCartData();
-    } catch (error) {
-      console.error("Error updating cart master delivery info:", error);
-      snackbar.value = true;
-      message.value = {
-        text: "Failed to update delivery info",
-        color: "error",
-      };
-      return;
-    }
   } else if (value == 3) {
     if (addresses.value.length == 0) {
       isEmptyAddress.value = true;
@@ -4080,6 +4068,53 @@ const fetchPeakNonPeakInfo = async (restaurantId) => {
   }
 };
 
+const updateCartDeliveryInfo = async () => {
+  if (!cart.value[0]?.cart_id || !selectedDummyDeliveryOption.value)
+    return false;
+
+  try {
+    const index = sevenDaysList.value.findIndex(
+      (d) => d === selectedDummyDate.value,
+    );
+    const formattedDate = moment()
+      .tz("Asia/Singapore")
+      .add(index !== -1 ? index : 0, "days")
+      .format("DD/MM/YYYY");
+
+    const payload = {
+      cart_id: cart.value[0]?.cart_id,
+      dt_id: selectedDummyDeliveryOption.value,
+      total_distance: filteredAddress.value?.distance
+        ? Number(filteredAddress.value.distance)
+        : 0,
+      delivery_date: formattedDate,
+    };
+
+    const response = await axios.post(
+      "/update-cart-master-delivery-info",
+      payload,
+      {
+        headers: { Authorization: `Bearer ${authToken}` },
+      },
+    );
+    console.log(response.data.message);
+    getCartData();
+    return true;
+  } catch (error) {
+    console.error("Error updating cart master delivery info:", error);
+    snackbar.value = true;
+    message.value = {
+      text: "Failed to update delivery info",
+      color: "error",
+    };
+    return false;
+  }
+};
+
+watch([selectedDummyDeliveryOption, selectedDummyDate], () => {
+  updateCartDeliveryInfo();
+});
+
 const getCalculatedDeliveryPrice = (dt_id) => {
   if (!peakNonPeakInfo.value || !peakNonPeakInfo.value.delivery_tiers) {
     return "0.00";
@@ -4133,6 +4168,7 @@ const getBiryaniRunAddress = async () => {
     );
     const data = response.data?.data;
     biryaniRunAddresses.value = Array.isArray(data) ? data : [];
+    updateCartDeliveryInfo();
   } catch (error) {
     console.error("Error fetching biryani run addresses:", error);
   } finally {
