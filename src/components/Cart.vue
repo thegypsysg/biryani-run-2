@@ -890,9 +890,9 @@
                             </p>
                             <MazInput
                               class="mt-1 mb-2"
-                              v-model="addressForm.building"
                               placeholder="Lobby A or 1"
                             />
+                            <!-- v-model="addressForm.building" -->
                           </v-col>
                           <v-col cols="12">
                             <template v-if="addressForm.dwelling_id == 1">
@@ -4011,6 +4011,7 @@ const nextStep = async (value) => {
       return;
     }
     getBiryaniRunAddress();
+    getDeliveryTiers(cart.value[0]?.restaurant_id);
   }
   step.value = value;
 };
@@ -4568,7 +4569,6 @@ watch(
     if (newValue) {
       getRestaurantDish(cart.value[0]?.restaurant_id);
       getMenuCategories(cart.value[0]?.restaurant_id);
-      getDeliveryTiers(cart.value[0]?.restaurant_id);
       getDeliveryRates();
       //getBiryaniRunAddress();
       // console.log(
