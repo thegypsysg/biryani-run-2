@@ -59,6 +59,7 @@ export default {
       userImage: null,
       userName: null,
       userDated: null,
+      userEmail: null,
       dialog: false,
       dialog2: false,
       drawer: false,
@@ -321,6 +322,7 @@ export default {
       "setSelectedCountry",
       "setIsCartEmpty",
       "setUserName",
+      "setUserEmail",
     ]),
     viewCartClick() {
       if (this.cartTotalQuantity > 0) {
@@ -525,6 +527,9 @@ export default {
           this.userName = data.name;
           this.setUserName(data.name);
           localStorage.setItem("userName", data.name);
+          this.userEmail = data.email_id;
+          this.setUserEmail(data.email_id);
+          localStorage.setItem("email", data.email_id);
           this.userDated = data.last_login;
           this.userImage =
             data.image != null ? this.$fileURL + data.image : null;
@@ -562,6 +567,8 @@ export default {
 
           this.userName = data.name;
           this.setUserName(data.name);
+          this.userEmail = data.email_id;
+          this.setUserEmail(data.email_id);
           this.userDated = data.last_login;
           this.userImage =
             data.image != null ? this.$fileURL + data.image : null;

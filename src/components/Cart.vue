@@ -886,13 +886,21 @@
                             cols="6"
                           >
                             <p class="text-grey-darken-1 font-weight-bold">
-                              Lift Lobby
+                              {{
+                                addressForm.dwelling_id == 1
+                                  ? "Lobby (A,B,C)"
+                                  : "Lift Lobby"
+                              }}
                             </p>
                             <MazInput
                               class="mt-1 mb-2"
-                              placeholder="Lobby A or 1"
+                              :placeholder="
+                                addressForm.dwelling_id == 1
+                                  ? ''
+                                  : 'Lobby A or 1'
+                              "
+                              v-model="addressForm.lift_lobby"
                             />
-                            <!-- v-model="addressForm.building" -->
                           </v-col>
                           <v-col cols="12">
                             <template v-if="addressForm.dwelling_id == 1">
@@ -902,7 +910,7 @@
                               <MazInput
                                 disabled
                                 class="mt-1 mb-2"
-                                v-model="addressForm.precinct"
+                                v-model="addressForm.building"
                               />
                             </template>
                             <template v-else-if="addressForm.dwelling_id == 2">
@@ -940,7 +948,10 @@
                             <v-combobox
                               class="mt-1"
                               v-model="addressForm.location_name"
-                              :items="locationNames"
+                              :items="[
+                                '---Select Location Name---',
+                                ...locationNames,
+                              ]"
                               placeholder="Select Location Name"
                               density="compact"
                               variant="outlined"
@@ -1058,7 +1069,41 @@
               </v-col>
               <v-col v-if="step == 3" class="pa-5" style="min-height: 75vh">
                 <div class="my-3 text-h6 d-flex justify-space-between">
-                  <span>Delivery Options</span>
+                  <div class="d-flex align-center mb-3">
+                    <div class="flex-grow-0 flex-shrink-0">
+                      <v-img
+                        class="rounded-circle bg-white border"
+                        :src="fileURL + cart[0]?.restaurant_logo"
+                        width="50"
+                        height="50"
+                      >
+                        <template v-slot:placeholder>
+                          <div
+                            class="d-flex align-center justify-center fill-height"
+                          >
+                            <v-progress-circular
+                              color="grey-lighten-4"
+                              indeterminate
+                            ></v-progress-circular>
+                          </div>
+                        </template>
+                      </v-img>
+                    </div>
+                    <div class="ml-3 pa-0" style="min-width: 0">
+                      <div
+                        class="font-weight-bold text-black text-body-2"
+                        style="line-height: 1.2"
+                      >
+                        {{ cart[0]?.restaurant_name || "" }}
+                      </div>
+                      <div
+                        class="text-grey font-weight-medium text-caption mt-1"
+                        style="line-height: 1.2"
+                      >
+                        {{ cart[0]?.town_name || "" }}
+                      </div>
+                    </div>
+                  </div>
                   <v-btn
                     prepend-icon="mdi-arrow-left"
                     @click="step = 2"
@@ -1265,74 +1310,83 @@
                       </div>
                     </div>
                   </div>
-                  <div class="w-100 d-flex justify-space-between align-end">
-                    <!-- Row 5: Peak Rate Info (Bottom Left) -->
-                    <div v-if="peakNonPeakInfo">
-                      <span
-                        class="text-blue-darken-1 font-weight-black text-caption"
-                        >{{ peakNonPeakInfo.rate_name }}</span
-                      >
-                      <span
-                        class="text-grey-darken-1 font-weight-black text-caption mx-1"
-                        >|</span
-                      >
-                      <span
-                        class="text-green-darken-2 font-weight-black text-caption"
-                        >{{ peakNonPeakInfo.base_fee }} x
-                        {{ peakNonPeakInfo.surge_multiplier }}</span
-                      >
+                  <template
+                    v-if="
+                      userEmail === 'charltonmendes@gmail.com' ||
+                      userEmail === 'ajiprsty4713@gmail.com' ||
+                      userEmail === 'paudel.mahendra@gmail.com'
+                    "
+                  >
+                    <div class="w-100 d-flex justify-space-between align-end">
+                      <!-- Row 5: Peak Rate Info (Bottom Left) -->
+                      <div v-if="peakNonPeakInfo">
+                        <span
+                          class="text-blue-darken-1 font-weight-black text-caption"
+                          >{{ peakNonPeakInfo.rate_name }}</span
+                        >
+                        <span
+                          class="text-grey-darken-1 font-weight-black text-caption mx-1"
+                          >|</span
+                        >
+                        <span
+                          class="text-green-darken-2 font-weight-black text-caption"
+                          >{{ peakNonPeakInfo.base_fee }} x
+                          {{ peakNonPeakInfo.surge_multiplier }}</span
+                        >
+                      </div>
+                      <!-- Surge Pricing -->
+                      <div v-if="peakNonPeakInfo">
+                        <p
+                          class="text-green-darken-2 font-weight-black text-caption mb-1"
+                        >
+                          {{ peakNonPeakInfo.display_message }}
+                        </p>
+                        <p
+                          class="text-purple-darken-3 font-weight-black text-body-2"
+                        >
+                          S$
+                          {{
+                            (
+                              parseFloat(peakNonPeakInfo.base_fee || 0) *
+                              parseFloat(peakNonPeakInfo.surge_multiplier || 1)
+                            ).toFixed(2)
+                          }}
+                        </p>
+                      </div>
                     </div>
-                    <!-- Surge Pricing -->
-                    <div v-if="peakNonPeakInfo">
-                      <p
-                        class="text-green-darken-2 font-weight-black text-caption mb-1"
-                      >
-                        {{ peakNonPeakInfo.display_message }}
-                      </p>
-                      <p
-                        class="text-purple-darken-3 font-weight-black text-body-2"
-                      >
-                        S$
-                        {{
-                          (
-                            parseFloat(peakNonPeakInfo.base_fee || 0) *
-                            parseFloat(peakNonPeakInfo.surge_multiplier || 1)
-                          ).toFixed(2)
-                        }}
-                      </p>
-                    </div>
-                  </div>
-                  <div class="w-100">
-                    <div v-if="extraRateInfo">
-                      <span
-                        class="text-red-darken-4 font-weight-black text-caption"
-                        >Extra Kms Total :
-                      </span>
+                    <div class="w-100">
+                      <div v-if="extraRateInfo">
+                        <span
+                          class="text-red-darken-4 font-weight-black text-caption"
+                          >Extra Kms Total :
+                        </span>
 
-                      <span
-                        class="text-red-darken-1 font-weight-black text-caption"
-                        >{{ Number(extraRateInfo.extraDistance).toFixed(2) }} x
-                        {{
-                          peakNonPeakInfo?.peak_non_peak == "NP"
-                            ? extraRateInfo.per_km_rate_non_peak
-                            : extraRateInfo.per_km_rate_peak
-                        }}</span
-                      >
-                      =
-                      <span
-                        class="text-red-darken-1 font-weight-black text-caption"
-                        >S$
-                        {{
-                          (
-                            Number(extraRateInfo.extraDistance) *
-                            (peakNonPeakInfo?.peak_non_peak == "NP"
+                        <span
+                          class="text-red-darken-1 font-weight-black text-caption"
+                          >{{ Number(extraRateInfo.extraDistance).toFixed(2) }}
+                          x
+                          {{
+                            peakNonPeakInfo?.peak_non_peak == "NP"
                               ? extraRateInfo.per_km_rate_non_peak
-                              : extraRateInfo.per_km_rate_peak)
-                          ).toFixed(2)
-                        }}</span
-                      >
+                              : extraRateInfo.per_km_rate_peak
+                          }}</span
+                        >
+                        =
+                        <span
+                          class="text-red-darken-1 font-weight-black text-caption"
+                          >S$
+                          {{
+                            (
+                              Number(extraRateInfo.extraDistance) *
+                              (peakNonPeakInfo?.peak_non_peak == "NP"
+                                ? extraRateInfo.per_km_rate_non_peak
+                                : extraRateInfo.per_km_rate_peak)
+                            ).toFixed(2)
+                          }}</span
+                        >
+                      </div>
                     </div>
-                  </div>
+                  </template>
 
                   <div class="mb-3 mt-8">
                     <div class="d-flex align-center justify-space-between mb-2">
@@ -1397,6 +1451,83 @@
                       density="compact"
                       hide-details
                     ></v-select>
+
+                    <div class="mt-4" v-if="selectedDeliveryRate">
+                      <div
+                        v-if="isLoadingTimeSlots"
+                        class="d-flex justify-center pa-4"
+                      >
+                        <v-progress-circular
+                          indeterminate
+                          color="primary"
+                        ></v-progress-circular>
+                      </div>
+                      <div v-else>
+                        <v-select
+                          v-model="selectedTimeSlotForRate"
+                          :items="timeSlotsForRate"
+                          item-title="slot_from_to"
+                          item-value="time_slot_id"
+                          placeholder="Select Time Slot"
+                          variant="outlined"
+                          density="compact"
+                          hide-details
+                        >
+                          <template v-slot:selection="{ item }">
+                            <div class="d-flex justify-space-between w-100">
+                              <span
+                                :class="
+                                  item.raw.peak_non_peak === 'P'
+                                    ? 'font-weight-bold text-black'
+                                    : 'text-black'
+                                "
+                              >
+                                {{ item.raw.slot_from_to }}
+                              </span>
+                              <span
+                                class="font-weight-bold ml-2"
+                                :class="
+                                  item.raw.peak_non_peak === 'P'
+                                    ? 'text-blue-darken-3'
+                                    : 'text-black'
+                                "
+                              >
+                                S$ {{ Number(item.raw.total1).toFixed(2) }}
+                              </span>
+                            </div>
+                          </template>
+                          <template v-slot:item="{ props, item }">
+                            <v-list-item v-bind="props">
+                              <template v-slot:title>
+                                <div
+                                  class="d-flex justify-space-between w-100 pr-2"
+                                >
+                                  <span
+                                    :class="
+                                      item.raw.peak_non_peak === 'P'
+                                        ? 'font-weight-bold text-black'
+                                        : 'text-black'
+                                    "
+                                  >
+                                    {{ item.raw.slot_from_to }}
+                                  </span>
+                                  <span
+                                    class="font-weight-bold"
+                                    :class="
+                                      item.raw.peak_non_peak === 'P'
+                                        ? 'text-blue-darken-3'
+                                        : 'text-black'
+                                    "
+                                  >
+                                    S$ {{ Number(item.raw.total1).toFixed(2) }}
+                                  </span>
+                                </div>
+                              </template>
+                            </v-list-item>
+                          </template>
+                        </v-select>
+                      </div>
+                    </div>
                   </div>
 
                   <div class="mb-3 mt-8">
@@ -2941,6 +3072,35 @@ const getDeliveryRates = async () => {
     console.error("Error fetching delivery rates:", error);
   }
 };
+
+const timeSlotsForRate = ref([]);
+const selectedTimeSlotForRate = ref(null);
+const isLoadingTimeSlots = ref(false);
+
+const getTimeSlotsForRate = async () => {
+  isLoadingTimeSlots.value = true;
+  try {
+    const response = await axios.get(
+      `/list-time-slots-by-dr-id/${selectedDeliveryRate.value}/${filteredAddress.value?.distance}`,
+      {
+        headers: { Authorization: `Bearer ${authToken}` },
+      },
+    );
+    timeSlotsForRate.value = response.data?.data || [];
+    if (timeSlotsForRate.value.length > 0 && !selectedTimeSlotForRate.value) {
+      selectedTimeSlotForRate.value = timeSlotsForRate.value[0].time_slot_id;
+    }
+  } catch (error) {
+    console.error("Error fetching time slots:", error);
+    timeSlotsForRate.value = [];
+  } finally {
+    isLoadingTimeSlots.value = false;
+  }
+};
+
+watch(selectedDeliveryRate, () => {
+  getTimeSlotsForRate();
+});
 const payLater = ref(false);
 const havePaid = ref(false);
 const confirmOrder = ref(false);
@@ -3145,23 +3305,15 @@ const filteredRestaurantDish = computed(() => {
 });
 
 const addressForm = reactive({
-  //main_address: "",
   full_address: "",
-  unit: "",
-  //postal_code: "",
-  //town: "",
-  //city: "",
-  //country: "",
-  //condo_name: "",
-  //landmark: "",
   location_name: "",
-  //latitude: "",
-  //longitude: "",
   dwelling_id: null,
-  building: "",
+  unit: "",
+  lift_lobby: "",
   country_id: 1,
   city_id: 1,
   blk_no: "",
+  building: "",
   postal_code: "",
   street_name: "",
   x_coordinate: "",
@@ -3275,6 +3427,10 @@ const isEmptyCart = computed(() => {
 
 const isSameDelivery = computed(() => {
   return localStorage.getItem("isSameDelivery");
+});
+
+const userEmail = computed(() => {
+  return store.state.userEmail || localStorage.getItem("email");
 });
 
 const selectedCountry = computed(() => {
@@ -3477,13 +3633,14 @@ const resetForm = () => {
   addressForm.unit = "";
   addressForm.building = "";
   addressForm.dwelling_id = null;
+  addressForm.lift_lobby = "";
   // addressForm.postal_code = "";
   // addressForm.town = "";
   // addressForm.city = "";
   // addressForm.country = "";
   // addressForm.condo_name = "";
   // addressForm.landmark = "";
-  addressForm.location_name = "";
+  addressForm.location_name = "---Select Location Name---";
   search.value = "";
 };
 
@@ -3820,6 +3977,20 @@ const handleEditLocation = async (address_id) => {
         // (addressForm.condo_name = formData?.condo_name || ""),
         // (addressForm.landmark = formData.landmark),
         (addressForm.location_name = formData.location_name);
+      addressForm.lift_lobby = formData.lift_lobby;
+      addressForm.dwelling_id = formData?.address_master?.dwelling_id;
+      addressForm.building = formData?.address_master?.condo_name;
+      addressForm.city_id = formData?.address_master?.city_id;
+      addressForm.country_id = formData?.address_master?.country_id;
+      addressForm.blk_no = formData?.address_master?.building_no;
+
+      addressForm.street_name = formData?.street_name;
+      addressForm.postal_code = formData?.address_master?.postal_code;
+      addressForm.x_coordinate = formData?.address_master?.x_coordinate;
+      addressForm.y_coordinate = formData?.address_master?.y_coordinate;
+      addressForm.latitude = formData?.address_master?.latitude;
+      addressForm.longitude = formData?.address_master?.longitude;
+
       addressDialog.value = true;
     })
     .catch((error) => {
@@ -4217,12 +4388,16 @@ const saveAddress = async () => {
   try {
     const payload = {
       full_address: addressForm.full_address,
-      location_name: addressForm.location_name,
+      location_name:
+        addressForm.location_name === "---Select Location Name---"
+          ? ""
+          : addressForm.location_name,
       dwelling_id: addressForm.dwelling_id,
       unit_number: addressForm.unit,
       country_id: addressForm.country_id,
       city_id: addressForm.city_id,
       building_no: addressForm.blk_no,
+      lift_lobby: addressForm.lift_lobby,
       condo_name: addressForm.building,
       postal_code: addressForm.postal_code,
       street_name: addressForm.street_name,

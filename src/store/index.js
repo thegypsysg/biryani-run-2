@@ -34,6 +34,7 @@ export default createStore({
     isCountryUpdating: false,
     isEmptyDelivery: false,
     userName: localStorage.getItem("username"),
+    userEmail: localStorage.getItem("email"),
   },
   mutations: {
     deliveryCharges(state, data) {
@@ -119,6 +120,9 @@ export default createStore({
     setUserName(state, data) {
       state.userName = data;
     },
+    setUserEmail(state, data) {
+      state.userEmail = data;
+    },
     setErrorAddCart(state, data) {
       state.errorAddCart = data;
     },
@@ -171,31 +175,33 @@ export default createStore({
       const lat = localStorage.getItem("latitude");
       const long = localStorage.getItem("longitude");
       const token = localStorage.getItem("token");
-      
+
       const config = {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       };
 
-      const req1 = axios.get(`/get-cart-items-biryani-run/7/${lat}/${long}`, config)
-        .then(res => Array.isArray(res?.data) ? res.data : [])
-        .catch(err => {
+      const req1 = axios
+        .get(`/get-cart-items-biryani-run/7/${lat}/${long}`, config)
+        .then((res) => (Array.isArray(res?.data) ? res.data : []))
+        .catch((err) => {
           console.error("Error fetching biryani items:", err);
           return [];
         });
 
-      const req2 = axios.get(`/get-cart-items-menu-rate-price/7/${lat}/${long}`, config)
-        .then(res => {
+      const req2 = axios
+        .get(`/get-cart-items-menu-rate-price/7/${lat}/${long}`, config)
+        .then((res) => {
           let categoryItems = [];
           const itemsObj = res?.data?.data || res?.data || {};
-          if (typeof itemsObj === 'object' && itemsObj !== null) {
+          if (typeof itemsObj === "object" && itemsObj !== null) {
             Object.values(itemsObj).forEach((arr) => {
               if (Array.isArray(arr)) {
                 arr.forEach((item) => {
                   categoryItems.push({
                     ...item,
-                    brp_id: item.mrp_id
+                    brp_id: item.mrp_id,
                   });
                 });
               }
@@ -203,7 +209,7 @@ export default createStore({
           }
           return categoryItems;
         })
-        .catch(err => {
+        .catch((err) => {
           console.error("Error fetching menu rate price items:", err);
           return [];
         });
