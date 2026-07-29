@@ -4287,6 +4287,20 @@ watch([selectedDummyDeliveryOption, selectedDummyDate], () => {
   updateCartDeliveryInfo();
 });
 
+watch(step, (newStep) => {
+  if (newStep === 3) {
+    selectedDummyDate.value = moment().tz("Asia/Singapore").format("ddd DD");
+    selectedDeliveryRate.value = null;
+    selectedTimeSlotForRate.value = null;
+    selectedDummyDeliveryOption.value = null;
+  }
+});
+
+watch(selectedDummyDate, () => {
+  selectedDeliveryRate.value = null;
+  selectedTimeSlotForRate.value = null;
+});
+
 const getCalculatedDeliveryPrice = (dt_id) => {
   if (!peakNonPeakInfo.value || !peakNonPeakInfo.value.delivery_tiers) {
     return "0.00";
