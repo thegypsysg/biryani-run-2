@@ -1451,86 +1451,16 @@
                       density="compact"
                       hide-details
                     ></v-select>
-
-                    <div class="mt-4" v-if="selectedDeliveryRate">
-                      <div
-                        v-if="isLoadingTimeSlots"
-                        class="d-flex justify-center pa-4"
-                      >
-                        <v-progress-circular
-                          indeterminate
-                          color="primary"
-                        ></v-progress-circular>
-                      </div>
-                      <div v-else>
-                        <v-select
-                          v-model="selectedTimeSlotForRate"
-                          :items="timeSlotsForRate"
-                          item-title="slot_from_to"
-                          item-value="time_slot_id"
-                          placeholder="Select Time Slot"
-                          variant="outlined"
-                          density="compact"
-                          hide-details
-                        >
-                          <template v-slot:selection="{ item }">
-                            <div class="d-flex justify-space-between w-100">
-                              <span
-                                :class="
-                                  item.raw.peak_non_peak === 'P'
-                                    ? 'font-weight-bold text-black'
-                                    : 'text-black'
-                                "
-                              >
-                                {{ item.raw.slot_from_to }}
-                              </span>
-                              <span
-                                class="font-weight-bold ml-2"
-                                :class="
-                                  item.raw.peak_non_peak === 'P'
-                                    ? 'text-blue-darken-3'
-                                    : 'text-black'
-                                "
-                              >
-                                S$ {{ Number(item.raw.total1).toFixed(2) }}
-                              </span>
-                            </div>
-                          </template>
-                          <template v-slot:item="{ props, item }">
-                            <v-list-item v-bind="props">
-                              <template v-slot:title>
-                                <div
-                                  class="d-flex justify-space-between w-100 pr-2"
-                                >
-                                  <span
-                                    :class="
-                                      item.raw.peak_non_peak === 'P'
-                                        ? 'font-weight-bold text-black'
-                                        : 'text-black'
-                                    "
-                                  >
-                                    {{ item.raw.slot_from_to }}
-                                  </span>
-                                  <span
-                                    class="font-weight-bold"
-                                    :class="
-                                      item.raw.peak_non_peak === 'P'
-                                        ? 'text-blue-darken-3'
-                                        : 'text-black'
-                                    "
-                                  >
-                                    S$ {{ Number(item.raw.total1).toFixed(2) }}
-                                  </span>
-                                </div>
-                              </template>
-                            </v-list-item>
-                          </template>
-                        </v-select>
-                      </div>
-                    </div>
                   </div>
 
-                  <div class="mb-3 mt-8">
+                  <div
+                    class="mb-3 mt-8"
+                    v-if="
+                      selectedDummyDate === sevenDaysList[0] ||
+                      (selectedDummyDate !== sevenDaysList[0] &&
+                        selectedDeliveryRate)
+                    "
+                  >
                     <div
                       class="d-flex justify-start ga-10 font-weight-bold text-subtitle-2 text-grey-darken-3 mb-2"
                     >
@@ -1543,129 +1473,187 @@
                     </div>
 
                     <div class="d-flex flex-column" style="gap: 8px">
-                      <div
-                        v-if="isLoadingDeliveryTiers"
-                        class="d-flex justify-center pa-4"
-                      >
-                        <v-progress-circular
-                          indeterminate
-                          color="primary"
-                        ></v-progress-circular>
-                      </div>
-                      <template v-else>
+                      <!-- FOR TODAY -->
+                      <template v-if="selectedDummyDate === sevenDaysList[0]">
                         <div
-                          v-for="tier in deliveryTiersList"
-                          :key="tier.dt_id"
-                          @click="selectedDummyDeliveryOption = tier.dt_id"
-                          class="d-flex align-center justify-space-between pa-3 rounded-lg cursor-pointer transition-all elevation-1 bg-white"
-                          :style="
-                            selectedDummyDeliveryOption === tier.dt_id
-                              ? {
-                                  border: '1.5px solid #a03022',
-                                  backgroundColor: '#fbebe9',
-                                }
-                              : {
-                                  border: '1px solid #e0e0e0',
-                                }
-                          "
+                          v-if="isLoadingDeliveryTiers"
+                          class="d-flex justify-center pa-4"
                         >
-                          <div class="d-flex align-center ga-2">
-                            <img
-                              v-if="tier.icon_image"
-                              :src="tier.icon_image"
-                              style="
-                                width: 24px;
-                                height: 24px;
-                                object-fit: contain;
-                              "
-                              class="mr-3"
-                              alt="icon"
-                            />
-                            <v-icon
-                              size="24"
-                              :color="
-                                selectedDummyDeliveryOption === tier.dt_id
-                                  ? 'red-darken-4'
-                                  : 'grey-darken-1'
-                              "
-                              v-else
-                            >
-                              {{ getDeliveryIcon(tier.delivery_tier_name) }}
-                            </v-icon>
-                            <div>
-                              <div
-                                class="font-weight-bold text-subtitle-2 text-black"
+                          <v-progress-circular
+                            indeterminate
+                            color="primary"
+                          ></v-progress-circular>
+                        </div>
+                        <template v-else>
+                          <div
+                            v-for="tier in deliveryTiersList"
+                            :key="tier.dt_id"
+                            @click="selectedDummyDeliveryOption = tier.dt_id"
+                            class="d-flex align-center justify-space-between pa-3 rounded-lg cursor-pointer transition-all elevation-1 bg-white"
+                            :style="
+                              selectedDummyDeliveryOption === tier.dt_id
+                                ? {
+                                    border: '1.5px solid #a03022',
+                                    backgroundColor: '#fbebe9',
+                                  }
+                                : {
+                                    border: '1px solid #e0e0e0',
+                                  }
+                            "
+                          >
+                            <div class="d-flex align-center ga-2">
+                              <img
+                                v-if="tier.icon_image"
+                                :src="tier.icon_image"
+                                style="
+                                  width: 24px;
+                                  height: 24px;
+                                  object-fit: contain;
+                                "
+                                class="mr-3"
+                                alt="icon"
+                              />
+                              <v-icon
+                                size="24"
+                                :color="
+                                  selectedDummyDeliveryOption === tier.dt_id
+                                    ? 'red-darken-4'
+                                    : 'grey-darken-1'
+                                "
+                                v-else
                               >
-                                {{ tier.delivery_tier_name }}
-                              </div>
-                              <div class="d-flex">
-                                <span class="text-caption text-grey-darken-1">
-                                  By {{ tier.delivery_by }}
-                                </span>
+                                {{ getDeliveryIcon(tier.delivery_tier_name) }}
+                              </v-icon>
+                              <div>
                                 <div
-                                  style="font-size: 11px"
-                                  class="text-green-darken-1"
+                                  class="font-weight-bold text-subtitle-2 text-black"
                                 >
-                                  (
-                                  <span>
-                                    S$
-                                    {{
-                                      (
-                                        parseFloat(
-                                          peakNonPeakInfo?.base_fee || 0,
-                                        ) *
-                                        parseFloat(
-                                          peakNonPeakInfo?.surge_multiplier ||
-                                            1,
-                                        )
-                                      ).toFixed(2)
-                                    }}</span
-                                  >
-                                  +
-                                  <span>
-                                    S$
-                                    {{
-                                      (
-                                        Number(extraRateInfo?.extraDistance) *
-                                        (peakNonPeakInfo?.peak_non_peak == "NP"
-                                          ? extraRateInfo?.per_km_rate_non_peak
-                                          : extraRateInfo?.per_km_rate_peak)
-                                      ).toFixed(2)
-                                    }}</span
-                                  >
-                                  +
-                                  <span>
-                                    S$ {{ getNonStackFee(tier?.dt_id) }}
+                                  {{ tier.delivery_tier_name }}
+                                </div>
+                                <div class="d-flex">
+                                  <span class="text-caption text-grey-darken-1">
+                                    By {{ tier.delivery_by }}
                                   </span>
-                                  )
+                                  <div
+                                    style="font-size: 11px"
+                                    class="text-green-darken-1"
+                                  >
+                                    (
+                                    <span>
+                                      S$
+                                      {{
+                                        (
+                                          parseFloat(
+                                            peakNonPeakInfo?.base_fee || 0,
+                                          ) *
+                                          parseFloat(
+                                            peakNonPeakInfo?.surge_multiplier ||
+                                              1,
+                                          )
+                                        ).toFixed(2)
+                                      }}</span
+                                    >
+                                    +
+                                    <span>
+                                      S$
+                                      {{
+                                        (
+                                          Number(extraRateInfo?.extraDistance) *
+                                          (peakNonPeakInfo?.peak_non_peak ==
+                                          "NP"
+                                            ? extraRateInfo?.per_km_rate_non_peak
+                                            : extraRateInfo?.per_km_rate_peak)
+                                        ).toFixed(2)
+                                      }}</span
+                                    >
+                                    +
+                                    <span>
+                                      S$ {{ getNonStackFee(tier?.dt_id) }}
+                                    </span>
+                                    )
+                                  </div>
                                 </div>
                               </div>
                             </div>
+                            <div
+                              class="font-weight-bold text-subtitle-2 text-blue-darken-3"
+                            >
+                              S$
+                              {{
+                                (
+                                  parseFloat(peakNonPeakInfo?.base_fee || 0) *
+                                    parseFloat(
+                                      peakNonPeakInfo?.surge_multiplier || 1,
+                                    ) +
+                                  Number(extraRateInfo?.extraDistance || 0) *
+                                    (peakNonPeakInfo?.peak_non_peak == "NP"
+                                      ? Number(
+                                          extraRateInfo?.per_km_rate_non_peak ||
+                                            0,
+                                        )
+                                      : Number(
+                                          extraRateInfo?.per_km_rate_peak || 0,
+                                        )) +
+                                  Number(getNonStackFee(tier?.dt_id) || 0)
+                                ).toFixed(2)
+                              }}
+                            </div>
                           </div>
-                          <div
-                            class="font-weight-bold text-subtitle-2 text-blue-darken-3"
-                          >
-                            S$
-                            {{
-                              (
-                                parseFloat(peakNonPeakInfo?.base_fee || 0) *
-                                  parseFloat(
-                                    peakNonPeakInfo?.surge_multiplier || 1,
-                                  ) +
-                                Number(extraRateInfo?.extraDistance || 0) *
-                                  (peakNonPeakInfo?.peak_non_peak == "NP"
-                                    ? Number(
-                                        extraRateInfo?.per_km_rate_non_peak ||
-                                          0,
-                                      )
-                                    : Number(
-                                        extraRateInfo?.per_km_rate_peak || 0,
-                                      )) +
-                                Number(getNonStackFee(tier?.dt_id) || 0)
-                              ).toFixed(2)
-                            }}
-                          </div>
+                        </template>
+                      </template>
+
+                      <!-- FOR DATES OTHER THAN TODAY -->
+                      <template v-else>
+                        <div
+                          v-if="isLoadingTimeSlots"
+                          class="d-flex justify-center pa-4"
+                        >
+                          <v-progress-circular
+                            indeterminate
+                            color="primary"
+                          ></v-progress-circular>
                         </div>
+                        <template v-else>
+                          <div
+                            v-for="slot in timeSlotsForRate"
+                            :key="slot.time_slot_id"
+                            @click="selectedTimeSlotForRate = slot.time_slot_id"
+                            class="d-flex align-center justify-space-between px-4 py-3 rounded cursor-pointer bg-white"
+                            :style="
+                              selectedTimeSlotForRate === slot.time_slot_id
+                                ? 'border: 1.5px solid #a03022 !important'
+                                : 'border: 1px solid #e0e0e0 !important'
+                            "
+                          >
+                            <div
+                              class="text-body-2 font-weight-medium"
+                              :class="
+                                selectedTimeSlotForRate === slot.time_slot_id
+                                  ? 'text-black'
+                                  : slot.peak_non_peak === 'P'
+                                    ? 'font-weight-bold text-black'
+                                    : 'text-black'
+                              "
+                            >
+                              {{ slot.slot_from_to }}
+                            </div>
+                            <div
+                              class="text-body-2 font-weight-bold"
+                              :class="
+                                selectedTimeSlotForRate === slot.time_slot_id
+                                  ? 'text-blue-darken-3'
+                                  : slot.peak_non_peak === 'P'
+                                    ? 'text-blue-darken-3'
+                                    : 'text-black'
+                              "
+                            >
+                              S$
+                              {{
+                                Number(slot.total_delivery_charges).toFixed(2)
+                              }}
+                            </div>
+                          </div>
+                        </template>
                       </template>
                     </div>
                   </div>
