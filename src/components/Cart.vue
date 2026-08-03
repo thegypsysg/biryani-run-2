@@ -3327,6 +3327,16 @@ const selectedDwellingName = computed(() => {
 watch(
   () => addressForm.dwelling_id,
   (newVal) => {
+    if (newVal === 1 || newVal === 2) {
+      if (!addressForm.unit) {
+        addressForm.unit = "#";
+      }
+    } else {
+      if (addressForm.unit === "#") {
+        addressForm.unit = "";
+      }
+    }
+
     const activeDwelling = dwellingTypes.value.find(
       (d) => d.dwelling_id === newVal,
     );
@@ -4395,7 +4405,7 @@ const saveAddress = async () => {
           ? ""
           : addressForm.location_name,
       dwelling_id: addressForm.dwelling_id,
-      unit_number: addressForm.unit,
+      unit_number: addressForm.unit == "#" ? "" : addressForm.unit,
       country_id: addressForm.country_id,
       city_id: addressForm.city_id,
       building_no: addressForm.blk_no,
