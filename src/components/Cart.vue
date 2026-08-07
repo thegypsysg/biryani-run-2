@@ -788,7 +788,7 @@
                                 {{ dwelling.dwelling_name }}
                               </v-btn>
 
-                              <v-menu v-if="dwellingTypes.length > 3">
+                              <v-menu v-if="dwellingTypes.length > 2">
                                 <template v-slot:activator="{ props }">
                                   <v-btn
                                     v-bind="props"
@@ -2558,7 +2558,7 @@
                     </template>
                     <v-list>
                       <v-list-item
-                        v-for="cat in categories.slice(2)"
+                        v-for="cat in categories.slice(3)"
                         :key="cat.name"
                         @click="activeCategory = cat.name"
                         :active="activeCategory === cat.name"
