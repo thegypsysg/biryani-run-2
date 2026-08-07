@@ -2535,7 +2535,7 @@
                     >
                   </v-btn>
 
-                  <v-menu v-if="categories.length > 2">
+                  <v-menu v-if="categories.length > 3">
                     <template v-slot:activator="{ props }">
                       <v-btn
                         v-bind="props"
@@ -2558,7 +2558,7 @@
                     </template>
                     <v-list>
                       <v-list-item
-                        v-for="cat in categories.slice(3)"
+                        v-for="cat in categories.slice(2)"
                         :key="cat.name"
                         @click="activeCategory = cat.name"
                         :active="activeCategory === cat.name"
