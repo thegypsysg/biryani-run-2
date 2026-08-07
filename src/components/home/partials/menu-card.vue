@@ -62,7 +62,7 @@ const truncatedDescription = computed(() => {
 });
 
 const selectedCountry = computed(() => store.state.selectedCountry);
-const errorAddCart = computed(() => store.state.errorAddCart);
+
 const token = computed(() => {
   return localStorage.getItem("token");
 });
@@ -520,26 +520,7 @@ const showInformationModal = (title, description) => {
       </div>
     </div>
   </div>
-  <v-dialog v-model="errorAddCart" max-width="400">
-    <v-card>
-      <v-card-text>
-        Cannot add other restaurants at this time , we are still working on a
-        multi-restaurant order system - Should we delete the existing restaurant
-        items ?
-      </v-card-text>
-      <v-card-actions>
-        <v-btn color="success" text @click="store.dispatch('clearCart')"
-          >Yes</v-btn
-        >
-        <v-btn
-          color="error"
-          text
-          @click="store.commit('setErrorAddCart', false)"
-          >No</v-btn
-        >
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+
   <v-dialog v-model="informationModal" width="auto">
     <v-card width="350">
       <v-card-title>{{ informationModalTitle }}</v-card-title>

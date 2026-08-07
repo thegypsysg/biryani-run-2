@@ -88,6 +88,21 @@
         </v-card-text>
       </v-card>
     </v-dialog>
+    <v-dialog v-model="errorAddCart" max-width="400">
+      <v-card>
+        <v-card-text>
+          Cannot add other restaurants at this time , we are still working on a
+          multi-restaurant order system - Should we delete the existing restaurant
+          items ?
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="success" @click="store.dispatch('clearCart')">Yes</v-btn>
+          <v-btn color="error" @click="store.commit('setErrorAddCart', false)"
+            >No</v-btn
+          >
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-app>
 </template>
 
@@ -271,6 +286,11 @@ const isNotLoggedIn = computed(() => store.state.isNotLoggedIn);
 const isCartEmptyStore = computed(() => store.state.isCartEmpty);
 const isCountryUpdatingStore = computed(() => store.state.isCountryUpdating);
 const isEmptyDeliveryStore = computed(() => store.state.isEmptyDelivery);
+
+const errorAddCart = computed({
+  get: () => store.state.errorAddCart,
+  set: (val) => store.commit('setErrorAddCart', val)
+});
 
 const closeIsLoggedIn = () => {
   isLoggedIn.value = false;

@@ -1023,13 +1023,13 @@
                       />
                     </v-col>
                     <v-col cols="3" class="d-flex align-center pa-0">
-                      <v-btn
+                      <!-- <v-btn
                         class=""
                         @click="handleEditLocation(option.value)"
                         color="lime"
                         icon="mdi-pencil-outline"
                         size="small"
-                      ></v-btn>
+                      ></v-btn> -->
                       <v-btn
                         class=""
                         @click="handleOpenDialog(option, index)"
@@ -1277,44 +1277,50 @@
                         </p>
                       </div>
 
-                      <!-- Extra Kms -->
-                      <div class="mb-3" v-if="extraRateInfo">
-                        <p class="text-grey-darken-3 font-weight-bold mb-1">
-                          Extra Kms
-                        </p>
-                        <p class="text-black">
-                          <span class="font-weight-bold text-red-darken-4">{{
-                            Number(extraRateInfo.extraDistance).toFixed(2)
-                          }}</span>
-                          kms
-                        </p>
-                      </div>
+                      <template
+                        v-if="
+                          userEmail === 'charltonmendes@gmail.com' ||
+                          userEmail === 'ajiprsty4713@gmail.com'
+                        "
+                      >
+                        <!-- Extra Kms -->
+                        <div class="mb-3" v-if="extraRateInfo">
+                          <p class="text-grey-darken-3 font-weight-bold mb-1">
+                            Extra Kms
+                          </p>
+                          <p class="text-black">
+                            <span class="font-weight-bold text-red-darken-4">{{
+                              Number(extraRateInfo.extraDistance).toFixed(2)
+                            }}</span>
+                            kms
+                          </p>
+                        </div>
 
-                      <!-- Rate Per Kms -->
-                      <div v-if="extraRateInfo">
-                        <p class="text-grey-darken-3 font-weight-bold mb-1">
-                          Rate Per Kms
-                        </p>
-                        <p>
-                          <span
-                            v-if="peakNonPeakInfo?.peak_non_peak == 'NP'"
-                            class="font-weight-bold text-red-darken-4 mr-4"
-                            >{{ extraRateInfo.per_km_rate_non_peak }}</span
-                          >
-                          <span
-                            v-else-if="peakNonPeakInfo?.peak_non_peak == 'P'"
-                            class="font-weight-bold text-red-darken-4"
-                            >{{ extraRateInfo.per_km_rate_peak }}</span
-                          >
-                        </p>
-                      </div>
+                        <!-- Rate Per Kms -->
+                        <div v-if="extraRateInfo">
+                          <p class="text-grey-darken-3 font-weight-bold mb-1">
+                            Rate Per Kms
+                          </p>
+                          <p>
+                            <span
+                              v-if="peakNonPeakInfo?.peak_non_peak == 'NP'"
+                              class="font-weight-bold text-red-darken-4 mr-4"
+                              >{{ extraRateInfo.per_km_rate_non_peak }}</span
+                            >
+                            <span
+                              v-else-if="peakNonPeakInfo?.peak_non_peak == 'P'"
+                              class="font-weight-bold text-red-darken-4"
+                              >{{ extraRateInfo.per_km_rate_peak }}</span
+                            >
+                          </p>
+                        </div>
+                      </template>
                     </div>
                   </div>
                   <template
                     v-if="
                       userEmail === 'charltonmendes@gmail.com' ||
-                      userEmail === 'ajiprsty4713@gmail.com' ||
-                      userEmail === 'paudel.mahendra@gmail.com'
+                      userEmail === 'ajiprsty4713@gmail.com'
                     "
                   >
                     <div class="w-100 d-flex justify-space-between align-end">
@@ -1537,6 +1543,11 @@
                                   <div
                                     style="font-size: 11px"
                                     class="text-green-darken-1"
+                                    v-if="
+                                      userEmail ===
+                                        'charltonmendes@gmail.com' ||
+                                      userEmail === 'ajiprsty4713@gmail.com'
+                                    "
                                   >
                                     (
                                     <span>
@@ -3783,10 +3794,17 @@ const getMenuCategories = async (restaurantId) => {
               name: categoryName,
               count: item.mrp_count,
               mcId: item.mc_id,
+              mcgId: item?.menu_category?.mcg_id,
             });
           }
         }
       });
+
+      // Sort the categories (excluding the first 'Biryani Menu' item) by mcgId ascending
+      const sortedOtherCategories = categories.value
+        .slice(1)
+        .sort((a, b) => a.mcgId - b.mcgId);
+      categories.value = [categories.value[0], ...sortedOtherCategories];
     }
   } catch (error) {
     console.error("Error fetching menu categories:", error);
@@ -4262,9 +4280,9 @@ const fetchPeakNonPeakInfo = async (restaurantId) => {
 };
 
 const updateCartDeliveryInfo = async () => {
-  const dtId = selectedTimeSlotForRate.value || selectedDummyDeliveryOption.value;
-  if (!cart.value[0]?.cart_id || !dtId)
-    return false;
+  const dtId =
+    selectedTimeSlotForRate.value || selectedDummyDeliveryOption.value;
+  if (!cart.value[0]?.cart_id || !dtId) return false;
 
   try {
     const index = sevenDaysList.value.findIndex(
@@ -4305,9 +4323,12 @@ const updateCartDeliveryInfo = async () => {
   }
 };
 
-watch([selectedDummyDeliveryOption, selectedDummyDate, selectedTimeSlotForRate], () => {
-  updateCartDeliveryInfo();
-});
+watch(
+  [selectedDummyDeliveryOption, selectedDummyDate, selectedTimeSlotForRate],
+  () => {
+    updateCartDeliveryInfo();
+  },
+);
 
 watch(step, (newStep) => {
   if (newStep === 3) {
