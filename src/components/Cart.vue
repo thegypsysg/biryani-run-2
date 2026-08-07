@@ -113,7 +113,7 @@
 
                     <!-- Action Buttons -->
                     <div class="d-flex flex-wrap align-center" style="gap: 8px">
-                      <div
+                      <!-- <div
                         class="bg-blue-lighten-5 text-blue-darken-3 rounded-pill px-3 py-1 text-caption font-weight-bold cursor-pointer"
                       >
                         Note to Kitchen
@@ -122,7 +122,7 @@
                         class="bg-blue-lighten-5 text-blue-darken-3 rounded-pill px-3 py-1 text-caption font-weight-bold cursor-pointer"
                       >
                         Note to Rider
-                      </div>
+                      </div> -->
                       <div
                         class="bg-blue-lighten-5 text-blue-darken-3 rounded-pill px-3 py-1 text-caption font-weight-bold cursor-pointer"
                         @click="isRestaurant = true"
