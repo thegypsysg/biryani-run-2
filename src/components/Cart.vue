@@ -4239,7 +4239,8 @@ const fetchPeakNonPeakInfo = async (restaurantId) => {
 };
 
 const updateCartDeliveryInfo = async () => {
-  if (!cart.value[0]?.cart_id || !selectedDummyDeliveryOption.value)
+  const dtId = selectedTimeSlotForRate.value || selectedDummyDeliveryOption.value;
+  if (!cart.value[0]?.cart_id || !dtId)
     return false;
 
   try {
@@ -4253,7 +4254,7 @@ const updateCartDeliveryInfo = async () => {
 
     const payload = {
       cart_id: cart.value[0]?.cart_id,
-      dt_id: selectedDummyDeliveryOption.value,
+      dt_id: dtId,
       total_distance: filteredAddress.value?.distance
         ? Number(filteredAddress.value.distance)
         : 0,
@@ -4281,7 +4282,7 @@ const updateCartDeliveryInfo = async () => {
   }
 };
 
-watch([selectedDummyDeliveryOption, selectedDummyDate], () => {
+watch([selectedDummyDeliveryOption, selectedDummyDate, selectedTimeSlotForRate], () => {
   updateCartDeliveryInfo();
 });
 
