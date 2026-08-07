@@ -2535,7 +2535,7 @@
                     >
                   </v-btn>
 
-                  <v-menu v-if="categories.length > 3">
+                  <v-menu v-if="categories.length > 2">
                     <template v-slot:activator="{ props }">
                       <v-btn
                         v-bind="props"
