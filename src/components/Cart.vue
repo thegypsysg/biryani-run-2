@@ -2541,19 +2541,28 @@
                         v-bind="props"
                         variant="outlined"
                         rounded="pill"
-                        class="text-none font-weight-black text-caption flex-shrink-0"
+                        class="text-none font-weight-black flex-shrink-0"
                         style="
                           border-width: 1.5px;
                           height: 38px;
                           min-width: auto;
-                          color: #000000 !important;
-                          border-color: #e0e0e0 !important;
-                          background-color: #ffffff !important;
                           letter-spacing: 0;
+                          font-size: 12px;
                         "
+                        :style="{
+                          color:
+                            selectedMoreCategoryLabel !== 'More'
+                              ? '#3F51B5 !important'
+                              : '#000000 !important',
+                          borderColor:
+                            selectedMoreCategoryLabel !== 'More'
+                              ? '#3F51B5 !important'
+                              : '#e0e0e0 !important',
+                          backgroundColor: '#ffffff !important',
+                        }"
                         append-icon="mdi-chevron-down"
                       >
-                        More
+                        {{ selectedMoreCategoryLabel }}
                       </v-btn>
                     </template>
                     <v-list>
@@ -3234,6 +3243,20 @@ const restaurantDish = ref([]);
 const activeCategory = ref("Biryani Menu");
 const categories = ref([{ name: "Biryani Menu" }]);
 const categoryDishes = ref([]);
+
+const selectedMoreCategoryLabel = computed(() => {
+  const activeCat = categories.value.find(
+    (cat) => cat.name === activeCategory.value,
+  );
+  if (!activeCat) return "More";
+  const isVisible = categories.value
+    .slice(0, 2)
+    .some((cat) => cat.name === activeCategory.value);
+  if (isVisible) return "More";
+  return activeCat.count !== undefined
+    ? `${activeCat.name} (${activeCat.count})`
+    : activeCat.name;
+});
 
 const whatsIncludedDialog = ref(false);
 const selectedPqDescription = ref("");
