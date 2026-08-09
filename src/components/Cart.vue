@@ -1569,11 +1569,17 @@
                                       S$
                                       {{
                                         (
-                                          Number(extraRateInfo?.extraDistance) *
-                                          (peakNonPeakInfo?.peak_non_peak ==
-                                          "NP"
-                                            ? extraRateInfo?.per_km_rate_non_peak
-                                            : extraRateInfo?.per_km_rate_peak)
+                                          Number(
+                                            extraRateInfo?.extraDistance || 0,
+                                          ) *
+                                          Number(
+                                            peakNonPeakInfo?.peak_non_peak ==
+                                              "NP"
+                                              ? extraRateInfo?.per_km_rate_non_peak ||
+                                                  0
+                                              : extraRateInfo?.per_km_rate_peak ||
+                                                  0,
+                                          )
                                         ).toFixed(2)
                                       }}</span
                                     >
@@ -4389,17 +4395,34 @@ const getBiryaniRunAddress = async () => {
   try {
     const restaurantId = cart.value[0]?.restaurant_id;
     if (!restaurantId) return;
-    const response = await axios.get(
-      `/get-address-biryani-run/${restaurantId}`,
-      {
-        headers: { Authorization: `Bearer ${authToken}` },
-      },
-    );
-    const data = response.data?.data;
+
+    const headers = { Authorization: `Bearer ${authToken}` };
+    let data = null;
+
+    try {
+      const drivingResponse = await axios.get(
+        `/get-address-biryani-run-driving/${restaurantId}`,
+        { headers },
+      );
+      data = drivingResponse.data?.data;
+    } catch (drivingError) {
+      // Production may not have the new route yet — keep cart usable
+      console.warn(
+        "Driving distance API unavailable, falling back to straight-line distance",
+        drivingError,
+      );
+      const fallbackResponse = await axios.get(
+        `/get-address-biryani-run/${restaurantId}`,
+        { headers },
+      );
+      data = fallbackResponse.data?.data;
+    }
+
     biryaniRunAddresses.value = Array.isArray(data) ? data : [];
     updateCartDeliveryInfo();
   } catch (error) {
     console.error("Error fetching biryani run addresses:", error);
+    biryaniRunAddresses.value = [];
   } finally {
     isLoadingBiryaniRunAddress.value = false;
   }

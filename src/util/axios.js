@@ -1,7 +1,8 @@
 import axios from "axios";
 
-// Atur base URL API
-axios.defaults.baseURL = "https://admin1.the-gypsy.sg/api";
+// Use VITE_API_URL for local (e.g. http://localhost:8000/api); fall back to production
+axios.defaults.baseURL =
+  import.meta.env.VITE_API_URL || "https://admin1.the-gypsy.sg/api";
 axios.defaults.headers.post["Accept"] = "application/json";
 axios.interceptors.response.use(
   function (response) {
