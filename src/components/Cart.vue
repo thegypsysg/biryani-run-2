@@ -3080,10 +3080,13 @@ const getDeliveryTiers = async (restaurantId) => {
 
 const getDeliveryRates = async () => {
   try {
-    const response = await axios.get("/list-delivery-rates");
+    const response = await axios.get("/list-delivery-rates", {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
     deliveryRates.value = response.data?.data || [];
   } catch (error) {
     console.error("Error fetching delivery rates:", error);
+    deliveryRates.value = [];
   }
 };
 
@@ -3092,10 +3095,15 @@ const selectedTimeSlotForRate = ref(null);
 const isLoadingTimeSlots = ref(false);
 
 const getTimeSlotsForRate = async () => {
+  if (!selectedDeliveryRate.value || !filteredAddress.value?.distance) {
+    timeSlotsForRate.value = [];
+    return;
+  }
+
   isLoadingTimeSlots.value = true;
   try {
     const response = await axios.get(
-      `/list-time-slots-by-dr-id/${selectedDeliveryRate.value}/${filteredAddress.value?.distance}`,
+      `/list-time-slots-by-dr-id/${selectedDeliveryRate.value}/${filteredAddress.value.distance}`,
       {
         headers: { Authorization: `Bearer ${authToken}` },
       },
@@ -3112,8 +3120,12 @@ const getTimeSlotsForRate = async () => {
   }
 };
 
-watch(selectedDeliveryRate, () => {
-  getTimeSlotsForRate();
+watch(selectedDeliveryRate, (rateId) => {
+  selectedTimeSlotForRate.value = null;
+  timeSlotsForRate.value = [];
+  if (rateId) {
+    getTimeSlotsForRate();
+  }
 });
 const payLater = ref(false);
 const havePaid = ref(false);
@@ -4228,6 +4240,7 @@ const nextStep = async (value) => {
     }
     getBiryaniRunAddress();
     getDeliveryTiers(cart.value[0]?.restaurant_id);
+    getDeliveryRates();
   }
   step.value = value;
 };
@@ -4286,9 +4299,11 @@ const fetchPeakNonPeakInfo = async (restaurantId) => {
 };
 
 const updateCartDeliveryInfo = async () => {
-  const dtId =
-    selectedTimeSlotForRate.value || selectedDummyDeliveryOption.value;
-  if (!cart.value[0]?.cart_id || !dtId) return false;
+  if (!cart.value[0]?.cart_id) return false;
+
+  const isToday = selectedDummyDate.value === sevenDaysList.value[0];
+  if (isToday && !selectedDummyDeliveryOption.value) return false;
+  if (!isToday && !selectedTimeSlotForRate.value) return false;
 
   try {
     const index = sevenDaysList.value.findIndex(
@@ -4301,12 +4316,18 @@ const updateCartDeliveryInfo = async () => {
 
     const payload = {
       cart_id: cart.value[0]?.cart_id,
-      dt_id: dtId,
       total_distance: filteredAddress.value?.distance
         ? Number(filteredAddress.value.distance)
         : 0,
       delivery_date: formattedDate,
     };
+
+    if (isToday) {
+      payload.dt_id = selectedDummyDeliveryOption.value;
+    } else {
+      payload.time_slot_id = selectedTimeSlotForRate.value;
+      payload.dr_id = selectedDeliveryRate.value;
+    }
 
     const response = await axios.post(
       "/update-cart-master-delivery-info",
@@ -4385,6 +4406,9 @@ watch(
     if (newAddress && newAddress.distance) {
       fetchExtraPerKmRate(newAddress.distance);
       fetchPeakNonPeakInfo(cart.value[0]?.restaurant_id);
+      if (selectedDeliveryRate.value) {
+        getTimeSlotsForRate();
+      }
     }
   },
   { immediate: true },
@@ -4419,7 +4443,11 @@ const getBiryaniRunAddress = async () => {
     }
 
     biryaniRunAddresses.value = Array.isArray(data) ? data : [];
-    updateCartDeliveryInfo();
+    if (selectedDeliveryRate.value) {
+      getTimeSlotsForRate();
+    } else {
+      updateCartDeliveryInfo();
+    }
   } catch (error) {
     console.error("Error fetching biryani run addresses:", error);
     biryaniRunAddresses.value = [];
