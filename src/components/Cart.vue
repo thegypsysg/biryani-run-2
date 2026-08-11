@@ -74,8 +74,8 @@
                     class="d-flex flex-column pa-3 my-3 bg-white rounded-lg"
                     style="border: 1px solid #e0e0e0 !important"
                   >
-                    <!-- Restaurant Info (Logo, Name, Town) -->
-                    <div class="d-flex align-center mb-3">
+                    <!-- Restaurant Info (Logo, Name, Town, Distance, Tagline, 24 Hrs) -->
+                    <div class="d-flex align-start mb-3">
                       <div class="flex-grow-0 flex-shrink-0">
                         <v-img
                           class="rounded-circle bg-white border"
@@ -95,34 +95,72 @@
                           </template>
                         </v-img>
                       </div>
-                      <div class="ml-3 pa-0" style="min-width: 0">
-                        <div
-                          class="font-weight-bold text-black text-subtitle-1 text-truncate"
-                          style="font-size: 1.1rem !important; line-height: 1.2"
-                        >
-                          {{ cart[0]?.restaurant_name || "" }}
+                      <div class="ml-3 pa-0 flex-grow-1" style="min-width: 0">
+                        <div class="d-flex align-start justify-space-between">
+                          <div
+                            class="font-weight-bold text-black text-subtitle-1 text-truncate pr-2"
+                            style="font-size: 1.1rem !important; line-height: 1.2"
+                          >
+                            {{ cart[0]?.restaurant_name || "" }}
+                          </div>
+                          <div
+                            v-if="isRestaurant24Hrs"
+                            class="font-weight-bold text-red flex-shrink-0"
+                            style="font-size: 0.85rem; line-height: 1.2"
+                          >
+                            24 Hrs
+                          </div>
                         </div>
                         <div
-                          class="text-grey font-weight-medium text-subtitle-2 mt-1"
-                          style="line-height: 1.2"
+                          class="text-grey font-weight-medium text-subtitle-2 mt-1 d-flex align-center"
+                          style="line-height: 1.2; gap: 6px"
                         >
-                          {{ cart[0]?.town_name || "" }}
+                          <span class="flex-grow-1" style="min-width: 0">{{
+                            cart[0]?.town_name || ""
+                          }}</span>
+                          <span
+                            v-if="cart[0]?.distance"
+                            class="flex-shrink-0 text-center"
+                            style="font-size: 0.75rem; line-height: 1.2"
+                          >
+                            <span class="text-red font-weight-bold">{{
+                              cart[0].distance
+                            }}</span>
+                            <span class="text-grey"> kms away</span>
+                          </span>
+                          <span class="flex-grow-1"></span>
+                        </div>
+                        <div
+                          v-if="cart[0]?.tag_line || cart[0]?.since"
+                          class="mt-3"
+                          style="font-size: 0.72rem; line-height: 1.25"
+                        >
+                          <span
+                            v-if="cart[0]?.tag_line"
+                            class="font-weight-medium"
+                            style="color: #2e7d32"
+                            >{{ cart[0].tag_line }}</span
+                          >
+                          <span
+                            v-if="cart[0]?.tag_line && cart[0]?.since"
+                            class="text-black"
+                          >
+                            |
+                          </span>
+                          <span v-if="cart[0]?.since" class="text-black">
+                            Since
+                            <span
+                              class="font-weight-bold"
+                              style="color: #7b1fa2"
+                              >{{ cart[0].since }}</span
+                            >
+                          </span>
                         </div>
                       </div>
                     </div>
 
                     <!-- Action Buttons -->
                     <div class="d-flex flex-wrap align-center" style="gap: 8px">
-                      <!-- <div
-                        class="bg-blue-lighten-5 text-blue-darken-3 rounded-pill px-3 py-1 text-caption font-weight-bold cursor-pointer"
-                      >
-                        Note to Kitchen
-                      </div>
-                      <div
-                        class="bg-blue-lighten-5 text-blue-darken-3 rounded-pill px-3 py-1 text-caption font-weight-bold cursor-pointer"
-                      >
-                        Note to Rider
-                      </div> -->
                       <div
                         class="bg-blue-lighten-5 text-blue-darken-3 rounded-pill px-3 py-1 text-caption font-weight-bold cursor-pointer"
                         @click="isRestaurant = true"
@@ -130,11 +168,53 @@
                         Restaurant Menu
                       </div>
                       <div
-                        class="bg-red-lighten-5 text-red-darken-3 rounded-pill px-3 py-1 text-caption font-weight-bold cursor-pointer"
+                        class="bg-red-lighten-5 text-black rounded-pill px-3 py-1 text-caption font-weight-bold cursor-pointer"
                         @click="handleClearCart"
                       >
-                        Clear Items
+                        Clear Cart
                       </div>
+                    </div>
+
+                    <!-- Promotion (max 2 lines + more) -->
+                    <div
+                      v-if="restaurantPromoMessage"
+                      class="mt-3"
+                      style="position: relative"
+                    >
+                      <div
+                        ref="promoMessageRef"
+                        class="text-caption font-weight-medium"
+                        :class="{ 'promo-message-clamped': !promoExpanded }"
+                        :style="{
+                          color: '#0288d1',
+                          whiteSpace: 'pre-line',
+                          paddingRight:
+                            showPromoMore && !promoExpanded ? '40px' : '0',
+                        }"
+                      >
+                        {{ restaurantPromoMessage }}
+                      </div>
+                      <span
+                        v-if="showPromoMore && !promoExpanded"
+                        class="text-red font-weight-bold text-caption cursor-pointer"
+                        style="
+                          position: absolute;
+                          right: 0;
+                          bottom: 0;
+                          background: #fff;
+                          padding-left: 4px;
+                        "
+                        @click="promoExpanded = true"
+                      >
+                        more
+                      </span>
+                      <span
+                        v-if="promoExpanded && showPromoMore"
+                        class="text-red font-weight-bold text-caption cursor-pointer d-inline-block mt-1"
+                        @click="promoExpanded = false"
+                      >
+                        less
+                      </span>
                     </div>
                   </div>
 
@@ -1474,7 +1554,7 @@
                       <p
                         class="text-red-darken-4 text-caption font-weight-bold"
                       >
-                        {{ currentHour }}
+                        {{ restaurantTimeLeftLabel || currentHour }}
                       </p>
                     </div>
 
@@ -2461,56 +2541,148 @@
         <template v-else>
           <div class="cart-items flex-grow-1 overflow-y-auto">
             <v-row no-gutters>
-              <v-col cols="12" class="d-flex align-center px-3 py-1">
-                <div class="flex-grow-0 flex-shrink-0">
-                  <v-img
-                    class="rounded bg-white"
-                    :src="fileURL + cart[0].restaurant_logo"
-                    width="80"
-                    height="60"
-                    cover
-                  >
-                    <template v-slot:placeholder>
-                      <div
-                        class="d-flex align-center justify-center fill-height"
+              <v-col cols="12" class="px-3 py-2">
+                <div
+                  class="d-flex flex-column pa-3 bg-white rounded-lg"
+                  style="border: 1px solid #e0e0e0 !important"
+                >
+                  <div class="d-flex align-start">
+                    <div class="flex-grow-0 flex-shrink-0">
+                      <v-img
+                        class="rounded-circle bg-white border"
+                        :src="fileURL + cart[0]?.restaurant_logo"
+                        width="60"
+                        height="60"
                       >
-                        <v-progress-circular
-                          color="grey-lighten-4"
-                          indeterminate
-                        ></v-progress-circular>
+                        <template v-slot:placeholder>
+                          <div
+                            class="d-flex align-center justify-center fill-height"
+                          >
+                            <v-progress-circular
+                              color="grey-lighten-4"
+                              indeterminate
+                            ></v-progress-circular>
+                          </div>
+                        </template>
+                      </v-img>
+                    </div>
+                    <div class="ml-3 pa-0 flex-grow-1" style="min-width: 0">
+                      <!-- Row 1: Name + Open Now -->
+                      <div class="d-flex align-start justify-space-between">
+                        <div
+                          class="font-weight-bold text-black text-subtitle-1 text-truncate pr-2"
+                          style="
+                            font-size: 1.1rem !important;
+                            line-height: 1.2;
+                          "
+                        >
+                          {{ cart[0]?.restaurant_name || "" }}
+                        </div>
+                        <div
+                          v-if="isRestaurant24Hrs"
+                          class="font-weight-bold text-red flex-shrink-0"
+                          style="font-size: 0.85rem; line-height: 1.2"
+                        >
+                          24 Hrs
+                        </div>
+                        <div
+                          v-else-if="restaurantOpenStatus === 'open'"
+                          class="font-weight-bold flex-shrink-0 text-end"
+                          style="
+                            font-size: 0.85rem;
+                            line-height: 1.2;
+                            color: #2e7d32;
+                          "
+                        >
+                          Open Now
+                        </div>
+                        <div
+                          v-else-if="restaurantOpenStatus === 'closed'"
+                          class="font-weight-bold text-red flex-shrink-0"
+                          style="font-size: 0.85rem; line-height: 1.2"
+                        >
+                          Closed Now
+                        </div>
                       </div>
-                    </template>
-                  </v-img>
-                </div>
-                <div class="flex-grow-1 flex-shrink-0 ml-1 pa-2">
-                  <div class="d-flex align-center justify-space-between">
-                    <div>
+
+                      <!-- Row 2: Town + distance (left) | Accepting (right) -->
                       <div
-                        :class="{
-                          'font-weight-bold text-blue-darken-2 text-no-wrap text-body-2': true,
-                        }"
+                        class="mt-1 d-flex align-start justify-space-between"
+                        style="gap: 8px"
                       >
-                        {{
-                          cart[0]?.restaurant_name
-                            ? cart[0]?.restaurant_name
-                            : ""
-                        }}
+                        <div
+                          class="text-grey font-weight-medium d-flex align-center"
+                          style="
+                            font-size: 0.9rem;
+                            line-height: 1.25;
+                            min-width: 0;
+                            gap: 6px;
+                          "
+                        >
+                          <span class="text-truncate">{{
+                            cart[0]?.town_name || ""
+                          }}</span>
+                          <span
+                            v-if="cart[0]?.distance"
+                            class="flex-shrink-0"
+                            style="font-size: 0.75rem; line-height: 1.2"
+                          >
+                            <span class="text-red font-weight-bold">{{
+                              cart[0].distance
+                            }}</span>
+                            <span class="text-grey"> kms away</span>
+                          </span>
+                        </div>
+                        <div
+                          v-if="acceptingOrdersLabel"
+                          class="font-weight-bold flex-shrink-0 text-end"
+                          :style="{
+                            fontSize: '0.72rem',
+                            lineHeight: '1.2',
+                            color: acceptingOrdersLabel.color,
+                            maxWidth: '42%',
+                          }"
+                        >
+                          {{ acceptingOrdersLabel.text }}
+                        </div>
                       </div>
-                      <div class="text-grey font-weight-bold text-caption">
-                        {{ cart[0]?.town_name ? cart[0]?.town_name : "" }}
+
+                      <!-- Row 3: Tagline | Since -->
+                      <div
+                        v-if="cart[0]?.tag_line || cart[0]?.since"
+                        class="mt-2 font-weight-bold"
+                        style="font-size: 0.72rem; line-height: 1.25"
+                      >
+                        <span
+                          v-if="cart[0]?.tag_line"
+                          style="color: #2e7d32"
+                          >{{ cart[0].tag_line }}</span
+                        ><span
+                          v-if="cart[0]?.tag_line && cart[0]?.since"
+                          class="text-black"
+                        >
+                          | </span
+                        ><span v-if="cart[0]?.since" class="text-black"
+                          >Since
+                          <span style="color: #7b1fa2">{{
+                            cart[0].since
+                          }}</span></span
+                        >
                       </div>
-                      <div class="text-start text-caption font-weight-bold">
-                        <span class="text-red">
-                          {{ cart[0]?.distance ? cart[0]?.distance : "" }}
-                        </span>
-                        kms away
+
+                      <!-- Row 4: Hours -->
+                      <div
+                        v-if="restaurantOperatingHoursLabel"
+                        class="mt-2 font-weight-bold"
+                        style="
+                          color: #1976d2;
+                          font-size: 0.82rem;
+                          line-height: 1.3;
+                        "
+                      >
+                        {{ restaurantOperatingHoursLabel }}
                       </div>
                     </div>
-                    <!-- <div
-                      class="font-weight-bold text-blue-darken-2 text-caption cursor-pointer"
-                    >
-                      Add More Items
-                    </div> -->
                   </div>
                 </div>
               </v-col>
@@ -2598,6 +2770,43 @@
                       </v-list-item>
                     </v-list>
                   </v-menu>
+                </div>
+              </v-col>
+              <v-col cols="12" class="px-3 pb-2">
+                <form
+                  class="navbar__search cart-menu-dish-search"
+                  @submit.prevent
+                >
+                  <input
+                    v-model="menuDishSearch"
+                    type="text"
+                    placeholder="Type a Dish Name"
+                    aria-label="Search dishes"
+                  />
+                  <button
+                    v-if="menuDishSearch"
+                    type="button"
+                    class="cart-menu-dish-clear"
+                    aria-label="Clear search"
+                    @click="menuDishSearch = ''"
+                  >
+                    <v-icon size="14" color="white">mdi-close</v-icon>
+                  </button>
+                  <button class="btn btn--search" type="submit">
+                    <v-icon color="white" size="20">mdi-magnify</v-icon>
+                  </button>
+                </form>
+                <div
+                  class="mt-2 text-caption font-weight-bold d-flex align-center flex-wrap"
+                  style="line-height: 1.3"
+                >
+                  <span class="text-black">Add more Dishes and press --- &gt;</span>
+                  <span
+                    class="text-blue cursor-pointer ml-1"
+                    @click="isRestaurant = false"
+                  >
+                    Return to Cart
+                  </span>
                 </div>
               </v-col>
               <v-col
@@ -3272,6 +3481,7 @@ const restaurantDish = ref([]);
 const activeCategory = ref("Biryani Menu");
 const categories = ref([{ name: "Biryani Menu" }]);
 const categoryDishes = ref([]);
+const menuDishSearch = ref("");
 
 const selectedMoreCategoryLabel = computed(() => {
   const activeCat = categories.value.find(
@@ -3315,6 +3525,7 @@ const getCategoryItems = async (restaurantId, mcId) => {
 };
 
 watch(activeCategory, (newCategory) => {
+  menuDishSearch.value = "";
   if (newCategory !== "Biryani Menu") {
     const category = categories.value.find((c) => c.name === newCategory);
     if (category && category.mcId) {
@@ -3333,6 +3544,15 @@ const filteredRestaurantDish = computed(() => {
     });
   } else {
     result = categoryDishes.value;
+  }
+
+  const query = menuDishSearch.value.trim().toLowerCase();
+  if (query) {
+    result = result.filter((dish) => {
+      const dishName = (dish.dish_name || "").toLowerCase();
+      const actualName = (dish.actual_dish_name || "").toLowerCase();
+      return dishName.includes(query) || actualName.includes(query);
+    });
   }
 
   return [...result].sort((a, b) => {
@@ -3565,6 +3785,151 @@ const cart = computed(() => {
   return store.state.cart;
 });
 
+const isRestaurant24Hrs = computed(() => {
+  const value = cart.value?.[0]?.["24_hrs"];
+  return value === "Y" || value === "y" || value === 1 || value === true;
+});
+
+const restaurantOpenStatus = computed(() => {
+  if (isRestaurant24Hrs.value) return "open"; // 24 Hrs counts as open
+  const value = cart.value?.[0]?.is_open_now;
+  if (value === true || value === 1 || value === "1") return "open";
+  if (value === false || value === 0 || value === "0") return "closed";
+  return null;
+});
+
+const nowTick = ref(Date.now());
+
+const restaurantTimeLeftLabel = computed(() => {
+  nowTick.value; // reactive refresh with system clock (every second)
+  if (isRestaurant24Hrs.value) return "";
+  if (restaurantOpenStatus.value !== "open") {
+    return "";
+  }
+
+  const opening = cart.value?.[0]?.opening_time;
+  const lastOrder =
+    cart.value?.[0]?.last_order_time || cart.value?.[0]?.closing_time;
+  if (!lastOrder) {
+    return cart.value?.[0]?.time_left?.countdown || "";
+  }
+
+  const now = moment().tz("Asia/Singapore");
+  const current = now.format("HH:mm:ss");
+  let deadline = moment.tz(
+    `${now.format("YYYY-MM-DD")} ${lastOrder}`,
+    "YYYY-MM-DD HH:mm:ss",
+    "Asia/Singapore",
+  );
+
+  // Overnight: last order is next day when current is after opening
+  if (opening && opening > lastOrder && current >= opening) {
+    deadline = deadline.add(1, "day");
+  }
+
+  let secondsLeft = deadline.diff(now, "seconds");
+  if (secondsLeft < 0) secondsLeft = 0;
+
+  const hours = Math.floor(secondsLeft / 3600);
+  const mins = Math.floor((secondsLeft % 3600) / 60);
+  const secs = secondsLeft % 60;
+
+  return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+});
+
+const acceptingCurrentPreOrders = computed(() => {
+  const value = cart.value?.[0]?.accepting_current_pre_orders;
+  return value === true || value === "Y" || value === 1 || value === "1";
+});
+
+const acceptingOrdersLabel = computed(() => {
+  if (!acceptingCurrentPreOrders.value) return null;
+  if (restaurantOpenStatus.value === "closed") {
+    return {
+      color: "#2e7d32",
+      text: "Accepting Pre-Orders",
+    };
+  }
+  // Open (or 24 Hrs): single line
+  return {
+    color: "#d32f2f",
+    text: "Accepting Current & Pre-Orders",
+  };
+});
+
+const restaurantPromoMessage = computed(() => {
+  const message = cart.value?.[0]?.promo_message;
+  return message ? String(message).trim() : "";
+});
+
+const formatRestaurantTime = (timeValue) => {
+  if (!timeValue) return "";
+  const parsed = moment(timeValue, ["HH:mm:ss", "HH:mm"], true);
+  if (!parsed.isValid()) return "";
+  // Match mock: "10 : 30 am"
+  return parsed.format("h : mm a");
+};
+
+const restaurantOperatingHoursLabel = computed(() => {
+  if (isRestaurant24Hrs.value) {
+    const closedOn = cart.value?.[0]?.closed_on;
+    return closedOn ? `24 Hours | ${closedOn} Closed` : "24 Hours";
+  }
+
+  const opening = formatRestaurantTime(cart.value?.[0]?.opening_time);
+  const closing = formatRestaurantTime(cart.value?.[0]?.closing_time);
+  if (!opening || !closing) return "";
+
+  const closedOn = cart.value?.[0]?.closed_on;
+  let label = `${opening} to ${closing}`;
+  if (closedOn) {
+    label += ` | ${closedOn} Closed`;
+  }
+  return label;
+});
+
+const promoExpanded = ref(false);
+const menuPromoExpanded = ref(false);
+const promoMessageRef = ref(null);
+const showPromoMore = ref(false);
+
+const checkPromoOverflow = async () => {
+  await nextTick();
+  const el = promoMessageRef.value;
+  if (!el || !restaurantPromoMessage.value) {
+    showPromoMore.value = false;
+    return;
+  }
+  // Temporarily clamp to measure overflow against 2 lines
+  const wasExpanded = promoExpanded.value;
+  if (wasExpanded) {
+    el.classList.add("promo-message-clamped");
+  }
+  showPromoMore.value = el.scrollHeight > el.clientHeight + 1;
+  if (wasExpanded) {
+    el.classList.remove("promo-message-clamped");
+  }
+};
+
+watch(
+  () => restaurantPromoMessage.value,
+  () => {
+    promoExpanded.value = false;
+    menuPromoExpanded.value = false;
+    checkPromoOverflow();
+  },
+  { immediate: true },
+);
+
+watch(
+  () => props.viewCart,
+  (open) => {
+    if (open) {
+      checkPromoOverflow();
+    }
+  },
+);
+
 const flatGroupedCart = computed(() => {
   const result = [];
   const biryaniItems = [];
@@ -3578,9 +3943,21 @@ const flatGroupedCart = computed(() => {
       biryaniItems.push(item);
     } else {
       if (!categoryGroups[category]) {
-        categoryGroups[category] = [];
+        categoryGroups[category] = {
+          mcgId:
+            item.mcg_id != null && item.mcg_id !== ""
+              ? Number(item.mcg_id)
+              : Number.MAX_SAFE_INTEGER,
+          items: [],
+        };
       }
-      categoryGroups[category].push(item);
+      categoryGroups[category].items.push(item);
+      if (item.mcg_id != null && item.mcg_id !== "") {
+        categoryGroups[category].mcgId = Math.min(
+          categoryGroups[category].mcgId,
+          Number(item.mcg_id),
+        );
+      }
     }
   });
 
@@ -3593,21 +3970,23 @@ const flatGroupedCart = computed(() => {
     });
   });
 
-  // 2. Add other categories with headers
-  Object.keys(categoryGroups).forEach((category) => {
-    result.push({
-      isHeader: true,
-      category: category,
-      key: `header-${category}`,
-    });
-    categoryGroups[category].forEach((item) => {
+  // 2. Add other categories with headers, sorted by mcg_id ascending
+  Object.entries(categoryGroups)
+    .sort(([, a], [, b]) => a.mcgId - b.mcgId)
+    .forEach(([category, group]) => {
       result.push({
-        isHeader: false,
-        product: item,
-        key: `item-${item.cart_id || item.mrp_id || item.dish_id}-${item.brp_id || ""}-${item.brp_id_2 || ""}`,
+        isHeader: true,
+        category: category,
+        key: `header-${category}`,
+      });
+      group.items.forEach((item) => {
+        result.push({
+          isHeader: false,
+          product: item,
+          key: `item-${item.cart_id || item.mrp_id || item.dish_id}-${item.brp_id || ""}-${item.brp_id_2 || ""}`,
+        });
       });
     });
-  });
 
   return result;
 });
@@ -3821,7 +4200,17 @@ const getMenuCategories = async (restaurantId) => {
       // Sort the categories (excluding the first 'Biryani Menu' item) by mcgId ascending
       const sortedOtherCategories = categories.value
         .slice(1)
-        .sort((a, b) => a.mcgId - b.mcgId);
+        .sort((a, b) => {
+          const aId =
+            a.mcgId != null && a.mcgId !== ""
+              ? Number(a.mcgId)
+              : Number.MAX_SAFE_INTEGER;
+          const bId =
+            b.mcgId != null && b.mcgId !== ""
+              ? Number(b.mcgId)
+              : Number.MAX_SAFE_INTEGER;
+          return aId - bId;
+        });
       categories.value = [categories.value[0], ...sortedOtherCategories];
     }
   } catch (error) {
@@ -4887,6 +5276,7 @@ const updateTime = () => {
 
   currentTime.value = `${day} (Today) | ${date} | ${time}`;
   currentHour.value = time;
+  nowTick.value = Date.now();
 };
 
 onMounted(() => {
@@ -5001,5 +5391,50 @@ onMounted(() => {
 .hide-scrollbar {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
+}
+
+.promo-message-clamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cart-menu-dish-search {
+  height: 40px !important;
+  margin: 0 !important;
+}
+
+.cart-menu-dish-search input {
+  height: 40px !important;
+  min-width: 0 !important;
+  padding-right: 78px !important;
+  color: #00aeef !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+}
+
+.cart-menu-dish-search input::placeholder {
+  color: #9e9e9e !important;
+  font-weight: 500 !important;
+}
+
+.cart-menu-dish-clear {
+  position: absolute;
+  right: 48px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 50%;
+  background: #757575;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  z-index: 2;
 }
 </style>
