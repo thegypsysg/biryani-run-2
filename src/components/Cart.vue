@@ -3523,7 +3523,6 @@ const mapMenuCategoryItem = (item) => ({
   ...item,
   dish_image: item.main_image,
   pq_description: item.whats_included,
-  brp_id: item.mrp_id,
 });
 
 const getCategoryItems = async (restaurantId, mcId) => {
@@ -3604,8 +3603,16 @@ const dishMatchesSearch = (dish, query) => {
 
 const sortDishesByCart = (list) =>
   [...list].sort((a, b) => {
-    const inCartA = cart.value.some((item) => item.brp_id === a.brp_id);
-    const inCartB = cart.value.some((item) => item.brp_id === b.brp_id);
+    const inCartA = cart.value.some((item) =>
+      a?.mrp_id
+        ? item.mrp_id === a.mrp_id
+        : item.brp_id === a.brp_id && !item.mrp_id,
+    );
+    const inCartB = cart.value.some((item) =>
+      b?.mrp_id
+        ? item.mrp_id === b.mrp_id
+        : item.brp_id === b.brp_id && !item.mrp_id,
+    );
     if (inCartA && !inCartB) return -1;
     if (!inCartA && inCartB) return 1;
     return 0;
@@ -4134,11 +4141,18 @@ const flatGroupedCart = computed(() => {
 });
 
 const isInCart2 = (product) => {
-  return cart.value.some((item) => item.brp_id === product.brp_id);
+  return cart.value.some((item) => {
+    if (product?.mrp_id) {
+      return item.mrp_id === product.mrp_id;
+    }
+    return item.brp_id === product.brp_id && !item.mrp_id;
+  });
 };
 
 const addToCartData = (data) => {
-  if (activeCategory.value !== "Biryani Menu") {
+  // Route by item type (not active tab). Search mixes biryani + menu
+  // categories; mrp_id items must hit add-to-cart-menu-rate-price.
+  if (data?.mrp_id) {
     addToCartMenuRatePrice(data);
   } else {
     addToCart(data);
