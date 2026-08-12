@@ -107,19 +107,32 @@ export function useCart() {
   };
 
   const addToCart = (product, brpId2 = null) => {
+    // Menu-rate items must never hit /add-to-cart-biryani-run.
+    // Cart maps mrp_id onto brp_id for UI reuse, which fails exists:biryani_run_prices.
+    if (product?.mrp_id) {
+      return addToCartMenuRatePrice(product);
+    }
+
     console.log(product);
     getPlatformFee();
     getTaxAmount();
+
+    const brpId = product?.biryaniRunPrice?.brp_id
+      ? product.biryaniRunPrice?.brp_id
+      : product?.brp_id
+        ? product.brp_id
+        : null;
+
+    if (!brpId) {
+      console.error("Cannot add to cart: missing brp_id", product);
+      return;
+    }
 
     const cartMasterData = {
       app_id: 7,
       country_id: selectedCountry.value ? selectedCountry.value.country_id : 1,
       city_id: selectedCountry.value ? selectedCountry.value.city_id : 1,
-      brp_id: product?.biryaniRunPrice?.brp_id
-        ? product.biryaniRunPrice?.brp_id
-        : product?.brp_id
-          ? product.brp_id
-          : null,
+      brp_id: brpId,
       qty: 1,
     };
 
@@ -127,9 +140,6 @@ export function useCart() {
       cartMasterData.brp_id_2 = brpId2;
     }
 
-    // console.log(selectedCountry.value);
-
-    // console.log({ cartMasterData });
     store.dispatch("addToCart", cartMasterData);
   };
 

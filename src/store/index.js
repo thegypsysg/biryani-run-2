@@ -201,7 +201,8 @@ export default createStore({
                 arr.forEach((item) => {
                   categoryItems.push({
                     ...item,
-                    brp_id: item.mrp_id,
+                    // Keep mrp_id as the identity. Do not alias as brp_id —
+                    // that causes /add-to-cart-biryani-run validation failures.
                   });
                 });
               }
@@ -216,7 +217,19 @@ export default createStore({
 
       await Promise.all([req1, req2])
         .then(([biryaniItems, categoryItems]) => {
-          const mergedCart = [...biryaniItems, ...categoryItems];
+          const mergedCart = [...biryaniItems, ...categoryItems].sort(
+            (a, b) => {
+              const aId =
+                a.mcg_id != null && a.mcg_id !== ""
+                  ? Number(a.mcg_id)
+                  : Number.MAX_SAFE_INTEGER;
+              const bId =
+                b.mcg_id != null && b.mcg_id !== ""
+                  ? Number(b.mcg_id)
+                  : Number.MAX_SAFE_INTEGER;
+              return aId - bId;
+            },
+          );
           if (mergedCart.length > 0) {
             commit("isEmptyCart", false);
           }
