@@ -2814,10 +2814,22 @@
               >
                 <div class="">
                   <template
-                    v-for="(product, index) in filteredRestaurantDish"
-                    :key="index"
+                    v-for="{ isHeader, category, product, key } in menuDisplayRows"
+                    :key="key"
                   >
                     <div
+                      v-if="isHeader"
+                      class="font-weight-bold mt-3 mb-1 px-3"
+                      style="
+                        color: #8b0000;
+                        font-size: 1.15rem;
+                        line-height: 1.2;
+                      "
+                    >
+                      {{ category }}
+                    </div>
+                    <div
+                      v-else
                       class="w-100 d-flex align-center justify-space-between px-3 py-1 ga-4"
                     >
                       <div class="d-flex align-center" style="width: 90%">
@@ -3482,6 +3494,8 @@ const activeCategory = ref("Biryani Menu");
 const categories = ref([{ name: "Biryani Menu" }]);
 const categoryDishes = ref([]);
 const menuDishSearch = ref("");
+const allCategoryDishesCache = ref({}); // mcId -> dishes[]
+const menuItemsLoadTick = ref(0);
 
 const selectedMoreCategoryLabel = computed(() => {
   const activeCat = categories.value.find(
@@ -3505,6 +3519,13 @@ const openWhatsIncluded = (description) => {
   whatsIncludedDialog.value = true;
 };
 
+const mapMenuCategoryItem = (item) => ({
+  ...item,
+  dish_image: item.main_image,
+  pq_description: item.whats_included,
+  brp_id: item.mrp_id,
+});
+
 const getCategoryItems = async (restaurantId, mcId) => {
   try {
     const response = await axios.get(
@@ -3513,15 +3534,49 @@ const getCategoryItems = async (restaurantId, mcId) => {
         headers: { Authorization: `Bearer ${authToken}` },
       },
     );
-    categoryDishes.value = response.data.data.map((item) => ({
-      ...item,
-      dish_image: item.main_image,
-      pq_description: item.whats_included,
-      brp_id: item.mrp_id,
-    }));
+    const mapped = (response.data.data || []).map(mapMenuCategoryItem);
+    categoryDishes.value = mapped;
+    allCategoryDishesCache.value = {
+      ...allCategoryDishesCache.value,
+      [mcId]: mapped,
+    };
+    menuItemsLoadTick.value += 1;
   } catch (error) {
     console.error("Error fetching category items:", error);
   }
+};
+
+const ensureAllMenuItemsLoaded = async () => {
+  const restaurantId = cart.value[0]?.restaurant_id;
+  if (!restaurantId) return;
+
+  const missing = categories.value.filter(
+    (cat) => cat.mcId && !allCategoryDishesCache.value[cat.mcId],
+  );
+  if (!missing.length) return;
+
+  await Promise.all(
+    missing.map(async (cat) => {
+      try {
+        const response = await axios.get(
+          `/list-menu-rate-prices-items-to-add/${restaurantId}/${cat.mcId}`,
+          {
+            headers: { Authorization: `Bearer ${authToken}` },
+          },
+        );
+        allCategoryDishesCache.value = {
+          ...allCategoryDishesCache.value,
+          [cat.mcId]: (response.data.data || []).map(mapMenuCategoryItem),
+        };
+      } catch (error) {
+        console.error(
+          `Error fetching items for category ${cat.name}:`,
+          error,
+        );
+      }
+    }),
+  );
+  menuItemsLoadTick.value += 1;
 };
 
 watch(activeCategory, (newCategory) => {
@@ -3534,35 +3589,122 @@ watch(activeCategory, (newCategory) => {
   }
 });
 
-const filteredRestaurantDish = computed(() => {
-  let result = [];
-  if (activeCategory.value === "Biryani Menu") {
-    if (!restaurantDish.value) return [];
-    result = restaurantDish.value.filter((dish) => {
-      const name = (dish.dish_name || "").toLowerCase();
-      return name.includes("biryani");
-    });
-  } else {
-    result = categoryDishes.value;
+watch(menuDishSearch, (query) => {
+  if (query && query.trim()) {
+    ensureAllMenuItemsLoaded();
   }
+});
 
-  const query = menuDishSearch.value.trim().toLowerCase();
-  if (query) {
-    result = result.filter((dish) => {
-      const dishName = (dish.dish_name || "").toLowerCase();
-      const actualName = (dish.actual_dish_name || "").toLowerCase();
-      return dishName.includes(query) || actualName.includes(query);
-    });
-  }
+const dishMatchesSearch = (dish, query) => {
+  if (!query) return true;
+  const dishName = (dish.dish_name || "").toLowerCase();
+  const actualName = (dish.actual_dish_name || "").toLowerCase();
+  return dishName.includes(query) || actualName.includes(query);
+};
 
-  return [...result].sort((a, b) => {
+const sortDishesByCart = (list) =>
+  [...list].sort((a, b) => {
     const inCartA = cart.value.some((item) => item.brp_id === a.brp_id);
     const inCartB = cart.value.some((item) => item.brp_id === b.brp_id);
     if (inCartA && !inCartB) return -1;
     if (!inCartA && inCartB) return 1;
     return 0;
   });
+
+const getBiryaniMenuDishes = () => {
+  if (!restaurantDish.value) return [];
+  return restaurantDish.value.filter((dish) => {
+    const name = (dish.dish_name || "").toLowerCase();
+    return name.includes("biryani");
+  });
+};
+
+const formatMenuCategoryLabel = (name) => {
+  if (!name) return "";
+  return String(name)
+    .replace(/\s*Menu\s*$/i, "")
+    .trim();
+};
+
+// Browse = selected category only; Search = all menu categories with headers
+const menuDisplayRows = computed(() => {
+  menuItemsLoadTick.value; // depend on cache loads
+  const query = menuDishSearch.value.trim().toLowerCase();
+  const rows = [];
+
+  if (query) {
+    const biryaniMatches = sortDishesByCart(
+      getBiryaniMenuDishes().filter((dish) => dishMatchesSearch(dish, query)),
+    );
+    if (biryaniMatches.length) {
+      rows.push({
+        isHeader: true,
+        category: "Biryani",
+        product: null,
+        key: "header-Biryani",
+      });
+      biryaniMatches.forEach((product, index) => {
+        rows.push({
+          isHeader: false,
+          category: "Biryani",
+          product,
+          key: `Biryani-${product.brp_id || product.mrp_id || index}`,
+        });
+      });
+    }
+
+    categories.value.forEach((cat) => {
+      if (!cat.mcId) return;
+      const label = formatMenuCategoryLabel(cat.name) || cat.name;
+      // Avoid duplicate Biryani section if a menu category is also named Biryani
+      if (label.toLowerCase() === "biryani") return;
+
+      const matches = sortDishesByCart(
+        (allCategoryDishesCache.value[cat.mcId] || []).filter((dish) =>
+          dishMatchesSearch(dish, query),
+        ),
+      );
+      if (!matches.length) return;
+
+      rows.push({
+        isHeader: true,
+        category: label,
+        product: null,
+        key: `header-${label}-${cat.mcId}`,
+      });
+      matches.forEach((product, index) => {
+        rows.push({
+          isHeader: false,
+          category: label,
+          product,
+          key: `${cat.mcId}-${product.brp_id || product.mrp_id || index}`,
+        });
+      });
+    });
+
+    return rows;
+  }
+
+  let result = [];
+  if (activeCategory.value === "Biryani Menu") {
+    result = getBiryaniMenuDishes();
+  } else {
+    result = categoryDishes.value;
+  }
+
+  return sortDishesByCart(result).map((product, index) => ({
+    isHeader: false,
+    category: null,
+    product,
+    key: `browse-${product.brp_id || product.mrp_id || index}`,
+  }));
 });
+
+const filteredRestaurantDish = computed(() =>
+  menuDisplayRows.value
+    .filter((row) => !row.isHeader && row.product)
+    .map((row) => row.product),
+);
 
 const addressForm = reactive({
   full_address: "",
@@ -4181,6 +4323,8 @@ const getMenuCategories = async (restaurantId) => {
       },
     );
     const data = response.data.data;
+    allCategoryDishesCache.value = {};
+    menuItemsLoadTick.value += 1;
     categories.value = [{ name: "Biryani Menu" }];
     if (data && data.length > 0) {
       data.forEach((item) => {
@@ -4213,6 +4357,8 @@ const getMenuCategories = async (restaurantId) => {
         });
       categories.value = [categories.value[0], ...sortedOtherCategories];
     }
+    // Preload all category dishes so search can show every menu with headers
+    ensureAllMenuItemsLoaded();
   } catch (error) {
     console.error("Error fetching menu categories:", error);
   }
