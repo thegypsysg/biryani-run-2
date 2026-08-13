@@ -3407,8 +3407,12 @@ const getTimeSlotsForRate = async () => {
     );
     const slots = Array.isArray(response.data?.data) ? response.data.data : [];
     timeSlotsForRate.value = filterSlotsByCheckoutBuffer(slots, isToday);
-    if (timeSlotsForRate.value.length > 0 && !selectedTimeSlotForRate.value) {
-      selectedTimeSlotForRate.value = timeSlotsForRate.value[0].time_slot_id;
+    const picked = pickSlotForCutoff(timeSlotsForRate.value);
+    const stillValid = timeSlotsForRate.value.some(
+      (slot) => slot.time_slot_id === selectedTimeSlotForRate.value,
+    );
+    if (picked && !stillValid) {
+      selectedTimeSlotForRate.value = picked.time_slot_id;
     }
   } catch (error) {
     console.error("Error fetching time slots:", error);
@@ -3439,15 +3443,53 @@ const parseSlotStart = (slot) => {
   return moment.tz(match[1], ["hh:mm A", "h:mm A", "HH:mm"], getDeliveryTimezone());
 };
 
-const filterSlotsByCheckoutBuffer = (slots, isToday) => {
-  if (!isToday || !Array.isArray(slots)) return slots || [];
-  const cutoff = moment()
+const parseSlotEnd = (slot) => {
+  if (slot?.end_time) {
+    return moment.tz(
+      slot.end_time,
+      ["HH:mm:ss", "HH:mm", "hh:mm A"],
+      getDeliveryTimezone(),
+    );
+  }
+  const label = slot?.slot_from_to || "";
+  const match = label.match(/to\s+(\d{1,2}:\d{2}\s*(?:am|pm))/i);
+  if (!match) return null;
+  return moment.tz(match[1], ["hh:mm A", "h:mm A", "HH:mm"], getDeliveryTimezone());
+};
+
+const getCheckoutCutoff = () => {
+  return moment()
     .tz(getDeliveryTimezone())
     .add(getCheckoutBufferMinutes(), "minutes");
+};
+
+const filterSlotsByCheckoutBuffer = (slots, isToday) => {
+  if (!isToday || !Array.isArray(slots)) return slots || [];
+  const cutoff = getCheckoutCutoff();
   return slots.filter((slot) => {
+    const end = parseSlotEnd(slot);
+    if (end && end.isValid()) return !end.isBefore(cutoff);
     const start = parseSlotStart(slot);
     return start && start.isValid() && !start.isBefore(cutoff);
   });
+};
+
+const pickSlotForCutoff = (slots) => {
+  if (!Array.isArray(slots) || !slots.length) return null;
+  const cutoff = getCheckoutCutoff();
+  const containing = slots.find((slot) => {
+    const start = parseSlotStart(slot);
+    const end = parseSlotEnd(slot);
+    return (
+      start &&
+      start.isValid() &&
+      end &&
+      end.isValid() &&
+      !cutoff.isBefore(start) &&
+      !cutoff.isAfter(end)
+    );
+  });
+  return containing || slots[0];
 };
 
 watch(selectedDeliveryRate, (rateId) => {
@@ -4834,7 +4876,7 @@ const updateCartOrderStatus = async () => {
     // const data = response.data.data;
     // console.log(data);
     confirmOrder2.value = false;
-    nextStep(6);
+    nextStep(5);
     getCartData();
     snackbar.value = true;
     message.value = {
@@ -4916,6 +4958,21 @@ const nextStep = async (value) => {
       text: "",
       color: "success",
     };
+    await getPaymentTypes();
+  } else if (value === 6) {
+    snackbar.value = false;
+    message.value = {
+      text: "",
+      color: "success",
+    };
+    if (!selectedPaymentMethod.value) {
+      isEmptyPayment.value = true;
+      return;
+    }
+    if (selectedPaymentMethod.value == 1) {
+      return;
+    }
+    await getPaymentOrder();
   } else if (value == 4) {
     snackbar.value = false;
     message.value = {
