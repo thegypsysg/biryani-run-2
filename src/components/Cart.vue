@@ -1278,8 +1278,23 @@
                     class="mt-4 mb-2 d-flex w-100 justify-center align-center"
                   >
                     <p class="text-subtitle-2 font-weight-bold">
-                      <span class="text-green-lighten-1">Open Now</span> |
-                      Closes in <span class="text-red-darken-2">3 hrs</span>
+                      <template v-if="isRestaurant24Hrs">
+                        <span class="text-green-lighten-1">Open Now</span> |
+                        24 Hours
+                      </template>
+                      <template v-else-if="restaurantOpenStatus === 'open'">
+                        <span class="text-green-lighten-1">Open Now</span>
+                        <template v-if="restaurantClosesInLabel">
+                          |
+                          Closes in
+                          <span class="text-red-darken-2">{{
+                            restaurantClosesInLabel
+                          }}</span>
+                        </template>
+                      </template>
+                      <template v-else-if="restaurantOpenStatus === 'closed'">
+                        <span class="text-red-darken-2">Closed</span>
+                      </template>
                     </p>
                   </div>
                   <!-- NEW UI -->
@@ -1554,7 +1569,7 @@
                       <p
                         class="text-red-darken-4 text-caption font-weight-bold"
                       >
-                        {{ restaurantTimeLeftLabel || currentHour }}
+                        {{ currentHourDisplay }}
                       </p>
                     </div>
 
@@ -1697,6 +1712,30 @@
                             </div>
                           </div>
                         </template>
+                        <div
+                          v-if="isLoadingTimeSlots"
+                          class="d-flex justify-center pa-4"
+                        >
+                          <v-progress-circular
+                            indeterminate
+                            color="primary"
+                          ></v-progress-circular>
+                        </div>
+                        <div
+                          v-for="slot in timeSlotsForRate"
+                          :key="'today-' + slot.time_slot_id"
+                          @click="selectedTimeSlotForRate = slot.time_slot_id"
+                          class="d-flex align-center justify-space-between px-4 py-3 rounded cursor-pointer bg-white"
+                          :style="
+                            selectedTimeSlotForRate === slot.time_slot_id
+                              ? 'border: 1.5px solid #a03022 !important'
+                              : 'border: 1px solid #e0e0e0 !important'
+                          "
+                        >
+                          <div class="text-body-2 font-weight-medium text-black">
+                            {{ slot.slot_from_to }}
+                          </div>
+                        </div>
                       </template>
 
                       <!-- FOR DATES OTHER THAN TODAY -->
@@ -1982,11 +2021,9 @@
                       class="mt-2 text-blue-darken-4 font-weight-bold"
                     >
                       <v-col cols="6">
-                        {{
-                          `${cart[0]?.delivery_day}, ${cart[0]?.delivery_date}`
-                        }}
+                        {{ formattedDeliveryDate }}
                       </v-col>
-                      <v-col cols="6"> {{ cart[0]?.time_slot }} </v-col>
+                      <v-col cols="6"> {{ formattedTimeSlot }} </v-col>
                     </v-row>
                     <!-- <v-row no-gutters class="font-weight-black mt-6">
                     <v-col cols="6"> Payment Status </v-col>
@@ -3212,6 +3249,30 @@ const { snackbarVisible, snackbarMessage, snackbarColor } = useGlobalSnackbar();
 const { addToCart, updateQuantity, addToCartMenuRatePrice } = useCart();
 const store = useStore();
 
+const COUNTRY_TIMEZONES = {
+  Nepal: "Asia/Kathmandu",
+  "United Arab Emirates": "Asia/Dubai",
+  "United Kingdom": "Europe/London",
+  "United States": "America/New_York",
+  India: "Asia/Kolkata",
+  Germany: "Europe/Berlin",
+  France: "Europe/Paris",
+  Australia: "Australia/Sydney",
+  Canada: "America/Toronto",
+  Japan: "Asia/Tokyo",
+  China: "Asia/Shanghai",
+  Singapore: "Asia/Singapore",
+  Malaysia: "Asia/Kuala_Lumpur",
+  Indonesia: "Asia/Jakarta",
+};
+
+const getDeliveryTimezone = () => {
+  const cartTimezone = store.state.cart?.[0]?.timezone;
+  if (cartTimezone) return cartTimezone;
+  const name = store.state.selectedCountry?.country_name;
+  return COUNTRY_TIMEZONES[name] || "Asia/Singapore";
+};
+
 let autocomplete;
 const allDays = [0, 1, 2, 3, 4, 5, 6];
 const authToken = localStorage.getItem("token");
@@ -3233,11 +3294,11 @@ const deliveryType = ref("delivery"); // 'pickup' or 'delivery'
 const sevenDaysList = computed(() => {
   const days = [];
   for (let i = 0; i < 7; i++) {
-    days.push(moment().tz("Asia/Singapore").add(i, "days").format("ddd DD"));
+    days.push(moment().tz(getDeliveryTimezone()).add(i, "days").format("ddd DD"));
   }
   return days;
 });
-const selectedDummyDate = ref(moment().tz("Asia/Singapore").format("ddd DD"));
+const selectedDummyDate = ref(moment().tz(getDeliveryTimezone()).format("ddd DD"));
 const selectedDummyAddressChip = ref("Home");
 const selectedDummyDeliveryOption = ref(null);
 const deliveryTiersList = ref([]);
@@ -3252,7 +3313,7 @@ const formattedSelectedFullDate = computed(() => {
   );
   if (index !== -1) {
     return moment()
-      .tz("Asia/Singapore")
+      .tz(getDeliveryTimezone())
       .add(index, "days")
       .format("dddd , Do MMMM YYYY");
   }
@@ -3316,20 +3377,36 @@ const selectedTimeSlotForRate = ref(null);
 const isLoadingTimeSlots = ref(false);
 
 const getTimeSlotsForRate = async () => {
-  if (!selectedDeliveryRate.value || !filteredAddress.value?.distance) {
+  const isToday = selectedDummyDate.value === sevenDaysList.value[0];
+  const drId = selectedDeliveryRate.value || (isToday ? peakNonPeakInfo.value?.dr_id : null);
+  if (!drId || !filteredAddress.value?.distance) {
     timeSlotsForRate.value = [];
     return;
   }
 
   isLoadingTimeSlots.value = true;
   try {
+    const dateIndex = sevenDaysList.value.findIndex(
+      (d) => d === selectedDummyDate.value,
+    );
+    const formattedDate = moment()
+      .tz(getDeliveryTimezone())
+      .add(dateIndex !== -1 ? dateIndex : 0, "days")
+      .format("DD/MM/YYYY");
+    const restaurantId = cart.value[0]?.restaurant_id;
     const response = await axios.get(
-      `/list-time-slots-by-dr-id/${selectedDeliveryRate.value}/${filteredAddress.value.distance}`,
+      `/list-time-slots-by-dr-id/${drId}/${filteredAddress.value.distance}`,
       {
         headers: { Authorization: `Bearer ${authToken}` },
+        params: {
+          restaurant_id: restaurantId || undefined,
+          delivery_date: formattedDate,
+          app_id: 7,
+        },
       },
     );
-    timeSlotsForRate.value = response.data?.data || [];
+    const slots = Array.isArray(response.data?.data) ? response.data.data : [];
+    timeSlotsForRate.value = filterSlotsByCheckoutBuffer(slots, isToday);
     if (timeSlotsForRate.value.length > 0 && !selectedTimeSlotForRate.value) {
       selectedTimeSlotForRate.value = timeSlotsForRate.value[0].time_slot_id;
     }
@@ -3339,6 +3416,38 @@ const getTimeSlotsForRate = async () => {
   } finally {
     isLoadingTimeSlots.value = false;
   }
+};
+
+const getCheckoutBufferMinutes = () => {
+  const buffers = (deliveryTiersList.value || [])
+    .map((tier) => Number(tier.buffer_minutes))
+    .filter((mins) => !Number.isNaN(mins) && mins > 0);
+  return buffers.length ? buffers[0] : 15;
+};
+
+const parseSlotStart = (slot) => {
+  if (slot?.start_time) {
+    return moment.tz(
+      slot.start_time,
+      ["HH:mm:ss", "HH:mm", "hh:mm A"],
+      getDeliveryTimezone(),
+    );
+  }
+  const label = slot?.slot_from_to || "";
+  const match = label.match(/^(\d{1,2}:\d{2}\s*(?:am|pm))/i);
+  if (!match) return null;
+  return moment.tz(match[1], ["hh:mm A", "h:mm A", "HH:mm"], getDeliveryTimezone());
+};
+
+const filterSlotsByCheckoutBuffer = (slots, isToday) => {
+  if (!isToday || !Array.isArray(slots)) return slots || [];
+  const cutoff = moment()
+    .tz(getDeliveryTimezone())
+    .add(getCheckoutBufferMinutes(), "minutes");
+  return slots.filter((slot) => {
+    const start = parseSlotStart(slot);
+    return start && start.isValid() && !start.isBefore(cutoff);
+  });
 };
 
 watch(selectedDeliveryRate, (rateId) => {
@@ -3856,6 +3965,29 @@ const selectedCountry = computed(() => {
   return store.state.selectedCountry;
 });
 
+const formattedDeliveryDate = computed(() => {
+  const item = cart.value?.[0];
+  if (!item) return "";
+  const day = item.delivery_day;
+  const date = item.delivery_date;
+  if (day && date) return `${day}, ${date}`;
+  return date || "";
+});
+
+const formattedTimeSlot = computed(() => {
+  const item = cart.value?.[0];
+  if (!item) return "";
+  if (item.time_slot) return item.time_slot;
+  if (item.delivery_by) {
+    const by = moment(item.delivery_by, ["HH:mm:ss", "hh:mm A", "h:mm A"], true);
+    return by.isValid() ? `By ${by.format("hh:mm A")}` : `By ${item.delivery_by}`;
+  }
+  const selectedSlot = timeSlotsForRate.value.find(
+    (slot) => slot.time_slot_id === selectedTimeSlotForRate.value,
+  );
+  return selectedSlot?.slot_from_to || "";
+});
+
 const deliveryOptions = computed(() => {
   return store.state.deliveryCharges.map((item) => {
     return {
@@ -3963,12 +4095,12 @@ const restaurantTimeLeftLabel = computed(() => {
     return cart.value?.[0]?.time_left?.countdown || "";
   }
 
-  const now = moment().tz("Asia/Singapore");
+  const now = moment().tz(getDeliveryTimezone());
   const current = now.format("HH:mm:ss");
   let deadline = moment.tz(
     `${now.format("YYYY-MM-DD")} ${lastOrder}`,
     "YYYY-MM-DD HH:mm:ss",
-    "Asia/Singapore",
+    getDeliveryTimezone(),
   );
 
   // Overnight: last order is next day when current is after opening
@@ -3984,6 +4116,31 @@ const restaurantTimeLeftLabel = computed(() => {
   const secs = secondsLeft % 60;
 
   return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+});
+
+const restaurantClosesInLabel = computed(() => {
+  nowTick.value;
+  if (isRestaurant24Hrs.value) return "";
+  if (restaurantOpenStatus.value !== "open") return "";
+
+  const countdown = restaurantTimeLeftLabel.value;
+  if (!countdown) return "";
+  const parts = countdown.split(":").map((part) => Number(part));
+  const hours = parts[0] || 0;
+  const mins = parts[1] || 0;
+  if (hours <= 0 && mins <= 0) return "";
+  if (hours >= 1 && mins === 0) {
+    return `${hours} hr${hours === 1 ? "" : "s"}`;
+  }
+  if (hours >= 1) {
+    return `${hours} hr${hours === 1 ? "" : "s"} ${mins} min`;
+  }
+  return `${mins} min`;
+});
+
+const currentHourDisplay = computed(() => {
+  nowTick.value;
+  return moment().tz(getDeliveryTimezone()).format("hh:mm:ss A");
 });
 
 const acceptingCurrentPreOrders = computed(() => {
@@ -4410,7 +4567,9 @@ const onSelectPayment = async (selectedId) => {
   } catch (error) {
     console.log(error);
     const errorMessage =
-      error.response?.data?.message || "Something went wrong!";
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      "Something went wrong!";
     snackbar.value = true;
     message.value = {
       text: errorMessage,
@@ -4481,7 +4640,9 @@ const handlePayLater = async () => {
     };
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || "Something went wrong!";
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      "Something went wrong!";
     snackbar.value = true;
     message.value = {
       text: errorMessage,
@@ -4516,7 +4677,9 @@ const handleHavePaid = async () => {
     };
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || "Something went wrong!";
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      "Something went wrong!";
     snackbar.value = true;
     message.value = {
       text: errorMessage,
@@ -4556,7 +4719,9 @@ const handleOrderConfirmed = async () => {
     };
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || "Something went wrong!";
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      "Something went wrong!";
     snackbar.value = true;
     message.value = {
       text: errorMessage,
@@ -4641,7 +4806,9 @@ const whereToDeliver = async () => {
   } catch (error) {
     console.log(error);
     const errorMessage =
-      error.response?.data?.message || "Something went wrong!";
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      "Something went wrong!";
     snackbar.value = true;
     message.value = {
       text: errorMessage,
@@ -4676,7 +4843,9 @@ const updateCartOrderStatus = async () => {
     };
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || "Something went wrong!";
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      "Something went wrong!";
     snackbar.value = true;
     message.value = {
       text: errorMessage,
@@ -4711,7 +4880,9 @@ const cancelOrder = async () => {
     };
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || "Something went wrong!";
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      "Something went wrong!";
     snackbar.value = true;
     message.value = {
       text: errorMessage,
@@ -4753,26 +4924,40 @@ const nextStep = async (value) => {
     };
     console.log(selectedDelivery.value, cart.value[0]?.dc_id);
 
-    // if (selectedDelivery.value == null) {
-    //   // snackbar.value = true;
-    //   // message.value = {
-    //   //   text: "Please select a delivery option first.",
-    //   //   color: "error",
-    //   // };
-    //   store.commit("setIsEmptyDelivery", true);
-    //   return;
-    // } else
+    if (authToken == "null") {
+      store.commit("setIsNotLoggedIn", true);
+
+      return;
+    }
+
+    const isToday = selectedDummyDate.value === sevenDaysList.value[0];
+    if (isToday && !selectedDummyDeliveryOption.value) {
+      snackbar.value = true;
+      message.value = {
+        text: "Please select a delivery option",
+        color: "error",
+      };
+      return;
+    }
+    if (!isToday && !selectedTimeSlotForRate.value) {
+      snackbar.value = true;
+      message.value = {
+        text: "Please select a time slot",
+        color: "error",
+      };
+      return;
+    }
+
+    const saved = await updateCartDeliveryInfo();
+    if (!saved) {
+      return;
+    }
+
     if (selectedDelivery.value != cart.value[0]?.dc_id) {
       console.log("execute");
       selectedDate.value = null;
       selectedTimeSlot.value = null;
       deliveryScheduleInstruction.value = null;
-    }
-
-    if (authToken == "null") {
-      store.commit("setIsNotLoggedIn", true);
-
-      return;
     }
   } else if (value == 3) {
     if (addresses.value.length == 0) {
@@ -4842,6 +5027,9 @@ const fetchPeakNonPeakInfo = async (restaurantId) => {
       },
     );
     peakNonPeakInfo.value = response.data?.data;
+    if (selectedDummyDate.value === sevenDaysList.value[0]) {
+      getTimeSlotsForRate();
+    }
   } catch (error) {
     console.error("Error fetching peak non peak info:", error);
   }
@@ -4859,7 +5047,7 @@ const updateCartDeliveryInfo = async () => {
       (d) => d === selectedDummyDate.value,
     );
     const formattedDate = moment()
-      .tz("Asia/Singapore")
+      .tz(getDeliveryTimezone())
       .add(index !== -1 ? index : 0, "days")
       .format("DD/MM/YYYY");
 
@@ -4873,9 +5061,24 @@ const updateCartDeliveryInfo = async () => {
 
     if (isToday) {
       payload.dt_id = selectedDummyDeliveryOption.value;
+      if (selectedTimeSlotForRate.value) {
+        payload.time_slot_id = selectedTimeSlotForRate.value;
+        const selectedSlot = timeSlotsForRate.value.find(
+          (slot) => slot.time_slot_id === selectedTimeSlotForRate.value,
+        );
+        if (selectedSlot?.slot_from_to) {
+          payload.time_slot = selectedSlot.slot_from_to;
+        }
+      }
     } else {
       payload.time_slot_id = selectedTimeSlotForRate.value;
       payload.dr_id = selectedDeliveryRate.value;
+      const selectedSlot = timeSlotsForRate.value.find(
+        (slot) => slot.time_slot_id === selectedTimeSlotForRate.value,
+      );
+      if (selectedSlot?.slot_from_to) {
+        payload.time_slot = selectedSlot.slot_from_to;
+      }
     }
 
     const response = await axios.post(
@@ -4886,7 +5089,7 @@ const updateCartDeliveryInfo = async () => {
       },
     );
     console.log(response.data.message);
-    getCartData();
+    await getCartData();
     return true;
   } catch (error) {
     console.error("Error updating cart master delivery info:", error);
@@ -4908,7 +5111,7 @@ watch(
 
 watch(step, (newStep) => {
   if (newStep === 3) {
-    selectedDummyDate.value = moment().tz("Asia/Singapore").format("ddd DD");
+    selectedDummyDate.value = moment().tz(getDeliveryTimezone()).format("ddd DD");
     selectedDeliveryRate.value = null;
     selectedTimeSlotForRate.value = null;
     selectedDummyDeliveryOption.value = null;
@@ -4918,6 +5121,10 @@ watch(step, (newStep) => {
 watch(selectedDummyDate, () => {
   selectedDeliveryRate.value = null;
   selectedTimeSlotForRate.value = null;
+  timeSlotsForRate.value = [];
+  if (selectedDummyDate.value === sevenDaysList.value[0]) {
+    getTimeSlotsForRate();
+  }
 });
 
 const getCalculatedDeliveryPrice = (dt_id) => {
@@ -5109,7 +5316,9 @@ const saveAddress = async () => {
     addressDialog.value = false;
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || "Something went wrong!";
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      "Something went wrong!";
     snackbar.value = true;
     message.value = {
       text: errorMessage,
@@ -5150,7 +5359,9 @@ const selectAddress = async (item) => {
     };
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || "Something went wrong!";
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      "Something went wrong!";
     snackbar.value = true;
     message.value = {
       text: errorMessage,
@@ -5302,14 +5513,18 @@ const getCartData = async () => {
 
 const getTimeSlots = async () => {
   try {
-    // const response = await axios.get(`/list-time-slots`, {
-    const response = await axios.get(`/get-time-slots`, {
+    const response = await axios.get(`/get-time-slots/7`, {
       headers: { Authorization: `Bearer ${authToken}` },
+      params: {
+        restaurant_id: cart.value[0]?.restaurant_id || undefined,
+        delivery_date: moment().tz(getDeliveryTimezone()).format("DD/MM/YYYY"),
+        app_id: 7,
+      },
     });
 
-    // Ambil data dari response dan pastikan array
     const data = response.data?.data;
-    timeSlots.value = Array.isArray(data) ? data : [];
+    const slots = Array.isArray(data) ? data : [];
+    timeSlots.value = filterSlotsByCheckoutBuffer(slots, true);
   } catch (error) {
     console.error("Error fetching addresses:", error);
     // alert(error.response?.data?.message || "Something went wrong!");
@@ -5428,7 +5643,7 @@ watch(
 );
 
 const updateTime = () => {
-  const singaporeTime = moment().tz("Asia/Singapore");
+  const singaporeTime = moment().tz(getDeliveryTimezone());
 
   const day = singaporeTime.format("dddd"); // e.g., Wednesday
   const date = singaporeTime.format("DD/MM/YYYY"); // e.g., 21/05/2025
