@@ -117,7 +117,7 @@
                   class="font-weight-black text-caption"
                   style="background: #b7e1e4"
                   @click="openDetail(item)"
-                  >View Details</v-btn
+                  >Explore Order</v-btn
                 >
               </div>
 
@@ -378,11 +378,9 @@
                     class="mt-2 text-blue-darken-4 font-weight-bold"
                   >
                     <v-col cols="6">
-                      {{
-                        `${orderDetail?.delivery_day}, ${orderDetail?.delivery_date}`
-                      }}
+                      {{ formattedOrderDeliveryDate }}
                     </v-col>
-                    <v-col cols="6"> {{ orderDetail?.time_slot }} </v-col>
+                    <v-col cols="6"> {{ formattedOrderTimeSlot }} </v-col>
                   </v-row>
                 </div>
               </v-card>
@@ -455,6 +453,21 @@ const formatInfo = (info) => {
   return info.replace(/\n/g, "<br>");
 };
 
+const formattedOrderDeliveryDate = computed(() => {
+  const day = orderDetail.value?.delivery_day;
+  const date = orderDetail.value?.delivery_date;
+  if (day && date) return `${day}, ${date}`;
+  return date || "";
+});
+
+const formattedOrderTimeSlot = computed(() => {
+  if (orderDetail.value?.time_slot) return orderDetail.value.time_slot;
+  if (orderDetail.value?.delivery_by) {
+    return `By ${orderDetail.value.delivery_by}`;
+  }
+  return "";
+});
+
 const handleResize = () => {
   screenWidth.value = window.innerWidth;
 };
@@ -498,9 +511,8 @@ function getOrderDetail(id) {
   axios
     .get(`/get-order-detail/${id}`)
     .then((response) => {
-      const data = response.data;
-      console.log(data);
-      orderDetail.value = data;
+      const data = response.data?.data ?? response.data;
+      orderDetail.value = Array.isArray(data) ? data[0] || {} : data || {};
     })
     .catch((error) => {
       console.log(error);
