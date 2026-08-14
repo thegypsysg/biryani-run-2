@@ -4280,53 +4280,47 @@ watch(
 
 const flatGroupedCart = computed(() => {
   const result = [];
-  const biryaniItems = [];
   const categoryGroups = {};
 
   if (!cart.value) return [];
 
+  const mcgKey = (item) =>
+    item.mcg_id != null && item.mcg_id !== ""
+      ? Number(item.mcg_id)
+      : Number.MAX_SAFE_INTEGER;
+
   cart.value.forEach((item) => {
-    const category = item.menu_category;
-    if (!category || category === "Biryani Menu") {
-      biryaniItems.push(item);
-    } else {
-      if (!categoryGroups[category]) {
-        categoryGroups[category] = {
-          mcgId:
-            item.mcg_id != null && item.mcg_id !== ""
-              ? Number(item.mcg_id)
-              : Number.MAX_SAFE_INTEGER,
-          items: [],
-        };
-      }
-      categoryGroups[category].items.push(item);
-      if (item.mcg_id != null && item.mcg_id !== "") {
-        categoryGroups[category].mcgId = Math.min(
-          categoryGroups[category].mcgId,
-          Number(item.mcg_id),
-        );
-      }
+    const isBiryani =
+      !item.menu_category || item.menu_category === "Biryani Menu";
+    const category = isBiryani ? "__biryani__" : item.menu_category;
+
+    if (!categoryGroups[category]) {
+      categoryGroups[category] = {
+        mcgId: mcgKey(item),
+        items: [],
+        isBiryani,
+        name: isBiryani ? null : item.menu_category,
+      };
+    }
+    categoryGroups[category].items.push(item);
+    if (item.mcg_id != null && item.mcg_id !== "") {
+      categoryGroups[category].mcgId = Math.min(
+        categoryGroups[category].mcgId,
+        Number(item.mcg_id),
+      );
     }
   });
 
-  // 1. Put Biryani items on top (without header)
-  biryaniItems.forEach((item) => {
-    result.push({
-      isHeader: false,
-      product: item,
-      key: `item-${item.cart_id || item.mrp_id || item.dish_id}-${item.brp_id || ""}-${item.brp_id_2 || ""}`,
-    });
-  });
-
-  // 2. Add other categories with headers, sorted by mcg_id ascending
-  Object.entries(categoryGroups)
-    .sort(([, a], [, b]) => a.mcgId - b.mcgId)
-    .forEach(([category, group]) => {
-      result.push({
-        isHeader: true,
-        category: category,
-        key: `header-${category}`,
-      });
+  Object.values(categoryGroups)
+    .sort((a, b) => a.mcgId - b.mcgId)
+    .forEach((group) => {
+      if (!group.isBiryani) {
+        result.push({
+          isHeader: true,
+          category: group.name,
+          key: `header-${group.name}`,
+        });
+      }
       group.items.forEach((item) => {
         result.push({
           isHeader: false,
@@ -4538,13 +4532,16 @@ const getMenuCategories = async (restaurantId) => {
     const data = response.data.data;
     allCategoryDishesCache.value = {};
     menuItemsLoadTick.value += 1;
-    categories.value = [{ name: "Biryani Menu" }];
+    const biryaniCategory = { name: "Biryani Menu" };
+    const otherCategories = [];
     if (data && data.length > 0) {
       data.forEach((item) => {
         if (item.menu_category && item.menu_category.menu_header) {
           const categoryName = item.menu_category.menu_header;
-          if (categoryName !== "Biryani Menu") {
-            categories.value.push({
+          if (categoryName === "Biryani Menu") {
+            biryaniCategory.mcgId = item?.menu_category?.mcg_id;
+          } else {
+            otherCategories.push({
               name: categoryName,
               count: item.mrp_count,
               mcId: item.mc_id,
@@ -4554,22 +4551,19 @@ const getMenuCategories = async (restaurantId) => {
         }
       });
 
-      // Sort the categories (excluding the first 'Biryani Menu' item) by mcgId ascending
-      const sortedOtherCategories = categories.value
-        .slice(1)
-        .sort((a, b) => {
-          const aId =
-            a.mcgId != null && a.mcgId !== ""
-              ? Number(a.mcgId)
-              : Number.MAX_SAFE_INTEGER;
-          const bId =
-            b.mcgId != null && b.mcgId !== ""
-              ? Number(b.mcgId)
-              : Number.MAX_SAFE_INTEGER;
-          return aId - bId;
-        });
-      categories.value = [categories.value[0], ...sortedOtherCategories];
+      otherCategories.sort((a, b) => {
+        const aId =
+          a.mcgId != null && a.mcgId !== ""
+            ? Number(a.mcgId)
+            : Number.MAX_SAFE_INTEGER;
+        const bId =
+          b.mcgId != null && b.mcgId !== ""
+            ? Number(b.mcgId)
+            : Number.MAX_SAFE_INTEGER;
+        return aId - bId;
+      });
     }
+    categories.value = [biryaniCategory, ...otherCategories];
     // Preload all category dishes so search can show every menu with headers
     ensureAllMenuItemsLoaded();
   } catch (error) {
