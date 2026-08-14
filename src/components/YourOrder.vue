@@ -121,24 +121,17 @@
                 >
               </div>
 
-              <div class="d-flex font-weight-black ga-6 text-caption mt-4">
-                <div class="">
+              <div class="d-flex font-weight-black text-caption mt-4">
+                <div class="flex-grow-1">
                   <p>Payment Status</p>
-
-                  <p v-if="item?.payment_verified_date">
-                    <span class="text-red">Paid</span> on
-                    <span class="text-red">{{
-                      item?.payment_verified_date
-                    }}</span>
-                  </p>
-                  <p v-else class="text-red">
-                    {{ item?.payment_status?.payment_status_name }}
+                  <p class="text-red">
+                    {{ paymentStatusText(item) }}
                   </p>
                 </div>
-                <div class="">
+                <div class="flex-grow-1">
                   <p>Delivery Status</p>
                   <p class="text-red">
-                    {{ item?.delivery_status?.delivery_status_name }}
+                    {{ deliveryStatusText(item) }}
                   </p>
                 </div>
               </div>
@@ -205,8 +198,8 @@
               </div>
 
               <template
-                v-for="product in orderDetail?.biryaniRunPrice"
-                :key="product?.product_id"
+                v-for="product in sortedOrderItems"
+                :key="product?.mrp_id || product?.brp_id || product?.product_id"
               >
                 <div class="d-flex align-center px-3 py-1">
                   <div class="flex-grow-0 flex-shrink-0">
@@ -453,6 +446,34 @@ const formatInfo = (info) => {
   return info.replace(/\n/g, "<br>");
 };
 
+const statusName = (status, nameKey) => {
+  if (status && typeof status === "object") {
+    return status[nameKey] || "";
+  }
+  return typeof status === "string" ? status : "";
+};
+
+const paymentStatusText = (item) => {
+  if (item?.payment_verified_date) {
+    return `Paid on ${item.payment_verified_date}`;
+  }
+  return (
+    statusName(item?.payment_status, "payment_status_name") ||
+    item?.payment_status_name ||
+    "Payment Pending"
+  );
+};
+
+const deliveryStatusText = (item) => {
+  const name =
+    statusName(item?.delivery_status, "delivery_status_name") ||
+    item?.delivery_status_name ||
+    "";
+  if (name) return name;
+  if (item?.payment_verified_date) return "Delivery Pending";
+  return "";
+};
+
 const formattedOrderDeliveryDate = computed(() => {
   const day = orderDetail.value?.delivery_day;
   const date = orderDetail.value?.delivery_date;
@@ -466,6 +487,20 @@ const formattedOrderTimeSlot = computed(() => {
     return `By ${orderDetail.value.delivery_by}`;
   }
   return "";
+});
+
+const mcgSortKey = (item) => {
+  if (item?.mcg_id != null && item.mcg_id !== "") {
+    return Number(item.mcg_id);
+  }
+  return Number.MAX_SAFE_INTEGER;
+};
+
+const sortedOrderItems = computed(() => {
+  const items = orderDetail.value?.biryaniRunPrice;
+  if (!Array.isArray(items)) return [];
+
+  return [...items].sort((a, b) => mcgSortKey(a) - mcgSortKey(b));
 });
 
 const handleResize = () => {
