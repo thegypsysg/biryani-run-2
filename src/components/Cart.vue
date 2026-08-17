@@ -1587,7 +1587,7 @@
                         </div>
                         <template v-else>
                           <div
-                            v-for="tier in deliveryTiersList"
+                            v-for="tier in displayedDeliveryTiers"
                             :key="tier.dt_id"
                           >
                           <div
@@ -1635,15 +1635,21 @@
                                 </div>
                                 <div class="d-flex">
                                   <span class="text-caption text-grey-darken-1">
-                                    By {{ tier.delivery_by }}
+                                    <template v-if="tier.dt_id === ORDER_FOR_LATER_ID">
+                                      From 09:00 PM
+                                    </template>
+                                    <template v-else>
+                                      By {{ tier.delivery_by }}
+                                    </template>
                                   </span>
                                   <div
                                     style="font-size: 11px"
                                     class="text-green-darken-1"
                                     v-if="
-                                      userEmail ===
+                                      tier.dt_id !== ORDER_FOR_LATER_ID &&
+                                      (userEmail ===
                                         'charltonmendes@gmail.com' ||
-                                      userEmail === 'ajiprsty4713@gmail.com'
+                                      userEmail === 'ajiprsty4713@gmail.com')
                                     "
                                   >
                                     (
@@ -1690,6 +1696,7 @@
                               </div>
                             </div>
                             <div
+                              v-if="tier.dt_id !== ORDER_FOR_LATER_ID"
                               class="font-weight-bold text-subtitle-2 text-blue-darken-3"
                             >
                               S$
@@ -3344,6 +3351,8 @@ const getDeliveryIcon = (name) => {
     lowerName.includes("relaxed")
   ) {
     return "mdi-walk";
+  } else if (lowerName.includes("later")) {
+    return "mdi-calendar-clock";
   }
   return "mdi-truck-delivery-outline";
 };
@@ -3387,10 +3396,16 @@ const getDeliveryRates = async () => {
   }
 };
 
+const ORDER_FOR_LATER_ID = "order_for_later";
+const ORDER_FOR_LATER_AFTER_HMS = "20:50:00";
 const timeSlotsForRate = ref([]);
+const allTodayTimeSlots = ref([]);
 const selectedTimeSlotForRate = ref(null);
 const isLoadingTimeSlots = ref(false);
 let timeSlotsRequestId = 0;
+
+const isOrderForLaterSelected = () =>
+  String(selectedDummyDeliveryOption.value) === ORDER_FOR_LATER_ID;
 
 const getTimeSlotsForRate = async () => {
   const isToday = selectedDummyDate.value === sevenDaysList.value[0];
@@ -3426,20 +3441,25 @@ const getTimeSlotsForRate = async () => {
         );
     if (requestId !== timeSlotsRequestId) return;
     const slots = Array.isArray(response.data?.data) ? response.data.data : [];
-    timeSlotsForRate.value = isToday
-      ? filterSlotsByEndTime(slots)
-      : filterSlotsByCheckoutBuffer(slots, false);
-    const picked = pickSlotForCutoff(timeSlotsForRate.value);
-    const stillValid = timeSlotsForRate.value.some(
-      (slot) => slot.time_slot_id === selectedTimeSlotForRate.value,
-    );
-    if (picked && (isToday || !stillValid)) {
-      selectedTimeSlotForRate.value = picked.time_slot_id;
+    if (isToday) {
+      allTodayTimeSlots.value = slots;
+      applyDisplayedTodayTimeSlots();
+    } else {
+      allTodayTimeSlots.value = [];
+      timeSlotsForRate.value = filterSlotsByCheckoutBuffer(slots, false);
+      const picked = pickSlotForCutoff(timeSlotsForRate.value);
+      const stillValid = timeSlotsForRate.value.some(
+        (slot) => slot.time_slot_id === selectedTimeSlotForRate.value,
+      );
+      if (picked && !stillValid) {
+        selectedTimeSlotForRate.value = picked.time_slot_id;
+      }
     }
   } catch (error) {
     if (requestId !== timeSlotsRequestId) return;
     console.error("Error fetching time slots:", error);
     timeSlotsForRate.value = [];
+    allTodayTimeSlots.value = [];
   } finally {
     if (requestId === timeSlotsRequestId) {
       isLoadingTimeSlots.value = false;
@@ -3490,6 +3510,10 @@ const formatHmsToAmPm = (hms) => {
 };
 
 const getTierBufferTestLabel = (tier) => {
+  if (String(tier?.dt_id) === ORDER_FOR_LATER_ID) {
+    const closing = formatHmsToAmPm(getRestaurantClosingHms()) || "closing time";
+    return `TEST: after 08:50 PM until restaurant closing (${closing})`;
+  }
   const dbBuffer = Number(tier?.buffer_minutes);
   const dbBufferText = Number.isNaN(dbBuffer) ? "n/a" : `${dbBuffer} min`;
   const lookup = getTierLookupHms(tier);
@@ -3615,6 +3639,41 @@ const pickSlotForCutoff = (slots) => {
   );
 };
 
+const getRestaurantClosingHms = () => toHms(cart.value?.[0]?.closing_time);
+
+const filterSlotsForOrderLater = (slots) => {
+  if (!Array.isArray(slots)) return [];
+  const closing = getRestaurantClosingHms();
+  const opening = toHms(cart.value?.[0]?.opening_time);
+  const overnight = Boolean(opening && closing && closing <= opening);
+  const now = nowHms();
+  const filtered = slots.filter((slot) => {
+    const start = toHms(slot.start_time);
+    const end = toHms(slot.end_time);
+    if (!start) return false;
+    if (now && end && end < now) return false;
+    if (start <= ORDER_FOR_LATER_AFTER_HMS) return false;
+    if (!closing) return true;
+    if (overnight) {
+      return start > ORDER_FOR_LATER_AFTER_HMS || start < closing;
+    }
+    return start < closing;
+  });
+  return closing ? filtered : filtered.slice(0, 6);
+};
+
+const applyDisplayedTodayTimeSlots = () => {
+  if (isOrderForLaterSelected()) {
+    timeSlotsForRate.value = filterSlotsForOrderLater(allTodayTimeSlots.value);
+    selectedTimeSlotForRate.value =
+      timeSlotsForRate.value[0]?.time_slot_id ?? null;
+    return;
+  }
+  timeSlotsForRate.value = filterSlotsByEndTime(allTodayTimeSlots.value);
+  const picked = pickSlotForCutoff(timeSlotsForRate.value);
+  selectedTimeSlotForRate.value = picked ? picked.time_slot_id : null;
+};
+
 watch(selectedDeliveryRate, (rateId) => {
   selectedTimeSlotForRate.value = null;
   timeSlotsForRate.value = [];
@@ -3626,9 +3685,8 @@ watch(selectedDeliveryRate, (rateId) => {
 watch(selectedDummyDeliveryOption, (dtId) => {
   if (!dtId) return;
   if (selectedDummyDate.value !== sevenDaysList.value[0]) return;
-  if (timeSlotsForRate.value.length) {
-    const picked = pickSlotForCutoff(timeSlotsForRate.value);
-    selectedTimeSlotForRate.value = picked ? picked.time_slot_id : null;
+  if (allTodayTimeSlots.value.length) {
+    applyDisplayedTodayTimeSlots();
     return;
   }
   getTimeSlotsForRate();
@@ -4135,6 +4193,30 @@ const isSameDelivery = computed(() => {
 
 const userEmail = computed(() => {
   return store.state.userEmail || localStorage.getItem("email");
+});
+
+const isDeliveryTestUser = computed(() => {
+  const email = String(userEmail.value || "").toLowerCase();
+  return (
+    email === "charltonmendes@gmail.com" ||
+    email === "ajiprsty4713@gmail.com"
+  );
+});
+
+const displayedDeliveryTiers = computed(() => {
+  const list = [...(deliveryTiersList.value || [])];
+  if (
+    isDeliveryTestUser.value &&
+    selectedDummyDate.value === sevenDaysList.value[0]
+  ) {
+    list.push({
+      dt_id: ORDER_FOR_LATER_ID,
+      delivery_tier_name: "Order for Later",
+      delivery_by: "09:00 PM",
+      icon_image: null,
+    });
+  }
+  return list;
 });
 
 const selectedCountry = computed(() => {
@@ -5227,6 +5309,7 @@ const initializeStep3Delivery = async () => {
   selectedTimeSlotForRate.value = null;
   selectedDummyDeliveryOption.value = null;
   timeSlotsForRate.value = [];
+  allTodayTimeSlots.value = [];
 
   await Promise.all([
     getDeliveryTiers(restaurantId),
@@ -5249,6 +5332,7 @@ const updateCartDeliveryInfo = async () => {
   if (!cart.value[0]?.cart_id) return false;
 
   const isToday = selectedDummyDate.value === sevenDaysList.value[0];
+  if (isToday && isOrderForLaterSelected()) return false;
   if (isToday && !selectedDummyDeliveryOption.value) return false;
   if (!isToday && !selectedTimeSlotForRate.value) return false;
 
@@ -5330,6 +5414,7 @@ watch(selectedDummyDate, () => {
   selectedDeliveryRate.value = null;
   selectedTimeSlotForRate.value = null;
   timeSlotsForRate.value = [];
+  allTodayTimeSlots.value = [];
   if (selectedDummyDate.value === sevenDaysList.value[0]) {
     getTimeSlotsForRate();
   }
