@@ -1589,6 +1589,8 @@
                           <div
                             v-for="tier in deliveryTiersList"
                             :key="tier.dt_id"
+                          >
+                          <div
                             @click="selectedDummyDeliveryOption = tier.dt_id"
                             class="d-flex align-center justify-space-between pa-3 rounded-lg cursor-pointer transition-all elevation-1 bg-white"
                             :style="
@@ -1710,6 +1712,13 @@
                                 ).toFixed(2)
                               }}
                             </div>
+                          </div>
+                          <div
+                            class="px-1 pt-1"
+                            style="color: #d32f2f; font-size: 11px; font-weight: 700; line-height: 1.3;"
+                          >
+                            {{ getTierBufferTestLabel(tier) }}
+                          </div>
                           </div>
                         </template>
                         <div
@@ -3339,6 +3348,17 @@ const getDeliveryIcon = (name) => {
   return "mdi-truck-delivery-outline";
 };
 
+const selectDefaultDeliveryTier = () => {
+  if (!deliveryTiersList.value.length) return;
+  const instant = deliveryTiersList.value.find((tier) =>
+    String(tier.delivery_tier_name || "")
+      .toLowerCase()
+      .includes("instant"),
+  );
+  selectedDummyDeliveryOption.value = (instant || deliveryTiersList.value[0])
+    .dt_id;
+};
+
 const getDeliveryTiers = async (restaurantId) => {
   isLoadingDeliveryTiers.value = true;
   try {
@@ -3347,14 +3367,9 @@ const getDeliveryTiers = async (restaurantId) => {
     });
     const data = response.data?.data;
     deliveryTiersList.value = Array.isArray(data) ? data : [];
-    if (
-      deliveryTiersList.value.length > 0 &&
-      !selectedDummyDeliveryOption.value
-    ) {
-      selectedDummyDeliveryOption.value = deliveryTiersList.value[0].dt_id;
-    }
   } catch (error) {
     console.error("Error fetching delivery tiers:", error);
+    deliveryTiersList.value = [];
   } finally {
     isLoadingDeliveryTiers.value = false;
   }
@@ -3375,15 +3390,16 @@ const getDeliveryRates = async () => {
 const timeSlotsForRate = ref([]);
 const selectedTimeSlotForRate = ref(null);
 const isLoadingTimeSlots = ref(false);
+let timeSlotsRequestId = 0;
 
 const getTimeSlotsForRate = async () => {
   const isToday = selectedDummyDate.value === sevenDaysList.value[0];
-  const drId = selectedDeliveryRate.value || (isToday ? peakNonPeakInfo.value?.dr_id : null);
-  if (!drId || !filteredAddress.value?.distance) {
-    timeSlotsForRate.value = [];
+  const drId = selectedDeliveryRate.value;
+  if (!isToday && (!drId || !filteredAddress.value?.distance)) {
     return;
   }
 
+  const requestId = ++timeSlotsRequestId;
   isLoadingTimeSlots.value = true;
   try {
     const dateIndex = sevenDaysList.value.findIndex(
@@ -3394,39 +3410,114 @@ const getTimeSlotsForRate = async () => {
       .add(dateIndex !== -1 ? dateIndex : 0, "days")
       .format("DD/MM/YYYY");
     const restaurantId = cart.value[0]?.restaurant_id;
-    const response = await axios.get(
-      `/list-time-slots-by-dr-id/${drId}/${filteredAddress.value.distance}`,
-      {
-        headers: { Authorization: `Bearer ${authToken}` },
-        params: {
-          restaurant_id: restaurantId || undefined,
-          delivery_date: formattedDate,
-          app_id: 7,
-        },
+    const requestConfig = {
+      headers: { Authorization: `Bearer ${authToken}` },
+      params: {
+        restaurant_id: restaurantId || undefined,
+        delivery_date: formattedDate,
+        app_id: 7,
       },
-    );
+    };
+    const response = isToday
+      ? await axios.get(`/get-time-slots/7`, requestConfig)
+      : await axios.get(
+          `/list-time-slots-by-dr-id/${drId}/${filteredAddress.value.distance}`,
+          requestConfig,
+        );
+    if (requestId !== timeSlotsRequestId) return;
     const slots = Array.isArray(response.data?.data) ? response.data.data : [];
-    timeSlotsForRate.value = filterSlotsByCheckoutBuffer(slots, isToday);
+    timeSlotsForRate.value = isToday
+      ? filterSlotsByEndTime(slots)
+      : filterSlotsByCheckoutBuffer(slots, false);
     const picked = pickSlotForCutoff(timeSlotsForRate.value);
     const stillValid = timeSlotsForRate.value.some(
       (slot) => slot.time_slot_id === selectedTimeSlotForRate.value,
     );
-    if (picked && !stillValid) {
+    if (picked && (isToday || !stillValid)) {
       selectedTimeSlotForRate.value = picked.time_slot_id;
     }
   } catch (error) {
+    if (requestId !== timeSlotsRequestId) return;
     console.error("Error fetching time slots:", error);
     timeSlotsForRate.value = [];
   } finally {
-    isLoadingTimeSlots.value = false;
+    if (requestId === timeSlotsRequestId) {
+      isLoadingTimeSlots.value = false;
+    }
   }
 };
 
+const getSelectedDeliveryTier = () => {
+  return (deliveryTiersList.value || []).find(
+    (tier) => Number(tier.dt_id) === Number(selectedDummyDeliveryOption.value),
+  );
+};
+
+const SLOT_LOOKUP_BUFFER_MINUTES = 15;
+
 const getCheckoutBufferMinutes = () => {
+  const selectedBuffer = Number(getSelectedDeliveryTier()?.buffer_minutes);
+  if (!Number.isNaN(selectedBuffer) && selectedBuffer > 0) {
+    return selectedBuffer;
+  }
   const buffers = (deliveryTiersList.value || [])
     .map((tier) => Number(tier.buffer_minutes))
     .filter((mins) => !Number.isNaN(mins) && mins > 0);
-  return buffers.length ? buffers[0] : 15;
+  return buffers.length ? buffers[0] : SLOT_LOOKUP_BUFFER_MINUTES;
+};
+
+const getSlotLookupBufferMinutes = () => SLOT_LOOKUP_BUFFER_MINUTES;
+
+const getTierLookupHms = (tier) => {
+  const deliveryByLabel = tier?.delivery_by;
+  if (!deliveryByLabel) return null;
+  const deliveryBy = moment(
+    deliveryByLabel,
+    ["hh:mm A", "h:mm A", "HH:mm:ss", "HH:mm"],
+    true,
+  );
+  if (!deliveryBy.isValid()) return null;
+  return addMinutesToHms(
+    deliveryBy.format("HH:mm:ss"),
+    SLOT_LOOKUP_BUFFER_MINUTES,
+  );
+};
+
+const formatHmsToAmPm = (hms) => {
+  if (!hms) return "—";
+  const parsed = moment(hms, "HH:mm:ss", true);
+  return parsed.isValid() ? parsed.format("hh:mm A") : hms;
+};
+
+const getTierBufferTestLabel = (tier) => {
+  const dbBuffer = Number(tier?.buffer_minutes);
+  const dbBufferText = Number.isNaN(dbBuffer) ? "n/a" : `${dbBuffer} min`;
+  const lookup = getTierLookupHms(tier);
+  const slot = (timeSlotsForRate.value || []).find((s) => {
+    const start = toHms(s.start_time);
+    const end = toHms(s.end_time);
+    return start && end && lookup && lookup >= start && lookup <= end;
+  });
+  return `TEST: DB buffer ${dbBufferText} | By ${tier?.delivery_by || "—"} + ${SLOT_LOOKUP_BUFFER_MINUTES} = ${formatHmsToAmPm(lookup)} → ${slot?.slot_from_to || "no slot"}`;
+};
+
+const toHms = (value) => {
+  if (value == null || value === "") return null;
+  const match = String(value).match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+  if (!match) return null;
+  const hour = Number(match[1]);
+  if (Number.isNaN(hour) || hour > 23) return null;
+  return `${String(hour).padStart(2, "0")}:${match[2]}:${match[3] || "00"}`;
+};
+
+const addMinutesToHms = (hms, minutes) => {
+  if (!hms) return null;
+  const [hour, min, sec] = hms.split(":").map(Number);
+  let total = hour * 60 + min + Number(minutes || 0);
+  total = ((total % (24 * 60)) + 24 * 60) % (24 * 60);
+  const nextHour = Math.floor(total / 60);
+  const nextMin = total % 60;
+  return `${String(nextHour).padStart(2, "0")}:${String(nextMin).padStart(2, "0")}:${String(sec || 0).padStart(2, "0")}`;
 };
 
 const parseSlotStart = (slot) => {
@@ -3474,22 +3565,54 @@ const filterSlotsByCheckoutBuffer = (slots, isToday) => {
   });
 };
 
+const nowHms = () => moment().tz(getDeliveryTimezone()).format("HH:mm:ss");
+
+const filterSlotsByEndTime = (slots) => {
+  if (!Array.isArray(slots)) return [];
+  const cutoff = addMinutesToHms(nowHms(), getCheckoutBufferMinutes());
+  return slots.filter((slot) => {
+    const end = toHms(slot.end_time);
+    return end && cutoff && end >= cutoff;
+  });
+};
+
+const getSlotLookupHms = () => {
+  const selectedTier = getSelectedDeliveryTier();
+  const deliveryByLabel = selectedTier?.delivery_by;
+  if (deliveryByLabel) {
+    const deliveryBy = moment(
+      deliveryByLabel,
+      ["hh:mm A", "h:mm A", "HH:mm:ss", "HH:mm"],
+      true,
+    );
+    if (deliveryBy.isValid()) {
+      return addMinutesToHms(
+        deliveryBy.format("HH:mm:ss"),
+        getSlotLookupBufferMinutes(),
+      );
+    }
+  }
+  return addMinutesToHms(nowHms(), getCheckoutBufferMinutes());
+};
+
 const pickSlotForCutoff = (slots) => {
   if (!Array.isArray(slots) || !slots.length) return null;
-  const cutoff = getCheckoutCutoff();
-  const containing = slots.find((slot) => {
-    const start = parseSlotStart(slot);
-    const end = parseSlotEnd(slot);
-    return (
-      start &&
-      start.isValid() &&
-      end &&
-      end.isValid() &&
-      !cutoff.isBefore(start) &&
-      !cutoff.isAfter(end)
-    );
-  });
-  return containing || slots[0];
+  const isToday = selectedDummyDate.value === sevenDaysList.value[0];
+  if (!isToday) {
+    return slots[0];
+  }
+
+  const lookup = getSlotLookupHms();
+  if (!lookup) return null;
+
+  // WHERE lookup BETWEEN start_time AND end_time
+  return (
+    slots.find((slot) => {
+      const start = toHms(slot.start_time);
+      const end = toHms(slot.end_time);
+      return start && end && lookup >= start && lookup <= end;
+    }) || null
+  );
 };
 
 watch(selectedDeliveryRate, (rateId) => {
@@ -3498,6 +3621,17 @@ watch(selectedDeliveryRate, (rateId) => {
   if (rateId) {
     getTimeSlotsForRate();
   }
+});
+
+watch(selectedDummyDeliveryOption, (dtId) => {
+  if (!dtId) return;
+  if (selectedDummyDate.value !== sevenDaysList.value[0]) return;
+  if (timeSlotsForRate.value.length) {
+    const picked = pickSlotForCutoff(timeSlotsForRate.value);
+    selectedTimeSlotForRate.value = picked ? picked.time_slot_id : null;
+    return;
+  }
+  getTimeSlotsForRate();
 });
 const payLater = ref(false);
 const havePaid = ref(false);
@@ -5023,9 +5157,7 @@ const nextStep = async (value) => {
       };
       return;
     }
-    getBiryaniRunAddress();
-    getDeliveryTiers(cart.value[0]?.restaurant_id);
-    getDeliveryRates();
+    await initializeStep3Delivery();
   }
   step.value = value;
 };
@@ -5079,10 +5211,37 @@ const fetchPeakNonPeakInfo = async (restaurantId) => {
     );
     peakNonPeakInfo.value = response.data?.data;
     if (selectedDummyDate.value === sevenDaysList.value[0]) {
-      getTimeSlotsForRate();
+      await getTimeSlotsForRate();
     }
   } catch (error) {
     console.error("Error fetching peak non peak info:", error);
+  }
+};
+
+const initializeStep3Delivery = async () => {
+  const restaurantId = cart.value[0]?.restaurant_id;
+  selectedDummyDate.value = moment()
+    .tz(getDeliveryTimezone())
+    .format("ddd DD");
+  selectedDeliveryRate.value = null;
+  selectedTimeSlotForRate.value = null;
+  selectedDummyDeliveryOption.value = null;
+  timeSlotsForRate.value = [];
+
+  await Promise.all([
+    getDeliveryTiers(restaurantId),
+    getDeliveryRates(),
+    getBiryaniRunAddress(),
+  ]);
+
+  if (restaurantId && filteredAddress.value?.distance) {
+    await fetchPeakNonPeakInfo(restaurantId);
+  }
+
+  selectDefaultDeliveryTier();
+
+  if (selectedDummyDate.value === sevenDaysList.value[0]) {
+    await getTimeSlotsForRate();
   }
 };
 
@@ -5164,8 +5323,6 @@ watch(step, (newStep) => {
   if (newStep === 3) {
     selectedDummyDate.value = moment().tz(getDeliveryTimezone()).format("ddd DD");
     selectedDeliveryRate.value = null;
-    selectedTimeSlotForRate.value = null;
-    selectedDummyDeliveryOption.value = null;
   }
 });
 
@@ -5213,7 +5370,10 @@ watch(
     if (newAddress && newAddress.distance) {
       fetchExtraPerKmRate(newAddress.distance);
       fetchPeakNonPeakInfo(cart.value[0]?.restaurant_id);
-      if (selectedDeliveryRate.value) {
+      if (
+        selectedDummyDate.value === sevenDaysList.value[0] ||
+        selectedDeliveryRate.value
+      ) {
         getTimeSlotsForRate();
       }
     }
@@ -5250,7 +5410,10 @@ const getBiryaniRunAddress = async () => {
     }
 
     biryaniRunAddresses.value = Array.isArray(data) ? data : [];
-    if (selectedDeliveryRate.value) {
+    if (
+      selectedDummyDate.value === sevenDaysList.value[0] ||
+      selectedDeliveryRate.value
+    ) {
       getTimeSlotsForRate();
     } else {
       updateCartDeliveryInfo();
