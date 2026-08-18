@@ -99,7 +99,10 @@
                         <div class="d-flex align-start justify-space-between">
                           <div
                             class="font-weight-bold text-black text-subtitle-1 text-truncate pr-2"
-                            style="font-size: 1.1rem !important; line-height: 1.2"
+                            style="
+                              font-size: 1.1rem !important;
+                              line-height: 1.2;
+                            "
                           >
                             {{ cart[0]?.restaurant_name || "" }}
                           </div>
@@ -1279,14 +1282,13 @@
                   >
                     <p class="text-subtitle-2 font-weight-bold">
                       <template v-if="isRestaurant24Hrs">
-                        <span class="text-green-lighten-1">Open Now</span> |
-                        24 Hours
+                        <span class="text-green-lighten-1">Open Now</span> | 24
+                        Hours
                       </template>
                       <template v-else-if="restaurantOpenStatus === 'open'">
                         <span class="text-green-lighten-1">Open Now</span>
                         <template v-if="restaurantClosesInLabel">
-                          |
-                          Closes in
+                          | Closes in
                           <span class="text-red-darken-2">{{
                             restaurantClosesInLabel
                           }}</span>
@@ -1590,142 +1592,153 @@
                             v-for="tier in displayedDeliveryTiers"
                             :key="tier.dt_id"
                           >
-                          <div
-                            @click="selectedDummyDeliveryOption = tier.dt_id"
-                            class="d-flex align-center justify-space-between pa-3 rounded-lg cursor-pointer transition-all elevation-1 bg-white"
-                            :style="
-                              selectedDummyDeliveryOption === tier.dt_id
-                                ? {
-                                    border: '1.5px solid #a03022',
-                                    backgroundColor: '#fbebe9',
-                                  }
-                                : {
-                                    border: '1px solid #e0e0e0',
-                                  }
-                            "
-                          >
-                            <div class="d-flex align-center ga-2">
-                              <img
-                                v-if="tier.icon_image"
-                                :src="tier.icon_image"
-                                style="
-                                  width: 24px;
-                                  height: 24px;
-                                  object-fit: contain;
-                                "
-                                class="mr-3"
-                                alt="icon"
-                              />
-                              <v-icon
-                                size="24"
-                                :color="
-                                  selectedDummyDeliveryOption === tier.dt_id
-                                    ? 'red-darken-4'
-                                    : 'grey-darken-1'
-                                "
-                                v-else
-                              >
-                                {{ getDeliveryIcon(tier.delivery_tier_name) }}
-                              </v-icon>
-                              <div>
-                                <div
-                                  class="font-weight-bold text-subtitle-2 text-black"
+                            <div
+                              @click="selectedDummyDeliveryOption = tier.dt_id"
+                              class="d-flex align-center justify-space-between pa-3 rounded-lg cursor-pointer transition-all elevation-1 bg-white"
+                              :style="
+                                selectedDummyDeliveryOption === tier.dt_id
+                                  ? {
+                                      border: '1.5px solid #a03022',
+                                      backgroundColor: '#fbebe9',
+                                    }
+                                  : {
+                                      border: '1px solid #e0e0e0',
+                                    }
+                              "
+                            >
+                              <div class="d-flex align-center ga-2">
+                                <img
+                                  v-if="tier.icon_image"
+                                  :src="tier.icon_image"
+                                  style="
+                                    width: 24px;
+                                    height: 24px;
+                                    object-fit: contain;
+                                  "
+                                  class="mr-3"
+                                  alt="icon"
+                                />
+                                <v-icon
+                                  size="24"
+                                  :color="
+                                    selectedDummyDeliveryOption === tier.dt_id
+                                      ? 'red-darken-4'
+                                      : 'grey-darken-1'
+                                  "
+                                  v-else
                                 >
-                                  {{ tier.delivery_tier_name }}
-                                </div>
-                                <div class="d-flex">
-                                  <span class="text-caption text-grey-darken-1">
-                                    <template v-if="tier.dt_id === ORDER_FOR_LATER_ID">
-                                      From 09:00 PM
-                                    </template>
-                                    <template v-else>
-                                      By {{ tier.delivery_by }}
-                                    </template>
-                                  </span>
+                                  {{ getDeliveryIcon(tier.delivery_tier_name) }}
+                                </v-icon>
+                                <div>
                                   <div
-                                    style="font-size: 11px"
-                                    class="text-green-darken-1"
-                                    v-if="
-                                      tier.dt_id !== ORDER_FOR_LATER_ID &&
-                                      (userEmail ===
-                                        'charltonmendes@gmail.com' ||
-                                      userEmail === 'ajiprsty4713@gmail.com')
-                                    "
+                                    class="font-weight-bold text-subtitle-2 text-black"
                                   >
-                                    (
-                                    <span>
-                                      S$
-                                      {{
-                                        (
-                                          parseFloat(
-                                            peakNonPeakInfo?.base_fee || 0,
-                                          ) *
-                                          parseFloat(
-                                            peakNonPeakInfo?.surge_multiplier ||
-                                              1,
-                                          )
-                                        ).toFixed(2)
-                                      }}</span
+                                    {{ tier.delivery_tier_name }}
+                                  </div>
+                                  <div class="d-flex">
+                                    <span
+                                      class="text-caption text-grey-darken-1"
                                     >
-                                    +
-                                    <span>
-                                      S$
-                                      {{
-                                        (
-                                          Number(
-                                            extraRateInfo?.extraDistance || 0,
-                                          ) *
-                                          Number(
-                                            peakNonPeakInfo?.peak_non_peak ==
-                                              "NP"
-                                              ? extraRateInfo?.per_km_rate_non_peak ||
-                                                  0
-                                              : extraRateInfo?.per_km_rate_peak ||
-                                                  0,
-                                          )
-                                        ).toFixed(2)
-                                      }}</span
-                                    >
-                                    +
-                                    <span>
-                                      S$ {{ getNonStackFee(tier?.dt_id) }}
+                                      <template
+                                        v-if="tier.dt_id === ORDER_FOR_LATER_ID"
+                                      >
+                                        From 09:00 PM
+                                      </template>
+                                      <template v-else>
+                                        By {{ tier.delivery_by }}
+                                      </template>
                                     </span>
-                                    )
+                                    <div
+                                      style="font-size: 11px"
+                                      class="text-green-darken-1"
+                                      v-if="
+                                        tier.dt_id !== ORDER_FOR_LATER_ID &&
+                                        (userEmail ===
+                                          'charltonmendes@gmail.com' ||
+                                          userEmail ===
+                                            'ajiprsty4713@gmail.com')
+                                      "
+                                    >
+                                      (
+                                      <span>
+                                        S$
+                                        {{
+                                          (
+                                            parseFloat(
+                                              peakNonPeakInfo?.base_fee || 0,
+                                            ) *
+                                            parseFloat(
+                                              peakNonPeakInfo?.surge_multiplier ||
+                                                1,
+                                            )
+                                          ).toFixed(2)
+                                        }}</span
+                                      >
+                                      +
+                                      <span>
+                                        S$
+                                        {{
+                                          (
+                                            Number(
+                                              extraRateInfo?.extraDistance || 0,
+                                            ) *
+                                            Number(
+                                              peakNonPeakInfo?.peak_non_peak ==
+                                                "NP"
+                                                ? extraRateInfo?.per_km_rate_non_peak ||
+                                                    0
+                                                : extraRateInfo?.per_km_rate_peak ||
+                                                    0,
+                                            )
+                                          ).toFixed(2)
+                                        }}</span
+                                      >
+                                      +
+                                      <span>
+                                        S$ {{ getNonStackFee(tier?.dt_id) }}
+                                      </span>
+                                      )
+                                    </div>
                                   </div>
                                 </div>
                               </div>
+                              <div
+                                v-if="tier.dt_id !== ORDER_FOR_LATER_ID"
+                                class="font-weight-bold text-subtitle-2 text-blue-darken-3"
+                              >
+                                S$
+                                {{
+                                  (
+                                    parseFloat(peakNonPeakInfo?.base_fee || 0) *
+                                      parseFloat(
+                                        peakNonPeakInfo?.surge_multiplier || 1,
+                                      ) +
+                                    Number(extraRateInfo?.extraDistance || 0) *
+                                      (peakNonPeakInfo?.peak_non_peak == "NP"
+                                        ? Number(
+                                            extraRateInfo?.per_km_rate_non_peak ||
+                                              0,
+                                          )
+                                        : Number(
+                                            extraRateInfo?.per_km_rate_peak ||
+                                              0,
+                                          )) +
+                                    Number(getNonStackFee(tier?.dt_id) || 0)
+                                  ).toFixed(2)
+                                }}
+                              </div>
                             </div>
                             <div
-                              v-if="tier.dt_id !== ORDER_FOR_LATER_ID"
-                              class="font-weight-bold text-subtitle-2 text-blue-darken-3"
+                              class="px-1 pt-1"
+                              style="
+                                color: #d32f2f;
+                                font-size: 11px;
+                                font-weight: 700;
+                                line-height: 1.3;
+                              "
                             >
-                              S$
-                              {{
-                                (
-                                  parseFloat(peakNonPeakInfo?.base_fee || 0) *
-                                    parseFloat(
-                                      peakNonPeakInfo?.surge_multiplier || 1,
-                                    ) +
-                                  Number(extraRateInfo?.extraDistance || 0) *
-                                    (peakNonPeakInfo?.peak_non_peak == "NP"
-                                      ? Number(
-                                          extraRateInfo?.per_km_rate_non_peak ||
-                                            0,
-                                        )
-                                      : Number(
-                                          extraRateInfo?.per_km_rate_peak || 0,
-                                        )) +
-                                  Number(getNonStackFee(tier?.dt_id) || 0)
-                                ).toFixed(2)
-                              }}
+                              {{ getTierBufferTestLabel(tier) }}
                             </div>
-                          </div>
-                          <div
-                            class="px-1 pt-1"
-                            style="color: #d32f2f; font-size: 11px; font-weight: 700; line-height: 1.3;"
-                          >
-                            {{ getTierBufferTestLabel(tier) }}
-                          </div>
                           </div>
                         </template>
                         <div
@@ -1748,7 +1761,9 @@
                               : 'border: 1px solid #e0e0e0 !important'
                           "
                         >
-                          <div class="text-body-2 font-weight-medium text-black">
+                          <div
+                            class="text-body-2 font-weight-medium text-black"
+                          >
                             {{ slot.slot_from_to }}
                           </div>
                         </div>
@@ -1825,8 +1840,15 @@
                 <p class="text-red-darken-3 font-weight-black text-caption">
                   (Please press Back button to Edit any changes required)
                 </p>
-                <template v-for="(product, index) in cart" :key="index">
-                  <div class="d-flex align-center px-3 py-1">
+                <template v-for="{ isHeader, category, product, key } in flatGroupedCart" :key="key">
+                  <div
+                    v-if="isHeader"
+                    class="text-subtitle-1 font-weight-bold mt-4 mb-1 px-3 text-orange-darken-3"
+                    style="font-family: serif; font-size: 1.1rem !important"
+                  >
+                    {{ category }}
+                  </div>
+                  <div v-else class="d-flex align-center px-3 py-1">
                     <div class="flex-grow-0 flex-shrink-0">
                       <v-img
                         class="rounded bg-white"
@@ -2624,10 +2646,7 @@
                       <div class="d-flex align-start justify-space-between">
                         <div
                           class="font-weight-bold text-black text-subtitle-1 text-truncate pr-2"
-                          style="
-                            font-size: 1.1rem !important;
-                            line-height: 1.2;
-                          "
+                          style="font-size: 1.1rem !important; line-height: 1.2"
                         >
                           {{ cart[0]?.restaurant_name || "" }}
                         </div>
@@ -2706,10 +2725,9 @@
                         class="mt-2 font-weight-bold"
                         style="font-size: 0.72rem; line-height: 1.25"
                       >
-                        <span
-                          v-if="cart[0]?.tag_line"
-                          style="color: #2e7d32"
-                          >{{ cart[0].tag_line }}</span
+                        <span v-if="cart[0]?.tag_line" style="color: #2e7d32">{{
+                          cart[0].tag_line
+                        }}</span
                         ><span
                           v-if="cart[0]?.tag_line && cart[0]?.since"
                           class="text-black"
@@ -2853,7 +2871,9 @@
                   class="mt-2 text-caption font-weight-bold d-flex align-center flex-wrap"
                   style="line-height: 1.3"
                 >
-                  <span class="text-black">Add more Dishes and press --- &gt;</span>
+                  <span class="text-black"
+                    >Add more Dishes and press --- &gt;</span
+                  >
                   <span
                     class="text-blue cursor-pointer ml-1"
                     @click="isRestaurant = false"
@@ -2867,7 +2887,12 @@
               >
                 <div class="">
                   <template
-                    v-for="{ isHeader, category, product, key } in menuDisplayRows"
+                    v-for="{
+                      isHeader,
+                      category,
+                      product,
+                      key,
+                    } in menuDisplayRows"
                     :key="key"
                   >
                     <div
@@ -3310,11 +3335,15 @@ const deliveryType = ref("delivery"); // 'pickup' or 'delivery'
 const sevenDaysList = computed(() => {
   const days = [];
   for (let i = 0; i < 7; i++) {
-    days.push(moment().tz(getDeliveryTimezone()).add(i, "days").format("ddd DD"));
+    days.push(
+      moment().tz(getDeliveryTimezone()).add(i, "days").format("ddd DD"),
+    );
   }
   return days;
 });
-const selectedDummyDate = ref(moment().tz(getDeliveryTimezone()).format("ddd DD"));
+const selectedDummyDate = ref(
+  moment().tz(getDeliveryTimezone()).format("ddd DD"),
+);
 const selectedDummyAddressChip = ref("Home");
 const selectedDummyDeliveryOption = ref(null);
 const deliveryTiersList = ref([]);
@@ -3364,8 +3393,9 @@ const selectDefaultDeliveryTier = () => {
       .toLowerCase()
       .includes("instant"),
   );
-  selectedDummyDeliveryOption.value = (instant || deliveryTiersList.value[0])
-    .dt_id;
+  selectedDummyDeliveryOption.value = (
+    instant || deliveryTiersList.value[0]
+  ).dt_id;
 };
 
 const getDeliveryTiers = async (restaurantId) => {
@@ -3511,7 +3541,8 @@ const formatHmsToAmPm = (hms) => {
 
 const getTierBufferTestLabel = (tier) => {
   if (String(tier?.dt_id) === ORDER_FOR_LATER_ID) {
-    const closing = formatHmsToAmPm(getRestaurantClosingHms()) || "closing time";
+    const closing =
+      formatHmsToAmPm(getRestaurantClosingHms()) || "closing time";
     return `TEST: after 08:50 PM until restaurant closing (${closing})`;
   }
   const dbBuffer = Number(tier?.buffer_minutes);
@@ -3555,7 +3586,11 @@ const parseSlotStart = (slot) => {
   const label = slot?.slot_from_to || "";
   const match = label.match(/^(\d{1,2}:\d{2}\s*(?:am|pm))/i);
   if (!match) return null;
-  return moment.tz(match[1], ["hh:mm A", "h:mm A", "HH:mm"], getDeliveryTimezone());
+  return moment.tz(
+    match[1],
+    ["hh:mm A", "h:mm A", "HH:mm"],
+    getDeliveryTimezone(),
+  );
 };
 
 const parseSlotEnd = (slot) => {
@@ -3569,7 +3604,11 @@ const parseSlotEnd = (slot) => {
   const label = slot?.slot_from_to || "";
   const match = label.match(/to\s+(\d{1,2}:\d{2}\s*(?:am|pm))/i);
   if (!match) return null;
-  return moment.tz(match[1], ["hh:mm A", "h:mm A", "HH:mm"], getDeliveryTimezone());
+  return moment.tz(
+    match[1],
+    ["hh:mm A", "h:mm A", "HH:mm"],
+    getDeliveryTimezone(),
+  );
 };
 
 const getCheckoutCutoff = () => {
@@ -3911,10 +3950,7 @@ const ensureAllMenuItemsLoaded = async () => {
           [cat.mcId]: (response.data.data || []).map(mapMenuCategoryItem),
         };
       } catch (error) {
-        console.error(
-          `Error fetching items for category ${cat.name}:`,
-          error,
-        );
+        console.error(`Error fetching items for category ${cat.name}:`, error);
       }
     }),
   );
@@ -4198,8 +4234,7 @@ const userEmail = computed(() => {
 const isDeliveryTestUser = computed(() => {
   const email = String(userEmail.value || "").toLowerCase();
   return (
-    email === "charltonmendes@gmail.com" ||
-    email === "ajiprsty4713@gmail.com"
+    email === "charltonmendes@gmail.com" || email === "ajiprsty4713@gmail.com"
   );
 });
 
@@ -4237,8 +4272,14 @@ const formattedTimeSlot = computed(() => {
   if (!item) return "";
   if (item.time_slot) return item.time_slot;
   if (item.delivery_by) {
-    const by = moment(item.delivery_by, ["HH:mm:ss", "hh:mm A", "h:mm A"], true);
-    return by.isValid() ? `By ${by.format("hh:mm A")}` : `By ${item.delivery_by}`;
+    const by = moment(
+      item.delivery_by,
+      ["HH:mm:ss", "hh:mm A", "h:mm A"],
+      true,
+    );
+    return by.isValid()
+      ? `By ${by.format("hh:mm A")}`
+      : `By ${item.delivery_by}`;
   }
   const selectedSlot = timeSlotsForRate.value.find(
     (slot) => slot.time_slot_id === selectedTimeSlotForRate.value,
@@ -4506,16 +4547,18 @@ const flatGroupedCart = computed(() => {
       : Number.MAX_SAFE_INTEGER;
 
   cart.value.forEach((item) => {
-    const isBiryani =
-      !item.menu_category || item.menu_category === "Biryani Menu";
-    const category = isBiryani ? "__biryani__" : item.menu_category;
+    // const isBiryani =
+    //   !item.menu_category || item.menu_category === "Biryani Menu";
+    // const category = isBiryani ? "__biryani__" : item.menu_category;
+    const category = item.menu_category;
 
     if (!categoryGroups[category]) {
       categoryGroups[category] = {
         mcgId: mcgKey(item),
         items: [],
-        isBiryani,
-        name: isBiryani ? null : item.menu_category,
+        // isBiryani,
+        // name: isBiryani ? null : item.menu_category,
+        name: item.menu_category,
       };
     }
     categoryGroups[category].items.push(item);
@@ -4528,7 +4571,11 @@ const flatGroupedCart = computed(() => {
   });
 
   Object.values(categoryGroups)
-    .sort((a, b) => a.mcgId - b.mcgId)
+    .sort((a, b) => {
+      if (a.name === "Biryani Run" || a.name === "Biryani Menu") return -1;
+      if (b.name === "Biryani Run" || b.name === "Biryani Menu") return 1;
+      return a.mcgId - b.mcgId;
+    })
     .forEach((group) => {
       if (!group.isBiryani) {
         result.push({
@@ -4546,6 +4593,7 @@ const flatGroupedCart = computed(() => {
       });
     });
 
+  console.log(result);
   return result;
 });
 
@@ -4654,7 +4702,9 @@ const handleClearCart = async () => {
 };
 
 // Remove item from cart
-const handleRemoveFromCart = (product) => {
+const handleRemoveFromCart = async (product) => {
+  const isLastItem = cart.value && cart.value.length === 1;
+
   const data = {
     cart_id: cart.value[0]?.cart_id,
   };
@@ -4672,7 +4722,14 @@ const handleRemoveFromCart = (product) => {
     }
   }
 
-  store.dispatch("removeFromCart", data);
+  try {
+    await store.dispatch("removeFromCart", data);
+    if (isLastItem) {
+      emit("update:viewCart", false);
+    }
+  } catch (error) {
+    console.error("Error removing from cart:", error);
+  }
 };
 
 const handleUpdateQuantity = (product, change) => {
@@ -5302,9 +5359,7 @@ const fetchPeakNonPeakInfo = async (restaurantId) => {
 
 const initializeStep3Delivery = async () => {
   const restaurantId = cart.value[0]?.restaurant_id;
-  selectedDummyDate.value = moment()
-    .tz(getDeliveryTimezone())
-    .format("ddd DD");
+  selectedDummyDate.value = moment().tz(getDeliveryTimezone()).format("ddd DD");
   selectedDeliveryRate.value = null;
   selectedTimeSlotForRate.value = null;
   selectedDummyDeliveryOption.value = null;
@@ -5405,7 +5460,9 @@ watch(
 
 watch(step, (newStep) => {
   if (newStep === 3) {
-    selectedDummyDate.value = moment().tz(getDeliveryTimezone()).format("ddd DD");
+    selectedDummyDate.value = moment()
+      .tz(getDeliveryTimezone())
+      .format("ddd DD");
     selectedDeliveryRate.value = null;
   }
 });

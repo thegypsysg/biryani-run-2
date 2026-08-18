@@ -198,10 +198,17 @@
               </div>
 
               <template
-                v-for="product in sortedOrderItems"
-                :key="product?.mrp_id || product?.brp_id || product?.product_id"
+                v-for="{ isHeader, category, product, key } in flatGroupedOrderItems"
+                :key="key"
               >
-                <div class="d-flex align-center px-3 py-1">
+                <div
+                  v-if="isHeader"
+                  class="text-subtitle-1 font-weight-bold mt-4 mb-1 px-3 text-orange-darken-3"
+                  style="font-family: serif; font-size: 1.1rem !important"
+                >
+                  {{ category }}
+                </div>
+                <div v-else class="d-flex align-center px-3 py-1">
                   <div class="flex-grow-0 flex-shrink-0">
                     <v-img
                       class="rounded bg-white"
@@ -496,11 +503,61 @@ const mcgSortKey = (item) => {
   return Number.MAX_SAFE_INTEGER;
 };
 
-const sortedOrderItems = computed(() => {
+const flatGroupedOrderItems = computed(() => {
+  const result = [];
+  const categoryGroups = {};
+
   const items = orderDetail.value?.biryaniRunPrice;
   if (!Array.isArray(items)) return [];
 
-  return [...items].sort((a, b) => mcgSortKey(a) - mcgSortKey(b));
+  items.forEach((item) => {
+    // Gunakan fallback ke field lain jika menu_category tidak ada, atau infer dari mrp_id/brp_id
+    let category = item.menu_category || item.category_name || item.category || item.menu_header;
+    if (typeof category === 'object') {
+      category = category.menu_header || "Category Dishes";
+    }
+    if (!category || category === "undefined") {
+      category = item.mrp_id ? "Category Dishes" : "Biryani Menu";
+    }
+
+    if (!categoryGroups[category]) {
+      categoryGroups[category] = {
+        mcgId: mcgSortKey(item),
+        items: [],
+        name: category,
+      };
+    }
+    categoryGroups[category].items.push(item);
+    if (item.mcg_id != null && item.mcg_id !== "") {
+      categoryGroups[category].mcgId = Math.min(
+        categoryGroups[category].mcgId,
+        Number(item.mcg_id),
+      );
+    }
+  });
+
+  Object.values(categoryGroups)
+    .sort((a, b) => {
+      if (a.name === "Biryani Run" || a.name === "Biryani Menu") return -1;
+      if (b.name === "Biryani Run" || b.name === "Biryani Menu") return 1;
+      return a.mcgId - b.mcgId;
+    })
+    .forEach((group) => {
+      result.push({
+        isHeader: true,
+        category: group.name,
+        key: `header-${group.name}`,
+      });
+      group.items.forEach((item) => {
+        result.push({
+          isHeader: false,
+          product: item,
+          key: `item-${item.mrp_id || item.brp_id || item.product_id}-${item.id || ""}`,
+        });
+      });
+    });
+
+  return result;
 });
 
 const handleResize = () => {
