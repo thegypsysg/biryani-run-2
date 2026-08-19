@@ -1636,23 +1636,29 @@
                                     {{ tier.delivery_tier_name }}
                                   </div>
                                   <div class="d-flex">
-                                    <span
-                                      class="text-caption text-grey-darken-1"
-                                    >
-                                      <template
-                                        v-if="tier.dt_id === ORDER_FOR_LATER_ID"
-                                      >
-                                        From 09:00 PM
+                                    <span class="text-caption">
+                                      <template v-if="isLaterTier(tier)">
+                                        <span
+                                          class="font-weight-bold text-black"
+                                          >Closes at</span
+                                        >
+                                        <span
+                                          v-if="getRestaurantClosingLabel()"
+                                          class="font-weight-bold text-blue-darken-3 ml-1"
+                                          >{{ getRestaurantClosingLabel() }}</span
+                                        >
                                       </template>
                                       <template v-else>
-                                        By {{ tier.delivery_by }}
+                                        <span class="text-grey-darken-1"
+                                          >By {{ tier.delivery_by }}</span
+                                        >
                                       </template>
                                     </span>
                                     <div
                                       style="font-size: 11px"
                                       class="text-green-darken-1"
                                       v-if="
-                                        tier.dt_id !== ORDER_FOR_LATER_ID &&
+                                        !isLaterTier(tier) &&
                                         (userEmail ===
                                           'charltonmendes@gmail.com' ||
                                           userEmail ===
@@ -1703,7 +1709,7 @@
                                 </div>
                               </div>
                               <div
-                                v-if="tier.dt_id !== ORDER_FOR_LATER_ID"
+                                v-if="!isLaterTier(tier)"
                                 class="font-weight-bold text-subtitle-2 text-blue-darken-3"
                               >
                                 S$
@@ -1737,91 +1743,95 @@
                                 line-height: 1.3;
                               "
                             >
-                              {{ getTierBufferTestLabel(tier) }}
+                              <!-- {{ getTierBufferTestLabel(tier) }} -->
                             </div>
                           </div>
                         </template>
-                        <div
-                          v-if="isLoadingTimeSlots"
-                          class="d-flex justify-center pa-4"
-                        >
-                          <v-progress-circular
-                            indeterminate
-                            color="primary"
-                          ></v-progress-circular>
-                        </div>
-                        <div
-                          v-for="slot in timeSlotsForRate"
-                          :key="'today-' + slot.time_slot_id"
-                          @click="selectedTimeSlotForRate = slot.time_slot_id"
-                          class="d-flex align-center justify-space-between px-4 py-3 rounded cursor-pointer bg-white"
-                          :style="
-                            selectedTimeSlotForRate === slot.time_slot_id
-                              ? 'border: 1.5px solid #a03022 !important'
-                              : 'border: 1px solid #e0e0e0 !important'
-                          "
-                        >
-                          <div
-                            class="text-body-2 font-weight-medium text-black"
-                          >
-                            {{ slot.slot_from_to }}
-                          </div>
-                        </div>
                       </template>
 
-                      <!-- FOR DATES OTHER THAN TODAY -->
-                      <template v-else>
-                        <div
-                          v-if="isLoadingTimeSlots"
-                          class="d-flex justify-center pa-4"
-                        >
-                          <v-progress-circular
-                            indeterminate
-                            color="primary"
-                          ></v-progress-circular>
-                        </div>
-                        <template v-else>
-                          <div
+                      <div v-if="isLoadingTimeSlots" class="d-flex justify-center pa-4">
+                        <v-progress-circular
+                          indeterminate
+                          color="primary"
+                        ></v-progress-circular>
+                      </div>
+                      <v-menu
+                        v-else-if="timeSlotsForRate.length"
+                        v-model="isTimeSlotMenuOpen"
+                        location="bottom"
+                        :offset="6"
+                        max-height="280"
+                        content-class="time-slot-menu"
+                      >
+                        <template #activator="{ props: menuProps, isActive }">
+                          <button
+                            v-bind="menuProps"
+                            type="button"
+                            class="time-slot-dropdown"
+                            :class="{
+                              'is-open': isActive,
+                              'is-selected': Boolean(selectedTimeSlotObject),
+                            }"
+                          >
+                            <span class="time-slot-dropdown__icon">
+                              <v-icon size="22">mdi-clock-outline</v-icon>
+                            </span>
+                            <span class="time-slot-dropdown__text">
+                              <span class="time-slot-dropdown__label"
+                                >Delivery window</span
+                              >
+                              <span class="time-slot-dropdown__value">
+                                {{
+                                  selectedTimeSlotObject?.slot_from_to ||
+                                  "Select a time slot"
+                                }}
+                              </span>
+                            </span>
+                            <span
+                              v-if="getSlotPriceLabel(selectedTimeSlotObject)"
+                              class="time-slot-dropdown__price"
+                            >
+                              {{ getSlotPriceLabel(selectedTimeSlotObject) }}
+                            </span>
+                            <v-icon
+                              class="time-slot-dropdown__chevron"
+                              size="22"
+                              >{{
+                                isActive
+                                  ? "mdi-chevron-up"
+                                  : "mdi-chevron-down"
+                              }}</v-icon
+                            >
+                          </button>
+                        </template>
+                        <v-list class="time-slot-menu__list py-1" density="compact">
+                          <v-list-item
                             v-for="slot in timeSlotsForRate"
                             :key="slot.time_slot_id"
-                            @click="selectedTimeSlotForRate = slot.time_slot_id"
-                            class="d-flex align-center justify-space-between px-4 py-3 rounded cursor-pointer bg-white"
-                            :style="
+                            :active="
                               selectedTimeSlotForRate === slot.time_slot_id
-                                ? 'border: 1.5px solid #a03022 !important'
-                                : 'border: 1px solid #e0e0e0 !important'
                             "
+                            color="#a03022"
+                            rounded="lg"
+                            class="time-slot-menu__item mx-1 my-1"
+                            @click="selectedTimeSlotForRate = slot.time_slot_id"
                           >
-                            <div
-                              class="text-body-2 font-weight-medium"
-                              :class="
-                                selectedTimeSlotForRate === slot.time_slot_id
-                                  ? 'text-black'
-                                  : slot.peak_non_peak === 'P'
-                                    ? 'font-weight-bold text-black'
-                                    : 'text-black'
-                              "
+                            <v-list-item-title
+                              class="font-weight-medium text-body-2"
                             >
                               {{ slot.slot_from_to }}
-                            </div>
-                            <div
-                              class="text-body-2 font-weight-bold"
-                              :class="
-                                selectedTimeSlotForRate === slot.time_slot_id
-                                  ? 'text-blue-darken-3'
-                                  : slot.peak_non_peak === 'P'
-                                    ? 'text-blue-darken-3'
-                                    : 'text-black'
-                              "
+                            </v-list-item-title>
+                            <template
+                              v-if="getSlotPriceLabel(slot)"
+                              #append
                             >
-                              S$
-                              {{
-                                Number(slot.total_delivery_charges).toFixed(2)
-                              }}
-                            </div>
-                          </div>
-                        </template>
-                      </template>
+                              <span class="time-slot-menu__price">
+                                {{ getSlotPriceLabel(slot) }}
+                              </span>
+                            </template>
+                          </v-list-item>
+                        </v-list>
+                      </v-menu>
                     </div>
                   </div>
                 </template>
@@ -3386,6 +3396,21 @@ const getDeliveryIcon = (name) => {
   return "mdi-truck-delivery-outline";
 };
 
+const isLaterTier = (tier) => {
+  if (!tier) return false;
+  if (tier.is_order_for_later === true || tier.is_order_for_later === 1) {
+    return true;
+  }
+  return String(tier.delivery_tier_name || "")
+    .toLowerCase()
+    .includes("later");
+};
+
+const isRelaxedTier = (tier) =>
+  String(tier?.delivery_tier_name || "")
+    .toLowerCase()
+    .includes("relaxed");
+
 const selectDefaultDeliveryTier = () => {
   if (!deliveryTiersList.value.length) return;
   const instant = deliveryTiersList.value.find((tier) =>
@@ -3393,8 +3418,11 @@ const selectDefaultDeliveryTier = () => {
       .toLowerCase()
       .includes("instant"),
   );
+  const standard = deliveryTiersList.value.find((tier) => !isLaterTier(tier));
   selectedDummyDeliveryOption.value = (
-    instant || deliveryTiersList.value[0]
+    instant ||
+    standard ||
+    deliveryTiersList.value[0]
   ).dt_id;
 };
 
@@ -3426,16 +3454,31 @@ const getDeliveryRates = async () => {
   }
 };
 
-const ORDER_FOR_LATER_ID = "order_for_later";
-const ORDER_FOR_LATER_AFTER_HMS = "20:50:00";
 const timeSlotsForRate = ref([]);
 const allTodayTimeSlots = ref([]);
 const selectedTimeSlotForRate = ref(null);
 const isLoadingTimeSlots = ref(false);
+const isTimeSlotMenuOpen = ref(false);
 let timeSlotsRequestId = 0;
 
-const isOrderForLaterSelected = () =>
-  String(selectedDummyDeliveryOption.value) === ORDER_FOR_LATER_ID;
+const selectedTimeSlotObject = computed(() =>
+  (timeSlotsForRate.value || []).find(
+    (slot) => slot.time_slot_id === selectedTimeSlotForRate.value,
+  ),
+);
+
+const getSlotPriceLabel = (slot) => {
+  if (slot?.total_delivery_charges == null || slot?.total_delivery_charges === "") {
+    return "";
+  }
+  const amount = Number(slot.total_delivery_charges);
+  return Number.isNaN(amount) ? "" : `S$ ${amount.toFixed(2)}`;
+};
+
+const isOrderForLaterSelected = () => isLaterTier(getSelectedDeliveryTier());
+const isRelaxedSelected = () => isRelaxedTier(getSelectedDeliveryTier());
+const usesRelaxedSlotWindow = () =>
+  isOrderForLaterSelected() || isRelaxedSelected();
 
 const getTimeSlotsForRate = async () => {
   const isToday = selectedDummyDate.value === sevenDaysList.value[0];
@@ -3499,8 +3542,33 @@ const getTimeSlotsForRate = async () => {
 
 const getSelectedDeliveryTier = () => {
   return (deliveryTiersList.value || []).find(
-    (tier) => Number(tier.dt_id) === Number(selectedDummyDeliveryOption.value),
+    (tier) => String(tier.dt_id) === String(selectedDummyDeliveryOption.value),
   );
+};
+
+const getRelaxedDeliveryTier = () => {
+  const list = deliveryTiersList.value || [];
+  const relaxed = list.find((tier) => isRelaxedTier(tier));
+  if (relaxed) return relaxed;
+  const laterIndex = list.findIndex((tier) => isLaterTier(tier));
+  if (laterIndex > 0) return list[laterIndex - 1];
+  return [...list].reverse().find((tier) => !isLaterTier(tier)) || null;
+};
+
+const parseDeliveryByHms = (deliveryByLabel) => {
+  const deliveryBy = moment(
+    deliveryByLabel,
+    ["hh:mm A", "h:mm A", "HH:mm:ss", "HH:mm"],
+    true,
+  );
+  return deliveryBy.isValid() ? deliveryBy.format("HH:mm:ss") : null;
+};
+
+const getRelaxedWindowStartHms = () => {
+  const tier = isRelaxedSelected()
+    ? getSelectedDeliveryTier()
+    : getRelaxedDeliveryTier() || getSelectedDeliveryTier();
+  return parseDeliveryByHms(tier?.delivery_by);
 };
 
 const SLOT_LOOKUP_BUFFER_MINUTES = 15;
@@ -3511,6 +3579,7 @@ const getCheckoutBufferMinutes = () => {
     return selectedBuffer;
   }
   const buffers = (deliveryTiersList.value || [])
+    .filter((tier) => !isLaterTier(tier))
     .map((tier) => Number(tier.buffer_minutes))
     .filter((mins) => !Number.isNaN(mins) && mins > 0);
   return buffers.length ? buffers[0] : SLOT_LOOKUP_BUFFER_MINUTES;
@@ -3540,10 +3609,16 @@ const formatHmsToAmPm = (hms) => {
 };
 
 const getTierBufferTestLabel = (tier) => {
-  if (String(tier?.dt_id) === ORDER_FOR_LATER_ID) {
+  if (isLaterTier(tier) || isRelaxedTier(tier)) {
     const closing =
-      formatHmsToAmPm(getRestaurantClosingHms()) || "closing time";
-    return `TEST: after 08:50 PM until restaurant closing (${closing})`;
+      getRestaurantClosingLabel() ||
+      formatHmsToAmPm(getRestaurantClosingHms()) ||
+      "closing time";
+    const fromLabel =
+      formatHmsToAmPm(getRelaxedWindowStartHms()) ||
+      getRelaxedDeliveryTier()?.delivery_by ||
+      "—";
+    return `TEST: from ${fromLabel} until restaurant closing (${closing})`;
   }
   const dbBuffer = Number(tier?.buffer_minutes);
   const dbBufferText = Number.isNaN(dbBuffer) ? "n/a" : `${dbBuffer} min`;
@@ -3680,8 +3755,15 @@ const pickSlotForCutoff = (slots) => {
 
 const getRestaurantClosingHms = () => toHms(cart.value?.[0]?.closing_time);
 
-const filterSlotsForOrderLater = (slots) => {
-  if (!Array.isArray(slots)) return [];
+const getRestaurantClosingLabel = () => {
+  const closing = getRestaurantClosingHms();
+  if (!closing) return "";
+  const parsed = moment(closing, "HH:mm:ss", true);
+  return parsed.isValid() ? parsed.format("h:mm a") : closing;
+};
+
+const filterSlotsUntilClosing = (slots, fromHms) => {
+  if (!Array.isArray(slots) || !fromHms) return [];
   const closing = getRestaurantClosingHms();
   const opening = toHms(cart.value?.[0]?.opening_time);
   const overnight = Boolean(opening && closing && closing <= opening);
@@ -3691,21 +3773,42 @@ const filterSlotsForOrderLater = (slots) => {
     const end = toHms(slot.end_time);
     if (!start) return false;
     if (now && end && end < now) return false;
-    if (start <= ORDER_FOR_LATER_AFTER_HMS) return false;
-    if (!closing) return true;
     if (overnight) {
-      return start > ORDER_FOR_LATER_AFTER_HMS || start < closing;
+      return (end && end >= fromHms) || start < closing;
     }
+    if (end && end < fromHms) return false;
+    if (!closing) return true;
     return start < closing;
   });
   return closing ? filtered : filtered.slice(0, 6);
 };
 
+const pickNearestSlot = (slots, lookupHms) => {
+  if (!Array.isArray(slots) || !slots.length) return null;
+  if (!lookupHms) return slots[0];
+  return (
+    slots.find((slot) => {
+      const start = toHms(slot.start_time);
+      const end = toHms(slot.end_time);
+      return start && end && lookupHms >= start && lookupHms <= end;
+    }) ||
+    slots.find((slot) => {
+      const start = toHms(slot.start_time);
+      return start && start >= lookupHms;
+    }) ||
+    slots[0]
+  );
+};
+
 const applyDisplayedTodayTimeSlots = () => {
-  if (isOrderForLaterSelected()) {
-    timeSlotsForRate.value = filterSlotsForOrderLater(allTodayTimeSlots.value);
-    selectedTimeSlotForRate.value =
-      timeSlotsForRate.value[0]?.time_slot_id ?? null;
+  if (usesRelaxedSlotWindow()) {
+    const fromHms = getRelaxedWindowStartHms();
+    timeSlotsForRate.value = filterSlotsUntilClosing(
+      allTodayTimeSlots.value,
+      fromHms,
+    );
+    const picked = pickNearestSlot(timeSlotsForRate.value, fromHms);
+    selectedTimeSlotForRate.value = picked?.time_slot_id ?? null;
     return;
   }
   timeSlotsForRate.value = filterSlotsByEndTime(allTodayTimeSlots.value);
@@ -4231,27 +4334,8 @@ const userEmail = computed(() => {
   return store.state.userEmail || localStorage.getItem("email");
 });
 
-const isDeliveryTestUser = computed(() => {
-  const email = String(userEmail.value || "").toLowerCase();
-  return (
-    email === "charltonmendes@gmail.com" || email === "ajiprsty4713@gmail.com"
-  );
-});
-
 const displayedDeliveryTiers = computed(() => {
-  const list = [...(deliveryTiersList.value || [])];
-  if (
-    isDeliveryTestUser.value &&
-    selectedDummyDate.value === sevenDaysList.value[0]
-  ) {
-    list.push({
-      dt_id: ORDER_FOR_LATER_ID,
-      delivery_tier_name: "Order for Later",
-      delivery_by: "09:00 PM",
-      icon_image: null,
-    });
-  }
-  return list;
+  return deliveryTiersList.value || [];
 });
 
 const selectedCountry = computed(() => {
@@ -5263,7 +5347,10 @@ const nextStep = async (value) => {
       };
       return;
     }
-    if (!isToday && !selectedTimeSlotForRate.value) {
+    if (
+      ((isToday && usesRelaxedSlotWindow()) || !isToday) &&
+      !selectedTimeSlotForRate.value
+    ) {
       snackbar.value = true;
       message.value = {
         text: "Please select a time slot",
@@ -5387,8 +5474,10 @@ const updateCartDeliveryInfo = async () => {
   if (!cart.value[0]?.cart_id) return false;
 
   const isToday = selectedDummyDate.value === sevenDaysList.value[0];
-  if (isToday && isOrderForLaterSelected()) return false;
   if (isToday && !selectedDummyDeliveryOption.value) return false;
+  if (isToday && usesRelaxedSlotWindow() && !selectedTimeSlotForRate.value) {
+    return false;
+  }
   if (!isToday && !selectedTimeSlotForRate.value) return false;
 
   try {
@@ -6130,6 +6219,98 @@ onMounted(() => {
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.time-slot-dropdown {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1.5px solid #e0e0e0;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.time-slot-dropdown.is-selected {
+  border-color: #a03022;
+  background: #fbebe9;
+}
+
+.time-slot-dropdown.is-open {
+  box-shadow: 0 4px 16px rgba(160, 48, 34, 0.14);
+}
+
+.time-slot-dropdown__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #a03022;
+  flex-shrink: 0;
+}
+
+.time-slot-dropdown__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.time-slot-dropdown__label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8d6e63;
+}
+
+.time-slot-dropdown__value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #212121;
+  line-height: 1.3;
+}
+
+.time-slot-dropdown__price {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1565c0;
+  flex-shrink: 0;
+}
+
+.time-slot-dropdown__chevron {
+  color: #6d4c41;
+  flex-shrink: 0;
+}
+
+.time-slot-menu {
+  border-radius: 12px !important;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16) !important;
+  overflow: hidden;
+}
+
+.time-slot-menu__list {
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.time-slot-menu__item.v-list-item--active {
+  background: #fbebe9 !important;
+}
+
+.time-slot-menu__price {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1565c0;
 }
 
 .cart-menu-dish-search {
