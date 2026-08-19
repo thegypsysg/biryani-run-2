@@ -1589,7 +1589,7 @@
                         </div>
                         <template v-else>
                           <div
-                            v-for="tier in displayedDeliveryTiers"
+                            v-for="tier in standardDeliveryTiers"
                             :key="tier.dt_id"
                           >
                             <div
@@ -1832,6 +1832,139 @@
                           </v-list-item>
                         </v-list>
                       </v-menu>
+
+                      <div
+                        v-if="
+                          orderForLaterTier &&
+                          selectedDummyDate === sevenDaysList[0]
+                        "
+                        class="order-later-section"
+                      >
+                        <v-divider class="order-later-section__divider" />
+                      <div
+                        class="order-later-card"
+                        :class="{
+                          'is-selected': isOrderForLaterSelected(),
+                        }"
+                        @click="selectOrderForLater"
+                      >
+                        <div class="order-later-card__header">
+                          <div class="d-flex align-center ga-2">
+                            <v-icon
+                              size="24"
+                              :color="
+                                isOrderForLaterSelected()
+                                  ? 'red-darken-4'
+                                  : 'grey-darken-1'
+                              "
+                            >
+                              {{
+                                getDeliveryIcon(
+                                  orderForLaterTier.delivery_tier_name,
+                                )
+                              }}
+                            </v-icon>
+                            <div
+                              class="font-weight-bold text-subtitle-2 text-black"
+                            >
+                              {{ orderForLaterTier.delivery_tier_name }}
+                            </div>
+                          </div>
+                          <div class="text-caption">
+                            <span class="font-weight-bold text-black"
+                              >Closes at</span
+                            >
+                            <span
+                              v-if="getRestaurantClosingLabel()"
+                              class="font-weight-bold text-blue-darken-3 ml-1"
+                              >{{ getRestaurantClosingLabel() }}</span
+                            >
+                          </div>
+                        </div>
+
+                        <v-menu
+                          v-if="laterTimeSlots.length"
+                          v-model="isLaterTimeSlotMenuOpen"
+                          location="bottom"
+                          :offset="4"
+                          max-height="280"
+                          content-class="time-slot-menu"
+                        >
+                          <template #activator="{ props: menuProps, isActive }">
+                            <button
+                              v-bind="menuProps"
+                              type="button"
+                              class="order-later-card__slot"
+                            >
+                              <span class="order-later-card__slot-time">
+                                {{
+                                  selectedLaterTimeSlotObject?.slot_from_to ||
+                                  "Select a time slot"
+                                }}
+                              </span>
+                              <span
+                                v-if="
+                                  getSlotPriceLabel(selectedLaterTimeSlotObject)
+                                "
+                                class="order-later-card__slot-price"
+                              >
+                                {{
+                                  getSlotPriceLabel(selectedLaterTimeSlotObject)
+                                }}
+                              </span>
+                              <v-icon size="20" color="#6d4c41">
+                                {{
+                                  isActive
+                                    ? "mdi-chevron-up"
+                                    : "mdi-chevron-down"
+                                }}
+                              </v-icon>
+                            </button>
+                          </template>
+                          <v-list
+                            class="time-slot-menu__list py-1"
+                            density="compact"
+                          >
+                            <v-list-item
+                              v-for="slot in laterTimeSlots"
+                              :key="'later-' + slot.time_slot_id"
+                              :active="
+                                selectedLaterTimeSlotId === slot.time_slot_id
+                              "
+                              color="#a03022"
+                              rounded="lg"
+                              class="time-slot-menu__item mx-1 my-1"
+                              @click="selectLaterTimeSlot(slot.time_slot_id)"
+                            >
+                              <v-list-item-title
+                                class="font-weight-medium text-body-2"
+                              >
+                                {{ slot.slot_from_to }}
+                              </v-list-item-title>
+                              <template
+                                v-if="getSlotPriceLabel(slot)"
+                                #append
+                              >
+                                <span class="order-later-card__slot-price">
+                                  {{ getSlotPriceLabel(slot) }}
+                                </span>
+                              </template>
+                            </v-list-item>
+                          </v-list>
+                        </v-menu>
+                      </div>
+                      <div
+                        class="px-1 pt-1"
+                        style="
+                          color: #d32f2f;
+                          font-size: 11px;
+                          font-weight: 700;
+                          line-height: 1.3;
+                        "
+                      >
+                        <!-- {{ getTierBufferTestLabel(orderForLaterTier) }} -->
+                      </div>
+                      </div>
                     </div>
                   </div>
                 </template>
@@ -3459,11 +3592,20 @@ const allTodayTimeSlots = ref([]);
 const selectedTimeSlotForRate = ref(null);
 const isLoadingTimeSlots = ref(false);
 const isTimeSlotMenuOpen = ref(false);
+const laterTimeSlots = ref([]);
+const selectedLaterTimeSlotId = ref(null);
+const isLaterTimeSlotMenuOpen = ref(false);
 let timeSlotsRequestId = 0;
 
 const selectedTimeSlotObject = computed(() =>
   (timeSlotsForRate.value || []).find(
     (slot) => slot.time_slot_id === selectedTimeSlotForRate.value,
+  ),
+);
+
+const selectedLaterTimeSlotObject = computed(() =>
+  (laterTimeSlots.value || []).find(
+    (slot) => slot.time_slot_id === selectedLaterTimeSlotId.value,
   ),
 );
 
@@ -3477,8 +3619,18 @@ const getSlotPriceLabel = (slot) => {
 
 const isOrderForLaterSelected = () => isLaterTier(getSelectedDeliveryTier());
 const isRelaxedSelected = () => isRelaxedTier(getSelectedDeliveryTier());
-const usesRelaxedSlotWindow = () =>
-  isOrderForLaterSelected() || isRelaxedSelected();
+const usesRelaxedSlotWindow = () => isRelaxedSelected();
+
+const selectOrderForLater = () => {
+  if (orderForLaterTier.value?.dt_id != null) {
+    selectedDummyDeliveryOption.value = orderForLaterTier.value.dt_id;
+  }
+};
+
+const selectLaterTimeSlot = (timeSlotId) => {
+  selectedLaterTimeSlotId.value = timeSlotId;
+  selectOrderForLater();
+};
 
 const getTimeSlotsForRate = async () => {
   const isToday = selectedDummyDate.value === sevenDaysList.value[0];
@@ -3504,6 +3656,7 @@ const getTimeSlotsForRate = async () => {
         restaurant_id: restaurantId || undefined,
         delivery_date: formattedDate,
         app_id: 7,
+        total_distance: filteredAddress.value?.distance || undefined,
       },
     };
     const response = isToday
@@ -3517,6 +3670,7 @@ const getTimeSlotsForRate = async () => {
     if (isToday) {
       allTodayTimeSlots.value = slots;
       applyDisplayedTodayTimeSlots();
+      applyLaterTimeSlots();
     } else {
       allTodayTimeSlots.value = [];
       timeSlotsForRate.value = filterSlotsByCheckoutBuffer(slots, false);
@@ -3533,6 +3687,7 @@ const getTimeSlotsForRate = async () => {
     console.error("Error fetching time slots:", error);
     timeSlotsForRate.value = [];
     allTodayTimeSlots.value = [];
+    laterTimeSlots.value = [];
   } finally {
     if (requestId === timeSlotsRequestId) {
       isLoadingTimeSlots.value = false;
@@ -3563,6 +3718,9 @@ const parseDeliveryByHms = (deliveryByLabel) => {
   );
   return deliveryBy.isValid() ? deliveryBy.format("HH:mm:ss") : null;
 };
+
+const getLaterWindowStartHms = () =>
+  parseDeliveryByHms(getRelaxedDeliveryTier()?.delivery_by);
 
 const getRelaxedWindowStartHms = () => {
   const tier = isRelaxedSelected()
@@ -3615,7 +3773,9 @@ const getTierBufferTestLabel = (tier) => {
       formatHmsToAmPm(getRestaurantClosingHms()) ||
       "closing time";
     const fromLabel =
-      formatHmsToAmPm(getRelaxedWindowStartHms()) ||
+      formatHmsToAmPm(
+        isLaterTier(tier) ? getLaterWindowStartHms() : getRelaxedWindowStartHms(),
+      ) ||
       getRelaxedDeliveryTier()?.delivery_by ||
       "—";
     return `TEST: from ${fromLabel} until restaurant closing (${closing})`;
@@ -3800,8 +3960,26 @@ const pickNearestSlot = (slots, lookupHms) => {
   );
 };
 
+const applyLaterTimeSlots = () => {
+  const fromHms = getLaterWindowStartHms();
+  laterTimeSlots.value = filterSlotsUntilClosing(
+    allTodayTimeSlots.value,
+    fromHms,
+  );
+  const stillValid = laterTimeSlots.value.some(
+    (slot) => slot.time_slot_id === selectedLaterTimeSlotId.value,
+  );
+  if (!stillValid) {
+    const picked = pickNearestSlot(laterTimeSlots.value, fromHms);
+    selectedLaterTimeSlotId.value = picked?.time_slot_id ?? null;
+  }
+};
+
 const applyDisplayedTodayTimeSlots = () => {
-  if (usesRelaxedSlotWindow()) {
+  if (isOrderForLaterSelected()) {
+    return;
+  }
+  if (isRelaxedSelected()) {
     const fromHms = getRelaxedWindowStartHms();
     timeSlotsForRate.value = filterSlotsUntilClosing(
       allTodayTimeSlots.value,
@@ -3827,6 +4005,12 @@ watch(selectedDeliveryRate, (rateId) => {
 watch(selectedDummyDeliveryOption, (dtId) => {
   if (!dtId) return;
   if (selectedDummyDate.value !== sevenDaysList.value[0]) return;
+  if (isOrderForLaterSelected()) {
+    if (!laterTimeSlots.value.length) {
+      applyLaterTimeSlots();
+    }
+    return;
+  }
   if (allTodayTimeSlots.value.length) {
     applyDisplayedTodayTimeSlots();
     return;
@@ -4337,6 +4521,15 @@ const userEmail = computed(() => {
 const displayedDeliveryTiers = computed(() => {
   return deliveryTiersList.value || [];
 });
+
+const standardDeliveryTiers = computed(() =>
+  (displayedDeliveryTiers.value || []).filter((tier) => !isLaterTier(tier)),
+);
+
+const orderForLaterTier = computed(() =>
+  (displayedDeliveryTiers.value || []).find((tier) => isLaterTier(tier)) ||
+  null,
+);
 
 const selectedCountry = computed(() => {
   return store.state.selectedCountry;
@@ -5358,6 +5551,14 @@ const nextStep = async (value) => {
       };
       return;
     }
+    if (isToday && isOrderForLaterSelected() && !selectedLaterTimeSlotId.value) {
+      snackbar.value = true;
+      message.value = {
+        text: "Please select a time slot",
+        color: "error",
+      };
+      return;
+    }
 
     const saved = await updateCartDeliveryInfo();
     if (!saved) {
@@ -5452,6 +5653,8 @@ const initializeStep3Delivery = async () => {
   selectedDummyDeliveryOption.value = null;
   timeSlotsForRate.value = [];
   allTodayTimeSlots.value = [];
+  laterTimeSlots.value = [];
+  selectedLaterTimeSlotId.value = null;
 
   await Promise.all([
     getDeliveryTiers(restaurantId),
@@ -5475,6 +5678,9 @@ const updateCartDeliveryInfo = async () => {
 
   const isToday = selectedDummyDate.value === sevenDaysList.value[0];
   if (isToday && !selectedDummyDeliveryOption.value) return false;
+  if (isToday && isOrderForLaterSelected() && !selectedLaterTimeSlotId.value) {
+    return false;
+  }
   if (isToday && usesRelaxedSlotWindow() && !selectedTimeSlotForRate.value) {
     return false;
   }
@@ -5499,13 +5705,27 @@ const updateCartDeliveryInfo = async () => {
 
     if (isToday) {
       payload.dt_id = selectedDummyDeliveryOption.value;
-      if (selectedTimeSlotForRate.value) {
+      if (isOrderForLaterSelected()) {
+        payload.time_slot_id = selectedLaterTimeSlotId.value;
+        const selectedSlot = laterTimeSlots.value.find(
+          (slot) => slot.time_slot_id === selectedLaterTimeSlotId.value,
+        );
+        if (selectedSlot?.slot_from_to) {
+          payload.time_slot = selectedSlot.slot_from_to;
+        }
+        if (selectedSlot?.dr_id) {
+          payload.dr_id = selectedSlot.dr_id;
+        }
+      } else if (selectedTimeSlotForRate.value) {
         payload.time_slot_id = selectedTimeSlotForRate.value;
         const selectedSlot = timeSlotsForRate.value.find(
           (slot) => slot.time_slot_id === selectedTimeSlotForRate.value,
         );
         if (selectedSlot?.slot_from_to) {
           payload.time_slot = selectedSlot.slot_from_to;
+        }
+        if (selectedSlot?.dr_id) {
+          payload.dr_id = selectedSlot.dr_id;
         }
       }
     } else {
@@ -5541,7 +5761,12 @@ const updateCartDeliveryInfo = async () => {
 };
 
 watch(
-  [selectedDummyDeliveryOption, selectedDummyDate, selectedTimeSlotForRate],
+  [
+    selectedDummyDeliveryOption,
+    selectedDummyDate,
+    selectedTimeSlotForRate,
+    selectedLaterTimeSlotId,
+  ],
   () => {
     updateCartDeliveryInfo();
   },
@@ -5561,6 +5786,8 @@ watch(selectedDummyDate, () => {
   selectedTimeSlotForRate.value = null;
   timeSlotsForRate.value = [];
   allTodayTimeSlots.value = [];
+  laterTimeSlots.value = [];
+  selectedLaterTimeSlotId.value = null;
   if (selectedDummyDate.value === sevenDaysList.value[0]) {
     getTimeSlotsForRate();
   }
@@ -6311,6 +6538,66 @@ onMounted(() => {
   font-size: 13px;
   font-weight: 700;
   color: #1565c0;
+}
+
+.order-later-section {
+  margin-top: 16px;
+  padding-top: 4px;
+}
+
+.order-later-section__divider {
+  margin-bottom: 22px;
+  opacity: 1;
+  border-color: #4a4a4a;
+}
+
+.order-later-card {
+  margin-top: 0;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1.5px solid #cfcfcf;
+  background: #f7f7f7;
+  cursor: pointer;
+}
+
+.order-later-card.is-selected {
+  border-color: #a03022;
+  background: #fff;
+}
+
+.order-later-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.order-later-card__slot {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1.5px solid #a03022;
+  background: #fbebe9;
+  cursor: pointer;
+  text-align: left;
+}
+
+.order-later-card__slot-time {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 700;
+  color: #212121;
+}
+
+.order-later-card__slot-price {
+  font-size: 14px;
+  font-weight: 700;
+  color: #c62828;
+  flex-shrink: 0;
 }
 
 .cart-menu-dish-search {
