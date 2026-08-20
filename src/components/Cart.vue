@@ -1501,42 +1501,87 @@
                     </div>
 
                     <div
+                      v-if="isSelectedDateClosed"
+                      class="closed-day-alert mb-2"
+                    >
+                      {{ closedDayAlertText }}
+                    </div>
+
+                    <div
                       class="d-flex ga-2 overflow-x-auto pb-2 hide-scrollbar"
                     >
                       <div
-                        v-for="d in sevenDaysList"
+                        v-for="(d, i) in sevenDaysList"
                         :key="d"
-                        @click="selectedDummyDate = d"
-                        class="d-flex flex-column align-center justify-center rounded-lg cursor-pointer px-2 py-1 px-md-4 py-md-2 flex-shrink-0"
-                        :style="
-                          selectedDummyDate === d
-                            ? {
-                                backgroundColor: '#a03022',
-                                color: '#ffffff',
-                                border: '1.5px solid #a03022',
-                              }
-                            : {
-                                backgroundColor: '#ffffff',
-                                color: '#757575',
-                                border: '1px solid #e0e0e0',
-                              }
-                        "
+                        class="d-flex flex-column align-center flex-shrink-0"
                       >
-                        <span class="text-caption font-weight-medium">{{
-                          d.split(" ")[0]
-                        }}</span>
+                        <div
+                          @click="selectSevenDayChip(d, i)"
+                          class="d-flex flex-column align-center justify-center rounded-lg cursor-pointer px-2 py-1 px-md-4 py-md-2"
+                          :class="{
+                            'date-chip-closed':
+                              isSevenDayChipClosed(i) &&
+                              !isSevenDayChipSelected(d),
+                          }"
+                          :style="
+                            isSevenDayChipSelected(d)
+                              ? {
+                                  backgroundColor: 'rgb(5, 150, 213)',
+                                  color: '#ffffff',
+                                  border: '1.5px solid rgb(5, 150, 213)',
+                                }
+                              : {
+                                  backgroundColor: '#ffffff',
+                                  color: '#757575',
+                                  border: '1px solid #e0e0e0',
+                                }
+                          "
+                        >
+                          <span class="text-caption font-weight-medium">{{
+                            d.split(" ")[0]
+                          }}</span>
+                          <span
+                            class="text-caption font-weight-bold"
+                            style="line-height: 1.1"
+                            >{{ d.split(" ")[1] }}</span
+                          >
+                        </div>
                         <span
-                          class="text-caption font-weight-bold"
-                          style="line-height: 1.1"
-                          >{{ d.split(" ")[1] }}</span
+                          v-if="i === 0"
+                          class="text-caption font-weight-medium mt-1 date-chip-sublabel"
+                          >Today</span
+                        >
+                        <span
+                          v-else-if="i === 1"
+                          class="text-caption font-weight-medium mt-1 date-chip-sublabel"
+                          >Tomorrow</span
                         >
                       </div>
+                    </div>
+
+                    <div class="mt-3">
+                      <div class="any-other-date-label mb-2">Any Other Date</div>
+                      <VueDatePicker
+                        v-model="selectedOtherDate"
+                        class="any-other-date-picker"
+                        placeholder="dd/mm/yyyy"
+                        :format="format"
+                        :formats="{ input: 'dd/MM/yyyy' }"
+                        :enable-time-picker="false"
+                        :time-picker="false"
+                        auto-apply
+                        text-input
+                        :min-date="minOtherDeliveryDate"
+                        :disabled-dates="isOtherDeliveryDateDisabled"
+                        :filters="closedWeekDayFilters"
+                        @update:model-value="onOtherDateSelected"
+                      />
                     </div>
                   </div>
 
                   <div
                     class="mb-3 mt-8"
-                    v-if="selectedDummyDate !== sevenDaysList[0]"
+                    v-if="!isTodaySelected && !isSelectedDateClosed"
                   >
                     <div class="font-weight-black text-subtitle-1 mb-4">
                       Order for
@@ -1559,9 +1604,9 @@
                   <div
                     class="mb-3 mt-8"
                     v-if="
-                      selectedDummyDate === sevenDaysList[0] ||
-                      (selectedDummyDate !== sevenDaysList[0] &&
-                        selectedDeliveryRate)
+                      !isSelectedDateClosed &&
+                      (isTodaySelected ||
+                        (!isTodaySelected && selectedDeliveryRate))
                     "
                   >
                     <div
@@ -1577,7 +1622,7 @@
 
                     <div class="d-flex flex-column" style="gap: 8px">
                       <!-- FOR TODAY -->
-                      <template v-if="selectedDummyDate === sevenDaysList[0]">
+                      <template v-if="isTodaySelected">
                         <div
                           v-if="isLoadingDeliveryTiers"
                           class="d-flex justify-center pa-4"
@@ -1713,25 +1758,7 @@
                                 class="font-weight-bold text-subtitle-2 text-blue-darken-3"
                               >
                                 S$
-                                {{
-                                  (
-                                    parseFloat(peakNonPeakInfo?.base_fee || 0) *
-                                      parseFloat(
-                                        peakNonPeakInfo?.surge_multiplier || 1,
-                                      ) +
-                                    Number(extraRateInfo?.extraDistance || 0) *
-                                      (peakNonPeakInfo?.peak_non_peak == "NP"
-                                        ? Number(
-                                            extraRateInfo?.per_km_rate_non_peak ||
-                                              0,
-                                          )
-                                        : Number(
-                                            extraRateInfo?.per_km_rate_peak ||
-                                              0,
-                                          )) +
-                                    Number(getNonStackFee(tier?.dt_id) || 0)
-                                  ).toFixed(2)
-                                }}
+                                {{ getTierDisplayedPrice(tier?.dt_id).toFixed(2) }}
                               </div>
                             </div>
                             <div
@@ -1749,6 +1776,8 @@
                         </template>
                       </template>
 
+                      <!-- Delivery Options Time Slots dropdown: hidden for today, shown for later open dates -->
+                      <template v-if="!isTodaySelected">
                       <div v-if="isLoadingTimeSlots" class="d-flex justify-center pa-4">
                         <v-progress-circular
                           indeterminate
@@ -1832,11 +1861,12 @@
                           </v-list-item>
                         </v-list>
                       </v-menu>
+                      </template>
 
                       <div
                         v-if="
                           orderForLaterTier &&
-                          selectedDummyDate === sevenDaysList[0]
+                          isTodaySelected
                         "
                         class="order-later-section"
                       >
@@ -2122,7 +2152,7 @@
                           {{ selectedCountry.currency_symbol }}
                         </td>
                         <td colspan="2" class="text-end">
-                          {{ cart[0]?.delivery_charges }}
+                          {{ displayedDeliveryCharges }}
                         </td>
                       </tr>
 
@@ -2142,7 +2172,7 @@
                           {{
                             taxAmount != null
                               ? (
-                                  ((subTotal + selectedDeliveryPrice + 0.5) *
+                                  ((subTotal + selectedSlotDeliveryAmount + 0.5) *
                                     taxAmount) /
                                   100
                                 ).toFixed(2)
@@ -2711,7 +2741,7 @@
                           <td>Delivery Charges</td>
                           <td>{{ selectedCountry.currency_symbol }}</td>
                           <td class="text-end">
-                            {{ cart[0]?.delivery_charges }}
+                            {{ displayedDeliveryCharges }}
                           </td>
                         </tr>
 
@@ -2729,7 +2759,7 @@
                             {{
                               taxAmount != null
                                 ? (
-                                    ((subTotal + selectedDeliveryPrice + 0.5) *
+                                    ((subTotal + selectedSlotDeliveryAmount + 0.5) *
                                       taxAmount) /
                                     100
                                   ).toFixed(2)
@@ -3487,6 +3517,7 @@ const sevenDaysList = computed(() => {
 const selectedDummyDate = ref(
   moment().tz(getDeliveryTimezone()).format("ddd DD"),
 );
+const selectedOtherDate = ref(null);
 const selectedDummyAddressChip = ref("Home");
 const selectedDummyDeliveryOption = ref(null);
 const deliveryTiersList = ref([]);
@@ -3495,18 +3526,145 @@ const isLoadingDeliveryTiers = ref(false);
 const deliveryRates = ref([]);
 const selectedDeliveryRate = ref(null);
 
-const formattedSelectedFullDate = computed(() => {
-  const index = sevenDaysList.value.findIndex(
-    (d) => d === selectedDummyDate.value,
-  );
-  if (index !== -1) {
-    return moment()
-      .tz(getDeliveryTimezone())
-      .add(index, "days")
-      .format("dddd , Do MMMM YYYY");
-  }
-  return "";
+const CLOSED_DAY_NAME_TO_INDEX = {
+  sunday: 0,
+  sun: 0,
+  sundays: 0,
+  monday: 1,
+  mon: 1,
+  mondays: 1,
+  tuesday: 2,
+  tue: 2,
+  tues: 2,
+  tuesdays: 2,
+  wednesday: 3,
+  wed: 3,
+  wednesdays: 3,
+  thursday: 4,
+  thu: 4,
+  thur: 4,
+  thurs: 4,
+  thursdays: 4,
+  friday: 5,
+  fri: 5,
+  fridays: 5,
+  saturday: 6,
+  sat: 6,
+  saturdays: 6,
+};
+
+const restaurantClosedDayNames = computed(() => {
+  const closedOn = store.state.cart?.[0]?.closed_on;
+  if (!closedOn) return [];
+  return String(closedOn)
+    .split(/[,|/]/)
+    .map((day) => day.trim().toLowerCase())
+    .filter(Boolean);
 });
+
+const isMomentOnClosedDay = (dayMoment) => {
+  if (!dayMoment?.isValid?.()) return false;
+  const names = restaurantClosedDayNames.value;
+  if (!names.length) return false;
+  const full = dayMoment.format("dddd").toLowerCase();
+  const short = dayMoment.format("ddd").toLowerCase();
+  return names.includes(full) || names.includes(short) || names.includes(`${full}s`);
+};
+
+const isJsDateClosed = (date) => {
+  if (!date) return false;
+  return isMomentOnClosedDay(moment(date));
+};
+
+const getSelectedDeliveryMoment = () => {
+  if (selectedOtherDate.value) {
+    const raw = selectedOtherDate.value;
+    return moment
+      .tz(
+        {
+          year: raw.getFullYear(),
+          month: raw.getMonth(),
+          day: raw.getDate(),
+        },
+        getDeliveryTimezone(),
+      )
+      .startOf("day");
+  }
+  const index = sevenDaysList.value.findIndex(
+    (day) => day === selectedDummyDate.value,
+  );
+  return moment()
+    .tz(getDeliveryTimezone())
+    .startOf("day")
+    .add(index !== -1 ? index : 0, "days");
+};
+
+const isTodaySelected = computed(
+  () =>
+    !selectedOtherDate.value &&
+    selectedDummyDate.value === sevenDaysList.value[0],
+);
+
+const selectedDeliveryDateKey = computed(() =>
+  getSelectedDeliveryMoment().format("YYYY-MM-DD"),
+);
+
+const isSelectedDateClosed = computed(() =>
+  isMomentOnClosedDay(getSelectedDeliveryMoment()),
+);
+
+const closedDayAlertText = computed(() => {
+  if (!isSelectedDateClosed.value) return "";
+  return `${getSelectedDeliveryMoment().format("dddd")} Closed`;
+});
+
+const minOtherDeliveryDate = computed(() =>
+  moment().tz(getDeliveryTimezone()).add(7, "days").startOf("day").toDate(),
+);
+
+const closedWeekDayFilters = computed(() => ({
+  weekDays: restaurantClosedDayNames.value
+    .map((name) => CLOSED_DAY_NAME_TO_INDEX[name])
+    .filter((index) => index !== undefined),
+}));
+
+const isOtherDeliveryDateDisabled = (date) => isJsDateClosed(date);
+
+const isSevenDayChipClosed = (index) =>
+  isMomentOnClosedDay(
+    moment().tz(getDeliveryTimezone()).add(index, "days").startOf("day"),
+  );
+
+const isSevenDayChipSelected = (d) =>
+  !selectedOtherDate.value && selectedDummyDate.value === d;
+
+const showClosedDayPopup = (dayMoment) => {
+  const label = `${dayMoment.format("dddd")} Closed`;
+  informationModalTitle.value = label;
+  informationModalContent.value = label;
+  informationModal.value = true;
+};
+
+const selectSevenDayChip = (d, index) => {
+  selectedOtherDate.value = null;
+  selectedDummyDate.value = d;
+  if (isSevenDayChipClosed(index)) {
+    showClosedDayPopup(
+      moment().tz(getDeliveryTimezone()).add(index, "days").startOf("day"),
+    );
+  }
+};
+
+const onOtherDateSelected = (date) => {
+  if (!date) return;
+  if (isJsDateClosed(date)) {
+    showClosedDayPopup(moment(date));
+  }
+};
+
+const formattedSelectedFullDate = computed(() =>
+  getSelectedDeliveryMoment().format("dddd , Do MMMM YYYY"),
+);
 
 const getDeliveryIcon = (name) => {
   const lowerName = (name || "").toLowerCase();
@@ -3633,8 +3791,11 @@ const selectLaterTimeSlot = (timeSlotId) => {
 };
 
 const getTimeSlotsForRate = async () => {
-  const isToday = selectedDummyDate.value === sevenDaysList.value[0];
+  const isToday = isTodaySelected.value;
   const drId = selectedDeliveryRate.value;
+  if (isSelectedDateClosed.value) {
+    return;
+  }
   if (!isToday && (!drId || !filteredAddress.value?.distance)) {
     return;
   }
@@ -3642,13 +3803,7 @@ const getTimeSlotsForRate = async () => {
   const requestId = ++timeSlotsRequestId;
   isLoadingTimeSlots.value = true;
   try {
-    const dateIndex = sevenDaysList.value.findIndex(
-      (d) => d === selectedDummyDate.value,
-    );
-    const formattedDate = moment()
-      .tz(getDeliveryTimezone())
-      .add(dateIndex !== -1 ? dateIndex : 0, "days")
-      .format("DD/MM/YYYY");
+    const formattedDate = getSelectedDeliveryMoment().format("DD/MM/YYYY");
     const restaurantId = cart.value[0]?.restaurant_id;
     const requestConfig = {
       headers: { Authorization: `Bearer ${authToken}` },
@@ -3895,7 +4050,7 @@ const getSlotLookupHms = () => {
 
 const pickSlotForCutoff = (slots) => {
   if (!Array.isArray(slots) || !slots.length) return null;
-  const isToday = selectedDummyDate.value === sevenDaysList.value[0];
+  const isToday = isTodaySelected.value;
   if (!isToday) {
     return slots[0];
   }
@@ -4004,7 +4159,7 @@ watch(selectedDeliveryRate, (rateId) => {
 
 watch(selectedDummyDeliveryOption, (dtId) => {
   if (!dtId) return;
-  if (selectedDummyDate.value !== sevenDaysList.value[0]) return;
+  if (!isTodaySelected.value) return;
   if (isOrderForLaterSelected()) {
     if (!laterTimeSlots.value.length) {
       applyLaterTimeSlots();
@@ -4616,25 +4771,62 @@ const subTotal = computed(() =>
   ),
 );
 
+const selectedSlotDeliveryAmount = computed(() => {
+  if (
+    isTodaySelected.value &&
+    isOrderForLaterSelected() &&
+    selectedLaterTimeSlotObject.value?.total_delivery_charges != null &&
+    selectedLaterTimeSlotObject.value.total_delivery_charges !== ""
+  ) {
+    const laterAmount = Number(
+      selectedLaterTimeSlotObject.value.total_delivery_charges,
+    );
+    if (!Number.isNaN(laterAmount)) return laterAmount;
+  }
+
+  if (
+    !isTodaySelected.value &&
+    selectedTimeSlotObject.value?.total_delivery_charges != null &&
+    selectedTimeSlotObject.value.total_delivery_charges !== ""
+  ) {
+    const slotAmount = Number(
+      selectedTimeSlotObject.value.total_delivery_charges,
+    );
+    if (!Number.isNaN(slotAmount)) return slotAmount;
+  }
+
+  if (
+    isTodaySelected.value &&
+    selectedDummyDeliveryOption.value &&
+    !isOrderForLaterSelected()
+  ) {
+    return getTierDisplayedPrice(selectedDummyDeliveryOption.value);
+  }
+
+  const cartAmount = Number(cart.value?.[0]?.delivery_charges);
+  return Number.isNaN(cartAmount) ? 0 : cartAmount;
+});
+
+const displayedDeliveryCharges = computed(() =>
+  Number(selectedSlotDeliveryAmount.value).toFixed(2),
+);
+
 const finalCartTotal = computed(() => {
   const sub = Number(subTotal.value) || 0;
-  const delivery = Number(selectedDeliveryPrice.value) || 0;
+  const delivery = Number(selectedSlotDeliveryAmount.value) || 0;
   const platform = Number(cart.value[0]?.platform_fee) || 0;
   const tax = Number(taxAmount.value) || 0;
   let serviceFee = 0;
   if (cart.value && cart.value.length > 0) {
     serviceFee = Number(cart.value[0]?.service_fee) || 0;
   }
-  const result = cart.value[0]?.final_amount
-    ? cart.value[0]?.final_amount
-    : (
-        sub +
-        delivery +
-        platform +
-        serviceFee +
-        ((sub + delivery + 0.5) * tax) / 100
-      ).toFixed(2);
-  return result;
+  return (
+    sub +
+    delivery +
+    platform +
+    serviceFee +
+    ((sub + delivery + 0.5) * tax) / 100
+  ).toFixed(2);
 });
 
 // Get cart items
@@ -5531,7 +5723,19 @@ const nextStep = async (value) => {
       return;
     }
 
-    const isToday = selectedDummyDate.value === sevenDaysList.value[0];
+    const isToday = isTodaySelected.value;
+    if (isSelectedDateClosed.value) {
+      snackbar.value = true;
+      message.value = {
+        text: closedDayAlertText.value || "Restaurant closed",
+        color: "error",
+      };
+      showInformationModal(
+        closedDayAlertText.value || "Restaurant closed",
+        closedDayAlertText.value || "Restaurant closed",
+      );
+      return;
+    }
     if (isToday && !selectedDummyDeliveryOption.value) {
       snackbar.value = true;
       message.value = {
@@ -5637,7 +5841,7 @@ const fetchPeakNonPeakInfo = async (restaurantId) => {
       },
     );
     peakNonPeakInfo.value = response.data?.data;
-    if (selectedDummyDate.value === sevenDaysList.value[0]) {
+    if (isTodaySelected.value) {
       await getTimeSlotsForRate();
     }
   } catch (error) {
@@ -5648,6 +5852,7 @@ const fetchPeakNonPeakInfo = async (restaurantId) => {
 const initializeStep3Delivery = async () => {
   const restaurantId = cart.value[0]?.restaurant_id;
   selectedDummyDate.value = moment().tz(getDeliveryTimezone()).format("ddd DD");
+  selectedOtherDate.value = null;
   selectedDeliveryRate.value = null;
   selectedTimeSlotForRate.value = null;
   selectedDummyDeliveryOption.value = null;
@@ -5668,7 +5873,7 @@ const initializeStep3Delivery = async () => {
 
   selectDefaultDeliveryTier();
 
-  if (selectedDummyDate.value === sevenDaysList.value[0]) {
+  if (isTodaySelected.value) {
     await getTimeSlotsForRate();
   }
 };
@@ -5676,7 +5881,9 @@ const initializeStep3Delivery = async () => {
 const updateCartDeliveryInfo = async () => {
   if (!cart.value[0]?.cart_id) return false;
 
-  const isToday = selectedDummyDate.value === sevenDaysList.value[0];
+  if (isSelectedDateClosed.value) return false;
+
+  const isToday = isTodaySelected.value;
   if (isToday && !selectedDummyDeliveryOption.value) return false;
   if (isToday && isOrderForLaterSelected() && !selectedLaterTimeSlotId.value) {
     return false;
@@ -5687,13 +5894,7 @@ const updateCartDeliveryInfo = async () => {
   if (!isToday && !selectedTimeSlotForRate.value) return false;
 
   try {
-    const index = sevenDaysList.value.findIndex(
-      (d) => d === selectedDummyDate.value,
-    );
-    const formattedDate = moment()
-      .tz(getDeliveryTimezone())
-      .add(index !== -1 ? index : 0, "days")
-      .format("DD/MM/YYYY");
+    const formattedDate = getSelectedDeliveryMoment().format("DD/MM/YYYY");
 
     const payload = {
       cart_id: cart.value[0]?.cart_id,
@@ -5764,6 +5965,7 @@ watch(
   [
     selectedDummyDeliveryOption,
     selectedDummyDate,
+    selectedOtherDate,
     selectedTimeSlotForRate,
     selectedLaterTimeSlotId,
   ],
@@ -5772,40 +5974,44 @@ watch(
   },
 );
 
-watch(step, (newStep) => {
-  if (newStep === 3) {
-    selectedDummyDate.value = moment()
-      .tz(getDeliveryTimezone())
-      .format("ddd DD");
-    selectedDeliveryRate.value = null;
-  }
-});
-
-watch(selectedDummyDate, () => {
+watch(selectedDeliveryDateKey, () => {
   selectedDeliveryRate.value = null;
   selectedTimeSlotForRate.value = null;
   timeSlotsForRate.value = [];
   allTodayTimeSlots.value = [];
   laterTimeSlots.value = [];
   selectedLaterTimeSlotId.value = null;
-  if (selectedDummyDate.value === sevenDaysList.value[0]) {
+  if (isSelectedDateClosed.value) return;
+  if (isTodaySelected.value) {
     getTimeSlotsForRate();
   }
 });
 
+watch(step, (newStep) => {
+  if (newStep === 3) {
+    selectedDummyDate.value = moment()
+      .tz(getDeliveryTimezone())
+      .format("ddd DD");
+    selectedOtherDate.value = null;
+    selectedDeliveryRate.value = null;
+  }
+});
+
+const getTierDisplayedPrice = (dt_id) => {
+  const base =
+    parseFloat(peakNonPeakInfo.value?.base_fee || 0) *
+    parseFloat(peakNonPeakInfo.value?.surge_multiplier || 1);
+  const extraKm = Number(extraRateInfo.value?.extraDistance || 0);
+  const perKm =
+    peakNonPeakInfo.value?.peak_non_peak == "NP"
+      ? Number(extraRateInfo.value?.per_km_rate_non_peak || 0)
+      : Number(extraRateInfo.value?.per_km_rate_peak || 0);
+  const nonStack = Number(getNonStackFee(dt_id) || 0);
+  return base + extraKm * perKm + nonStack;
+};
+
 const getCalculatedDeliveryPrice = (dt_id) => {
-  if (!peakNonPeakInfo.value || !peakNonPeakInfo.value.delivery_tiers) {
-    return "0.00";
-  }
-  const tierData = peakNonPeakInfo.value.delivery_tiers.find(
-    (t) => t.dt_id === dt_id,
-  );
-  if (tierData) {
-    const totalCharges = parseFloat(tierData.total_delivery_charges || 0);
-    const nonStackFee = parseFloat(tierData.non_stack_fee || 0);
-    return (totalCharges + nonStackFee).toFixed(2);
-  }
-  return "0.00";
+  return getTierDisplayedPrice(dt_id).toFixed(2);
 };
 
 const getNonStackFee = (dt_id) => {
@@ -5829,7 +6035,7 @@ watch(
       fetchExtraPerKmRate(newAddress.distance);
       fetchPeakNonPeakInfo(cart.value[0]?.restaurant_id);
       if (
-        selectedDummyDate.value === sevenDaysList.value[0] ||
+        isTodaySelected.value ||
         selectedDeliveryRate.value
       ) {
         getTimeSlotsForRate();
@@ -5869,7 +6075,7 @@ const getBiryaniRunAddress = async () => {
 
     biryaniRunAddresses.value = Array.isArray(data) ? data : [];
     if (
-      selectedDummyDate.value === sevenDaysList.value[0] ||
+      isTodaySelected.value ||
       selectedDeliveryRate.value
     ) {
       getTimeSlotsForRate();
@@ -6348,6 +6554,37 @@ onMounted(() => {
 </script>
 
 <style>
+.closed-day-alert {
+  color: #a03022;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.any-other-date-label {
+  color: rgb(5, 150, 213);
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.date-chip-sublabel {
+  color: rgb(5, 150, 213);
+}
+
+.date-chip-closed {
+  opacity: 0.5;
+}
+
+.any-other-date-picker {
+  width: 100%;
+}
+
+.any-other-date-picker .dp__input {
+  border: 1px solid #bdbdbd;
+  border-radius: 4px;
+  font-size: 14px;
+  min-height: 40px;
+}
+
 .font-sm {
   font-size: 10px;
 }
