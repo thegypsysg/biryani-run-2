@@ -42,6 +42,7 @@ declare module 'vue' {
     PropertyCard: typeof import('./src/components/PropertyCard.vue')['default']
     Residential: typeof import('./src/components/Residential.vue')['default']
     RestaurantDish: typeof import('./src/components/home/restaurant-dish.vue')['default']
+    RestaurantMenu: typeof import('./src/components/RestaurantMenu.vue')['default']
     RestaurantServing: typeof import('./src/components/home/restaurant-serving.vue')['default']
     ResultRegister: typeof import('./src/components/CreatePassword/ResultRegister.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

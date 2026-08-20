@@ -9,6 +9,8 @@ import { appId } from "@/util/variables";
 import Cart from "@/components/Cart.vue";
 import ExploreOurMenuList from "@/components/home/explore-our-menu-list.vue";
 // import app from "@/util/eventBus";
+import MazDrawer from "maz-ui/components/MazDrawer";
+import RestaurantMenu from "@/components/RestaurantMenu.vue";
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names, vue/no-reserved-component-names
@@ -60,9 +62,39 @@ export default {
       userName: null,
       userDated: null,
       userEmail: null,
+      partnerName: null,
+      locationName: null,
+      partnerWhatsapp: null,
       dialog: false,
       dialog2: false,
       drawer: false,
+      myMenuDrawer: false,
+      myMenuDishes: [
+        {
+          id: 1,
+          name: "Chicken Tikka Biryani",
+          quantity: "1 Plate",
+          price: "13.40",
+          image:
+            "https://biryanirun.com/backend/public/images/dishes/1d66ff707012fe2c452d303c88a05568.jpg",
+        },
+        {
+          id: 2,
+          name: "Lamb Shank Biryani",
+          quantity: "1 Plate",
+          price: "13.40",
+          image:
+            "https://biryanirun.com/backend/public/images/dishes/1d66ff707012fe2c452d303c88a05568.jpg",
+        },
+        {
+          id: 3,
+          name: "Mutton Dum Biryani",
+          quantity: "1 Plate",
+          price: "13.40",
+          image:
+            "https://biryanirun.com/backend/public/images/dishes/1d66ff707012fe2c452d303c88a05568.jpg",
+        },
+      ],
       openMobileSearchBar: false,
       headerData: {},
       activeMalls: [],
@@ -531,6 +563,9 @@ export default {
           this.setUserEmail(data.email_id);
           localStorage.setItem("email", data.email_id);
           this.userDated = data.last_login;
+          this.partnerName = data.partner_name;
+          this.locationName = data.location_name;
+          this.partnerWhatsapp = data.partner_whatsapp;
           this.userImage =
             data.image != null ? this.$fileURL + data.image : null;
           app.config.globalProperties.$eventBus.$emit("getUserName");
@@ -570,6 +605,9 @@ export default {
           this.userEmail = data.email_id;
           this.setUserEmail(data.email_id);
           this.userDated = data.last_login;
+          this.partnerName = data.partner_name;
+          this.locationName = data.location_name;
+          this.partnerWhatsapp = data.partner_whatsapp;
           this.userImage =
             data.image != null ? this.$fileURL + data.image : null;
           // this.userImage = null;
@@ -770,7 +808,7 @@ export default {
       );
     },
   },
-  components: { ExploreOurMenuList },
+  components: { ExploreOurMenuList, MazDrawer, RestaurantMenu },
 };
 </script>
 
@@ -1777,14 +1815,45 @@ watch(() => {
         </router-link>
       </li>
 
+      <li class="v-list-item mt-n2 align-start py-2">
+        <div class="v-list-item__icon mt-1">
+          <v-img height="18" width="25" :src="images.shop" />
+        </div>
+        <div class="d-flex flex-column" style="font-size: 12px">
+          <p class="mb-3">My Restaurant</p>
+          <p v-if="partnerName" class="font-weight-black text-black mb-4 ml-4">
+            {{ partnerName }}
+          </p>
+          <p v-if="locationName" class="mb-2 ml-4">{{ locationName }}</p>
+          <p v-if="partnerWhatsapp" class="ml-4">
+            Whats App : {{ partnerWhatsapp }}
+          </p>
+        </div>
+      </li>
+      <li
+        class="v-list-item mt-n2 cursor-pointer"
+        @click="
+          () => {
+            myMenuDrawer = true;
+            drawer = false;
+          }
+        "
+      >
+        <div class="v-list-item__icon">
+          <v-img height="18" width="25" :src="images.shop" />
+        </div>
+        <v-list-item-title style="font-size: 12px"> My Menu </v-list-item-title>
+      </li>
       <li class="v-list-item mt-n2">
         <div class="v-list-item__icon">
           <v-img height="18" width="25" :src="images.shop" />
         </div>
-        <v-list-item-title style="font-size: 12px"> My Cart </v-list-item-title>
+        <v-list-item-title style="font-size: 12px">
+          My Orders
+        </v-list-item-title>
       </li>
 
-      <li v-if="userName != null" class="v-list-item mt-n2">
+      <!-- <li v-if="userName != null" class="v-list-item mt-n2">
         <div class="v-list-item__icon">
           <v-img src="" />
         </div>
@@ -1815,7 +1884,6 @@ watch(() => {
           My Favorites
         </v-list-item-title>
       </li>
-
       <li v-if="userName != null" class="v-list-item mt-n2">
         <div class="v-list-item__icon">
           <v-img src="" />
@@ -1824,7 +1892,7 @@ watch(() => {
         <v-list-item-title class="cursor-pointer" style="font-size: 12px">
           QR Code - For Payments
         </v-list-item-title>
-      </li>
+      </li> -->
       <li v-if="userName == null" class="v-list-item mt-n2">
         <div class="v-list-item__icon">
           <v-img src="" />
@@ -2066,6 +2134,58 @@ watch(() => {
       </v-card-text>
     </v-card>
   </v-dialog>
+
+  <MazDrawer
+    variant="right"
+    :model-value="myMenuDrawer"
+    @update:model-value="myMenuDrawer = $event"
+    class="no-header"
+  >
+    <template #default="{ close }">
+      <div class="cart-drawer fill-height bg-grey-lighten-4">
+        <!-- Header -->
+        <div class="flex-grow-0">
+          <v-row no-gutters>
+            <v-col cols="12">
+              <v-sheet>
+                <div
+                  class="d-flex align-center justify-space-between pa-3 bg-grey-lighten-4"
+                >
+                  <div class="text-h5 font-weight-bold text-black">My Menu</div>
+                  <div>
+                    <v-btn
+                      class="text-grey-lighten-1"
+                      :size="isSmall ? 'small' : 'large'"
+                      @click="close"
+                      variant="text"
+                      icon="mdi-close-circle"
+                    ></v-btn>
+                  </div>
+                </div>
+              </v-sheet>
+            </v-col>
+          </v-row>
+        </div>
+
+        <div
+          class="cart-items flex-grow-1 px-2"
+          style="min-height: 0; overflow-y: auto"
+        >
+          <div style="min-height: 75vh">
+            <RestaurantMenu
+              mode="owner"
+              :restaurantId="cart?.[0]?.restaurant_id"
+              :restaurantLogo="cart?.[0]?.restaurant_logo"
+              :restaurantName="cart?.[0]?.restaurant_name"
+              :townName="cart?.[0]?.town_name"
+              :distance="cart?.[0]?.distance"
+              :cartItems="cart"
+            />
+          </div>
+        </div>
+      </div>
+    </template>
+  </MazDrawer>
 </template>
 
 <style scoped>
