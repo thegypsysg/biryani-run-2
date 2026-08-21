@@ -2194,60 +2194,55 @@
                     </tbody>
                   </v-table>
                   <div class="px-4 text-caption">
-                    <v-row no-gutters class="font-weight-black mt-6">
-                      <v-col cols="6"> Delivery to : </v-col>
-                      <v-col cols="6"> Order Instructions </v-col>
-                    </v-row>
-                    <v-row no-gutters class="mt-2 font-weight-bold">
-                      <v-col cols="6">
-                        <p
-                          v-if="cart[0]?.delivery_address"
-                          v-html="formatInfo(cart[0]?.delivery_address)"
-                        />
-                      </v-col>
-                      <v-col cols="6">
-                        <p
-                          v-if="cart[0]?.order_instructions"
-                          v-html="formatInfo(cart[0]?.order_instructions)"
-                        />
-                      </v-col>
-                    </v-row>
-                    <!-- <v-row no-gutters class="font-weight-black mt-6">
-                    <v-col cols="6"> Order Status </v-col>
-                    <v-col cols="6"> Delivery Status </v-col>
-                  </v-row>
-                  <v-row
-                    no-gutters
-                    class="mt-2 text-blue-darken-4 font-weight-bold"
-                  >
-                    <v-col cols="6"> {{ cart[0]?.order_status_name }} </v-col>
-                    <v-col cols="6"> {{ cart[0]?.delivery_status }} </v-col>
-                  </v-row> -->
-                    <v-row no-gutters class="font-weight-black mt-6">
-                      <v-col cols="6"> Delivery Date </v-col>
-                      <v-col cols="6"> Time Slot </v-col>
-                    </v-row>
-                    <v-row
-                      no-gutters
-                      class="mt-2 text-blue-darken-4 font-weight-bold"
-                    >
-                      <v-col cols="6">
-                        {{ formattedDeliveryDate }}
-                      </v-col>
-                      <v-col cols="6"> {{ formattedTimeSlot }} </v-col>
-                    </v-row>
-                    <!-- <v-row no-gutters class="font-weight-black mt-6">
-                    <v-col cols="6"> Payment Status </v-col>
-                    <v-col cols="6"> Payment By </v-col>
-                  </v-row>
-                  <v-row no-gutters class="mt-2">
-                    <v-col cols="6" class="text-blue-darken-4 font-weight-bold">
-                      {{ cart[0]?.payment_status_name }}
-                    </v-col>
-                    <v-col cols="6" class="text-red-darken-1 font-weight-bold">
-                      {{ cart[0]?.payment_type }}
-                    </v-col>
-                  </v-row> -->
+                    <div class="mt-6">
+                      <div
+                        class="d-flex align-center ga-2 text-blue-darken-4 font-weight-bold"
+                      >
+                        <span>Note to Kitchen</span>
+                        <v-icon size="16" color="success">mdi-pencil</v-icon>
+                      </div>
+                      <textarea
+                        v-model="noteToKitchen"
+                        class="kitchen-note-textarea mt-2"
+                        rows="4"
+                        maxlength="500"
+                        @input="changeNoteToKitchen"
+                      />
+                    </div>
+                    <div class="font-weight-black mt-6">
+                      Delivery to :
+                      <span
+                        v-if="deliveryDwellingName"
+                        class="kitchen-note-red"
+                      >
+                        ( {{ deliveryDwellingName }} )
+                      </span>
+                    </div>
+                    <div class="mt-2 font-weight-bold">
+                      <p
+                        v-if="checkoutDeliveryAddress"
+                        v-html="formatInfo(checkoutDeliveryAddress)"
+                      />
+                      <p
+                        v-if="deliveryUnitLobbyLine"
+                        class="kitchen-note-red font-weight-bold mb-0"
+                      >
+                        {{ deliveryUnitLobbyLine }}
+                      </p>
+                    </div>
+                    <div class="font-weight-black mt-6">
+                      Delivery Date
+                      <span v-if="isDeliveryToday" class="kitchen-note-red">
+                        ( Today )
+                      </span>
+                    </div>
+                    <div class="mt-2 text-blue-darken-4 font-weight-bold">
+                      {{ formattedDeliveryDate }}
+                    </div>
+                    <div class="font-weight-black mt-6">Time Slot</div>
+                    <div class="mt-2 text-blue-darken-4 font-weight-bold">
+                      {{ formattedTimeSlot }}
+                    </div>
                   </div>
                 </v-card>
               </v-col>
@@ -4608,18 +4603,21 @@ watch(
   },
 );
 
+const loadDwellingTypes = async () => {
+  if (dwellingTypes.value.length > 0) return;
+  try {
+    const response = await axios.get("/list-dwelling-master");
+    if (response.data && response.data.data) {
+      dwellingTypes.value = response.data.data;
+    }
+  } catch (error) {
+    console.error("Error fetching dwelling master:", error);
+  }
+};
+
 watch(addressDialog, async (isOpen) => {
   if (isOpen) {
-    if (dwellingTypes.value.length === 0) {
-      try {
-        const response = await axios.get("/list-dwelling-master");
-        if (response.data && response.data.data) {
-          dwellingTypes.value = response.data.data;
-        }
-      } catch (error) {
-        console.error("Error fetching dwelling master:", error);
-      }
-    }
+    await loadDwellingTypes();
 
     if (locationNames.value.length === 0) {
       try {
@@ -4638,6 +4636,7 @@ watch(addressDialog, async (isOpen) => {
 const selectedDate = ref(null);
 const selectedTimeSlot = ref(null);
 const deliveryScheduleInstruction = ref(null);
+const noteToKitchen = ref("");
 
 const orders = ref([]);
 
@@ -5818,14 +5817,116 @@ const toggleAddressDetails = (ga_id) => {
   addressExpanded.value[ga_id] = !addressExpanded.value[ga_id]; // Toggle true/false
 };
 
+const sameGaId = (left, right) => {
+  if (left == null || right == null || left === "" || right === "") {
+    return false;
+  }
+  return Number(left) === Number(right);
+};
+
 const biryaniRunAddresses = ref([]);
+const checkoutAddressDetail = ref(null);
 const filteredAddress = computed(() => {
   return (
-    biryaniRunAddresses.value.find(
-      (item) => item.ga_id === selectedAddress.value,
+    biryaniRunAddresses.value.find((item) =>
+      sameGaId(item.ga_id, selectedAddress.value),
     ) || null
   );
 });
+
+const selectedCheckoutAddress = computed(() => {
+  const gaId = cart.value?.[0]?.ga_id || selectedAddress.value;
+  return (
+    filteredAddress.value ||
+    addresses.value.find((address) => sameGaId(address.ga_id, gaId)) ||
+    biryaniRunAddresses.value.find((address) =>
+      sameGaId(address.ga_id, gaId),
+    ) ||
+    checkoutAddressDetail.value ||
+    null
+  );
+});
+
+const checkoutDeliveryAddress = computed(() => {
+  return (
+    cart.value?.[0]?.delivery_address ||
+    selectedCheckoutAddress.value?.full_address ||
+    ""
+  );
+});
+
+const resolveDwellingName = (dwellingId) => {
+  if (dwellingId == null || dwellingId === "") return "";
+  const match = dwellingTypes.value.find(
+    (dwelling) => Number(dwelling.dwelling_id) === Number(dwellingId),
+  );
+  return (match?.dwelling_name || "").trim();
+};
+
+const deliveryDwellingName = computed(() => {
+  const direct = (
+    selectedCheckoutAddress.value?.dwelling_name ||
+    checkoutAddressDetail.value?.dwelling_name ||
+    checkoutAddressDetail.value?.address_master?.dwelling_name ||
+    ""
+  ).trim();
+  if (direct) return direct;
+
+  return resolveDwellingName(
+    selectedCheckoutAddress.value?.dwelling_id ||
+      checkoutAddressDetail.value?.dwelling_id ||
+      checkoutAddressDetail.value?.address_master?.dwelling_id,
+  );
+});
+
+const deliveryUnitLobbyLine = computed(() => {
+  const address =
+    selectedCheckoutAddress.value || checkoutAddressDetail.value;
+  if (!address) return "";
+  const unit = (address.unit_number || "").trim();
+  let lobby = (address.lift_lobby || "").trim();
+  if (lobby && !/lobby/i.test(lobby)) {
+    lobby = `Lobby ${lobby}`;
+  }
+  if (unit && lobby) return `${unit}  |  ${lobby}`;
+  return unit || lobby;
+});
+
+const isDeliveryToday = computed(() => {
+  const item = cart.value?.[0];
+  if (!item) return false;
+  const sameDay = String(item.same_day || "").toUpperCase();
+  if (sameDay === "Y" || sameDay === "S") return true;
+  if (sameDay === "N" || sameDay === "A") return false;
+  if (!item.delivery_date) return false;
+  const today = moment().tz(getDeliveryTimezone()).format("DD/MM/YYYY");
+  return item.delivery_date === today;
+});
+
+const loadCheckoutAddressDetail = async (gaId) => {
+  if (!gaId) {
+    checkoutAddressDetail.value = null;
+    return;
+  }
+  await loadDwellingTypes();
+  try {
+    const response = await axios.get(`/get-address/${gaId}`, {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    checkoutAddressDetail.value = response.data?.data || null;
+  } catch (error) {
+    console.error("Error fetching checkout address:", error);
+  }
+};
+
+watch(
+  () => [step.value, cart.value?.[0]?.ga_id, selectedAddress.value],
+  ([currentStep, cartGaId, selectedGaId]) => {
+    if (Number(currentStep) !== 4) return;
+    const gaId = cartGaId || selectedGaId;
+    if (gaId) loadCheckoutAddressDetail(gaId);
+  },
+);
 
 const extraRateInfo = ref(null);
 const peakNonPeakInfo = ref(null);
@@ -6283,6 +6384,7 @@ const selectAddress = async (item) => {
 };
 
 let instructionTimeout = null;
+let kitchenNoteTimeout = null;
 
 const changeDeliveryScheduleInstruction = async () => {
   if (instructionTimeout) clearTimeout(instructionTimeout);
@@ -6316,6 +6418,36 @@ const changeDeliveryScheduleInstruction = async () => {
           color: "error",
         };
       }
+    }
+  }, 1000);
+};
+
+const changeNoteToKitchen = () => {
+  if (kitchenNoteTimeout) clearTimeout(kitchenNoteTimeout);
+  kitchenNoteTimeout = setTimeout(async () => {
+    kitchenNoteTimeout = null;
+    if (!cart.value?.[0]?.cart_id) return;
+    try {
+      await axios.put(
+        `/update-note-to-kitchen`,
+        {
+          cart_id: cart.value[0].cart_id,
+          note_to_kitchen: noteToKitchen.value,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        },
+      );
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "Something went wrong!";
+      snackbar.value = true;
+      message.value = {
+        text: errorMessage,
+        color: "error",
+      };
     }
   }, 1000);
 };
@@ -6511,6 +6643,9 @@ watch(cart, async (newCart) => {
     selectedAddress.value = newCart[0]?.ga_id;
     selectedPaymentMethod.value = newCart[0]?.payment_type_id;
     deliveryScheduleInstruction.value = newCart[0]?.order_instructions;
+    if (newCart[0]?.note_to_kitchen !== undefined && !kitchenNoteTimeout) {
+      noteToKitchen.value = newCart[0]?.note_to_kitchen || "";
+    }
     selectedDate.value = newCart[0]?.delivery_date
       ? parse(newCart[0]?.delivery_date)
       : null;
@@ -6539,6 +6674,7 @@ watch(
         : null;
       selectedTimeSlot.value = cart.value[0]?.time_slot;
       deliveryScheduleInstruction.value = cart.value[0]?.order_instructions;
+      noteToKitchen.value = cart.value[0]?.note_to_kitchen || "";
       if (cart.value[0]?.delivery_charges != "0.00") {
         selectedDelivery.value = cart.value[0]?.dc_id
           ? Number(cart.value[0]?.dc_id)
@@ -6572,6 +6708,7 @@ onMounted(() => {
   ) {
     // getTaxAmount();
     getAddress();
+    loadDwellingTypes();
     //getBiryaniRunAddress();
     // getPaymentTypes();
     getTimeSlots();
@@ -6692,6 +6829,29 @@ onMounted(() => {
 
 .pac-container {
   z-index: 99999 !important; /* Ensure autocomplete appears above modal */
+}
+
+.kitchen-note-textarea {
+  width: 100%;
+  min-height: 110px;
+  padding: 8px 10px;
+  border: 1px solid #cfcfcf;
+  border-radius: 2px;
+  background: #fff;
+  resize: vertical;
+  font-size: 13px;
+  line-height: 1.4;
+  outline: none;
+  font-family: inherit;
+}
+
+.kitchen-note-textarea:focus {
+  border-color: #9e9e9e;
+}
+
+.kitchen-note-red {
+  color: #e53935;
+  font-weight: 700;
 }
 
 @media (max-width: 768px) {
