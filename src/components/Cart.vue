@@ -4150,6 +4150,7 @@ const applyDisplayedTodayTimeSlots = () => {
 };
 
 watch(selectedDeliveryRate, (rateId) => {
+  if (step.value !== 3) return;
   selectedTimeSlotForRate.value = null;
   timeSlotsForRate.value = [];
   if (rateId) {
@@ -4158,6 +4159,7 @@ watch(selectedDeliveryRate, (rateId) => {
 });
 
 watch(selectedDummyDeliveryOption, (dtId) => {
+  if (step.value !== 3) return;
   if (!dtId) return;
   if (!isTodaySelected.value) return;
   if (isOrderForLaterSelected()) {
@@ -5775,6 +5777,10 @@ const nextStep = async (value) => {
       selectedTimeSlot.value = null;
       deliveryScheduleInstruction.value = null;
     }
+  } else if (value == 2) {
+    if (selectedAddress.value) {
+      getBiryaniRunAddress();
+    }
   } else if (value == 3) {
     if (addresses.value.length == 0) {
       isEmptyAddress.value = true;
@@ -5788,7 +5794,11 @@ const nextStep = async (value) => {
       };
       return;
     }
-    await initializeStep3Delivery();
+    isLoadingBiryaniRunAddress.value = true;
+    isLoadingDeliveryTiers.value = true;
+    step.value = 3;
+    initializeStep3Delivery();
+    return;
   }
   step.value = value;
 };
@@ -5841,9 +5851,6 @@ const fetchPeakNonPeakInfo = async (restaurantId) => {
       },
     );
     peakNonPeakInfo.value = response.data?.data;
-    if (isTodaySelected.value) {
-      await getTimeSlotsForRate();
-    }
   } catch (error) {
     console.error("Error fetching peak non peak info:", error);
   }
@@ -5868,17 +5875,19 @@ const initializeStep3Delivery = async () => {
   ]);
 
   if (restaurantId && filteredAddress.value?.distance) {
-    await fetchPeakNonPeakInfo(restaurantId);
+    fetchExtraPerKmRate(filteredAddress.value.distance);
+    fetchPeakNonPeakInfo(restaurantId);
   }
 
   selectDefaultDeliveryTier();
 
   if (isTodaySelected.value) {
-    await getTimeSlotsForRate();
+    getTimeSlotsForRate();
   }
 };
 
 const updateCartDeliveryInfo = async () => {
+  if (step.value !== 3) return false;
   if (!cart.value[0]?.cart_id) return false;
 
   if (isSelectedDateClosed.value) return false;
@@ -5970,11 +5979,13 @@ watch(
     selectedLaterTimeSlotId,
   ],
   () => {
+    if (step.value !== 3) return;
     updateCartDeliveryInfo();
   },
 );
 
 watch(selectedDeliveryDateKey, () => {
+  if (step.value !== 3) return;
   selectedDeliveryRate.value = null;
   selectedTimeSlotForRate.value = null;
   timeSlotsForRate.value = [];
@@ -6031,63 +6042,82 @@ const getNonStackFee = (dt_id) => {
 watch(
   filteredAddress,
   (newAddress) => {
+    if (step.value !== 3) return;
     if (newAddress && newAddress.distance) {
       fetchExtraPerKmRate(newAddress.distance);
       fetchPeakNonPeakInfo(cart.value[0]?.restaurant_id);
-      if (
-        isTodaySelected.value ||
-        selectedDeliveryRate.value
-      ) {
+      if (isTodaySelected.value || selectedDeliveryRate.value) {
         getTimeSlotsForRate();
       }
     }
   },
-  { immediate: true },
 );
 
+let biryaniRunAddressPromise = null;
+let biryaniRunAddressRequestKey = null;
+let biryaniRunAddressLoadedKey = null;
+
 const getBiryaniRunAddress = async () => {
-  isLoadingBiryaniRunAddress.value = true;
-  try {
-    const restaurantId = cart.value[0]?.restaurant_id;
-    if (!restaurantId) return;
-
-    const headers = { Authorization: `Bearer ${authToken}` };
-    let data = null;
-
-    try {
-      const drivingResponse = await axios.get(
-        `/get-address-biryani-run-driving/${restaurantId}`,
-        { headers },
-      );
-      data = drivingResponse.data?.data;
-    } catch (drivingError) {
-      // Production may not have the new route yet — keep cart usable
-      console.warn(
-        "Driving distance API unavailable, falling back to straight-line distance",
-        drivingError,
-      );
-      const fallbackResponse = await axios.get(
-        `/get-address-biryani-run/${restaurantId}`,
-        { headers },
-      );
-      data = fallbackResponse.data?.data;
-    }
-
-    biryaniRunAddresses.value = Array.isArray(data) ? data : [];
-    if (
-      isTodaySelected.value ||
-      selectedDeliveryRate.value
-    ) {
-      getTimeSlotsForRate();
-    } else {
-      updateCartDeliveryInfo();
-    }
-  } catch (error) {
-    console.error("Error fetching biryani run addresses:", error);
-    biryaniRunAddresses.value = [];
-  } finally {
+  const restaurantId = cart.value[0]?.restaurant_id;
+  if (!restaurantId) {
     isLoadingBiryaniRunAddress.value = false;
+    return;
   }
+
+  const requestKey = `${restaurantId}:${selectedAddress.value || ""}`;
+  if (biryaniRunAddressPromise && biryaniRunAddressRequestKey === requestKey) {
+    return biryaniRunAddressPromise;
+  }
+
+  if (biryaniRunAddressLoadedKey === requestKey && biryaniRunAddresses.value.length) {
+    isLoadingBiryaniRunAddress.value = false;
+    return;
+  }
+
+  isLoadingBiryaniRunAddress.value = true;
+  biryaniRunAddressRequestKey = requestKey;
+  biryaniRunAddressPromise = (async () => {
+    try {
+      const headers = { Authorization: `Bearer ${authToken}` };
+      let data = null;
+
+      try {
+        const drivingResponse = await axios.get(
+          `/get-address-biryani-run-driving/${restaurantId}`,
+          {
+            headers,
+            params: { ga_id: selectedAddress.value || undefined },
+            timeout: 10000,
+          },
+        );
+        data = drivingResponse.data?.data;
+      } catch (drivingError) {
+        // Production may not have the new route yet — keep cart usable
+        console.warn(
+          "Driving distance API unavailable, falling back to straight-line distance",
+          drivingError,
+        );
+        const fallbackResponse = await axios.get(
+          `/get-address-biryani-run/${restaurantId}`,
+          { headers, timeout: 8000 },
+        );
+        data = fallbackResponse.data?.data;
+      }
+
+      biryaniRunAddresses.value = Array.isArray(data) ? data : [];
+      biryaniRunAddressLoadedKey = requestKey;
+    } catch (error) {
+      console.error("Error fetching biryani run addresses:", error);
+      biryaniRunAddresses.value = [];
+    } finally {
+      isLoadingBiryaniRunAddress.value = false;
+      if (biryaniRunAddressRequestKey === requestKey) {
+        biryaniRunAddressPromise = null;
+      }
+    }
+  })();
+
+  return biryaniRunAddressPromise;
 };
 
 const getAddress = async () => {
@@ -6229,6 +6259,7 @@ const selectAddress = async (item) => {
     getCartData();
     const data = response.data.data;
     selectedAddress.value = data.ga_id;
+    getBiryaniRunAddress();
     // console.log(selectedAddress.value);
     snackbar.value = true;
     message.value = {
