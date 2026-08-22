@@ -1,0 +1,38 @@
+name: Deploy Vue to cPanel
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Vue application
+        run: npm run build
+
+      - name: Deploy dist to cPanel
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.CPANEL_HOST }}
+          username: ${{ secrets.CPANEL_USERNAME }}
+          key: ${{ secrets.CPANEL_SSH_KEY }}
+          port: ${{ secrets.CPANEL_PORT }}
+          source: "dist/*"
+          target: "/home/${{ secrets.CPANEL_USERNAME }}/public_html"
+          strip_components: 1
+          overwrite: true
