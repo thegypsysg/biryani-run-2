@@ -559,6 +559,14 @@ export default {
           this.userName = data.name;
           this.setUserName(data.name);
           localStorage.setItem("userName", data.name);
+          if (data.gypsy_id) {
+            localStorage.setItem("gypsy_id", String(data.gypsy_id));
+            if (data.partner_name || data.partner) {
+              localStorage.setItem("partner_gypsy_id", String(data.gypsy_id));
+            } else {
+              localStorage.removeItem("partner_gypsy_id");
+            }
+          }
           this.userEmail = data.email_id;
           this.setUserEmail(data.email_id);
           localStorage.setItem("email", data.email_id);
@@ -602,6 +610,14 @@ export default {
 
           this.userName = data.name;
           this.setUserName(data.name);
+          if (data.gypsy_id) {
+            localStorage.setItem("gypsy_id", String(data.gypsy_id));
+            if (data.partner_name || data.partner) {
+              localStorage.setItem("partner_gypsy_id", String(data.gypsy_id));
+            } else {
+              localStorage.removeItem("partner_gypsy_id");
+            }
+          }
           this.userEmail = data.email_id;
           this.setUserEmail(data.email_id);
           this.userDated = data.last_login;

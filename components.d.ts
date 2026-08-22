@@ -25,6 +25,7 @@ declare module 'vue' {
     Happening: typeof import('./src/components/DesktopView/Happening/Happening.vue')['default']
     Header: typeof import('./src/components/Header.vue')['default']
     ImageCropperDialog: typeof import('./src/components/ImageCropperDialog.vue')['default']
+    IncomingOrder: typeof import('./src/components/IncomingOrder.vue')['default']
     LambBiryani: typeof import('./src/components/home/lamb-biryani.vue')['default']
     Main: typeof import('./src/components/Main.vue')['default']
     MainLogo: typeof import('./src/components/mainLogo.vue')['default']
