@@ -41,6 +41,7 @@
         </Transition>
       </RouterView>
       <FooterMobile v-show="!isDesktop && !isProfile"></FooterMobile>
+      <IncomingOrder />
     </div>
     <v-dialog v-model="isLoggedIn" persistent width="auto">
       <v-card width="350">
@@ -110,13 +111,14 @@
 import { RouterView } from "vue-router";
 import Header from "@/components/Header.vue";
 import FooterMobile from "@/components/FooterMobile.vue";
+import IncomingOrder from "@/components/IncomingOrder.vue";
 import app from "@/util/eventBus";
 import axios from "@/util/axios";
 
 export default {
   name: "App",
   // eslint-disable-next-line vue/no-reserved-component-names
-  components: { RouterView, Header },
+  components: { RouterView, Header, IncomingOrder },
   data() {
     return {
       currentRoute: this.$route.path,

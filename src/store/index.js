@@ -172,8 +172,10 @@ export default createStore({
     },
 
     async getCartItems({ commit, state }) {
-      const lat = localStorage.getItem("latitude");
-      const long = localStorage.getItem("longitude");
+      const lat = Number(localStorage.getItem("latitude"));
+      const long = Number(localStorage.getItem("longitude"));
+      const hasCoords = Number.isFinite(lat) && Number.isFinite(long);
+      const locationPath = hasCoords ? `/${lat}/${long}` : "";
       const token = localStorage.getItem("token");
 
       const config = {
@@ -183,7 +185,7 @@ export default createStore({
       };
 
       const req1 = axios
-        .get(`/get-cart-items-biryani-run/7/${lat}/${long}`, config)
+        .get(`/get-cart-items-biryani-run/7${locationPath}`, config)
         .then((res) => (Array.isArray(res?.data) ? res.data : []))
         .catch((err) => {
           console.error("Error fetching biryani items:", err);
@@ -191,7 +193,7 @@ export default createStore({
         });
 
       const req2 = axios
-        .get(`/get-cart-items-menu-rate-price/7/${lat}/${long}`, config)
+        .get(`/get-cart-items-menu-rate-price/7${locationPath}`, config)
         .then((res) => {
           let categoryItems = [];
           const itemsObj = res?.data?.data || res?.data || {};
